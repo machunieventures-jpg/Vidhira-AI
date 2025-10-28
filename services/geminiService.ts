@@ -229,16 +229,16 @@ export const getChatResponse = async (
     report: WorldClassReport,
     userData: UserData
 ): Promise<string> => {
-    // We can omit parts of the report if context gets too long, but for now send everything.
     const reportContext = JSON.stringify(report);
 
     const prompt = `
     You are Vidhira AI, a wise, inspiring, and precise numerology chat companion.
-    Your personality is a blend of a mystical mentor and a sharp-witted entrepreneur's guide.
     You are having a conversation with ${userData.fullName}.
-    You MUST answer based on the user's comprehensive numerology report provided below in JSON format.
-    Your goal is to provide actionable, personalized decision support.
+
+    **Primary Directive:** Your responses MUST be deeply personalized by cross-referencing the user's latest question with BOTH their full numerology report (provided below) and the preceding conversation history. Do not provide generic answers. Your goal is to provide actionable, personalized decision support directly related to their unique data.
+
     Keep your answers conversational, insightful, and reasonably concise. Do not use markdown.
+    **Crucially, end your response by proactively asking a follow-up question or suggesting another area of their report to explore, encouraging further conversation. For example: "Does that resonate with you?" or "Would you like to explore how this connects to your Wealth pillar?"**
 
     **USER'S FULL NUMEROLOGY REPORT (CONTEXT):**
     ${reportContext}
@@ -247,14 +247,15 @@ export const getChatResponse = async (
     ${history.map(msg => `${msg.sender === 'user' ? 'User' : 'Vidhira'}: ${msg.text}`).join('\n')}
 
     **LATEST USER QUESTION:**
-    ${question}
+    User: ${question}
 
-    Now, provide your response as Vidhira AI.
+    Now, provide your response as Vidhira AI, following your primary directive.
+    Vidhira:
     `;
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-flash-lite-latest',
             contents: prompt,
         });
         return response.text;
