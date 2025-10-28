@@ -1,0 +1,80 @@
+
+import React, { useState, useCallback } from 'react';
+import Header from './components/common/Header';
+import OnboardingForm from './components/OnboardingForm';
+import Dashboard from './components/Dashboard';
+import LoadingSpinner from './components/common/LoadingSpinner';
+import type { UserData, WorldClassReport } from './types';
+import { calculateInitialNumbers, generateLoshuGrid } from './services/numerologyService';
+import { generateWorldClassReport } from './services/geminiService';
+
+const App: React.FC = () => {
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [report, setReport] = useState<WorldClassReport | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFormSubmit = useCallback(async (data: UserData) => {
+    setIsLoading(true);
+    setUserData(data);
+    setError(null);
+    setReport(null);
+    try {
+      const { core, compound } = calculateInitialNumbers(data);
+      const { missing, overloaded } = generateLoshuGrid(data.dob);
+      
+      const loshuForAI = { missingNumbers: missing, overloadedNumbers: overloaded };
+
+      const fullReport = await generateWorldClassReport(data, core, compound, loshuForAI);
+      setReport(fullReport);
+    } catch (err) {
+      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      setError(`An unexpected error occurred while generating your report. Please check your connection and try again. Details: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+  
+  const handleReset = () => {
+      setUserData(null);
+      setReport(null);
+      setIsLoading(false);
+      setError(null);
+  }
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <LoadingSpinner />;
+    }
+    if (error) {
+        return (
+            <div className="text-center text-aurora-pink bg-black/30 p-6 rounded-lg max-w-lg mx-auto">
+                <p className="font-bold text-lg">Error Generating Report</p>
+                <p className="text-white/80 mt-2">{error}</p>
+                <button onClick={handleReset} className="mt-4 bg-aurora-pink text-white font-bold py-2 px-4 rounded-lg">Try Again</button>
+            </div>
+        );
+    }
+    if (report && userData) {
+      return <Dashboard report={report} userData={userData} onReset={handleReset} />;
+    }
+    return <OnboardingForm onSubmit={handleFormSubmit} />;
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white bg-gradient-to-br from-[#1e133b] via-[#0c0a1d] to-black">
+      <div className="min-h-screen flex flex-col p-4 selection:bg-aurora-pink/30">
+        <Header />
+        <main className="w-full flex-grow flex justify-center py-10">
+          {renderContent()}
+        </main>
+        <footer className="text-center text-xs text-white/40 py-4">
+          <p>Vidhira 🔮 &copy; {new Date().getFullYear()}. For entertainment and spiritual insight purposes only.</p>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+export default App;

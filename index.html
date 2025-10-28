@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vidhira 🔮 — AI Numerology & Destiny Intelligence System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Roboto', sans-serif;
+      }
+      h1, h2, h3, h4, .font-display {
+        font-family: 'Playfair Display', serif;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+       @keyframes slide-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes slide-up-fade {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-slide-up-fade {
+        animation: slide-up-fade 0.6s ease-out forwards;
+        opacity: 0; /* Start hidden */
+        animation-fill-mode: forwards;
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      .animate-fade-in-fast {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+      .animate-slide-up {
+        animation: slide-up 0.5s ease-out forwards;
+      }
+      @keyframes scalePulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.25); }
+        100% { transform: scale(1); }
+      }
+      .animate-scale-pulse {
+        animation: scalePulse 0.3s ease-in-out;
+      }
+      
+      /* Pillar Styles */
+      @keyframes background-pan {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      @keyframes stars {
+        0% { background-position: 0 0; }
+        100% { background-position: -10000px 5000px; }
+      }
+
+      .pillar-cosmic-identity {
+        background-color: #0c0a1d;
+        background-image: url('https://www.transparenttextures.com/patterns/stardust.png'),
+                          radial-gradient(ellipse at top, #3a0ca3, transparent),
+                          radial-gradient(ellipse at bottom, #f72585, transparent);
+        animation: stars 200s linear infinite;
+      }
+      .pillar-loshu {
+        background-color: #1a1a2e;
+        background-image:
+          linear-gradient(rgba(76, 201, 240, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(76, 201, 240, 0.1) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .pillar-wealth {
+        background: linear-gradient(135deg, #161225, #2a2040, #161225);
+        background-size: 200% 200%;
+        animation: background-pan 15s ease infinite;
+        position: relative;
+        overflow: hidden;
+      }
+      .pillar-wealth::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 10px,
+          rgba(255, 215, 0, 0.05) 10px,
+          rgba(255, 215, 0, 0.05) 20px
+        );
+        animation: background-pan 20s linear infinite;
+      }
+      .pillar-health {
+        background: linear-gradient(270deg, #3a0ca3, #4cc9f0, #3a0ca3);
+        background-size: 400% 400%;
+        animation: background-pan 20s ease infinite;
+      }
+      .pillar-relationships {
+        background: linear-gradient(-45deg, #f72585, #7209b7, #3a0ca3, #f72585);
+        background-size: 400% 400%;
+        animation: background-pan 18s ease infinite;
+      }
+      .pillar-psychology {
+        background: radial-gradient(circle, #2c0b49, #0c0a1d);
+      }
+      .pillar-navigator {
+         background: linear-gradient(120deg, #0c0a1d, #1e133b, #3a0ca3, #1e133b, #0c0a1d);
+         background-size: 300% 300%;
+         animation: background-pan 12s linear infinite;
+      }
+      .pillar-spiritual {
+        background: radial-gradient(ellipse at center, rgba(76, 201, 240, 0.2), transparent 70%), linear-gradient(to bottom, #0c0a1d, #1e133b);
+      }
+      .pillar-intellect {
+        background-color: #0c0a1d;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 0);
+        background-size: 30px 30px;
+      }
+      .pillar-forecast {
+        background: linear-gradient(180deg, rgba(12,10,29,0) 0%, rgba(76,201,240,0.1) 100%), #1e133b;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'aurora-pink': '#F72585',
+              'deep-purple': '#3A0CA3',
+              'cool-cyan': '#4CC9F0',
+              'accent-gold': '#FFD700',
+            },
+          },
+        },
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
