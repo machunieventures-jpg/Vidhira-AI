@@ -12,7 +12,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     const renderContent = () => {
         return content.split('\n').map((line, index) => {
             // Bold **text**
-            line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            line = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-starlight/90">$1</strong>');
             // List items * or -
             if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
                  return <li key={index} dangerouslySetInnerHTML={{ __html: line.substring(2) }} className="ml-5 list-disc" />;
@@ -22,7 +22,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         });
     };
 
-    return <div className="text-white/80 space-y-2 text-justify">{renderContent()}</div>;
+    return <div className="text-lunar-grey space-y-2 text-justify">{renderContent()}</div>;
 };
 
 export default MarkdownRenderer;

@@ -49,10 +49,10 @@ const App: React.FC = () => {
     }
     if (error) {
         return (
-            <div className="text-center text-aurora-pink bg-black/30 p-6 rounded-lg max-w-lg mx-auto">
+            <div className="text-center text-cosmic-gold/90 bg-void-tint p-6 rounded-lg max-w-lg mx-auto border border-lunar-grey/20">
                 <p className="font-bold text-lg">Error Generating Report</p>
-                <p className="text-white/80 mt-2">{error}</p>
-                <button onClick={handleReset} className="mt-4 bg-aurora-pink text-white font-bold py-2 px-4 rounded-lg">Try Again</button>
+                <p className="text-starlight/80 mt-2">{error}</p>
+                <button onClick={handleReset} className="mt-4 bg-cosmic-gold text-deep-void font-bold py-2 px-4 rounded-lg">Try Again</button>
             </div>
         );
     }
@@ -63,13 +63,13 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-cosmos text-white">
-      <div className="min-h-screen flex flex-col p-4 selection:bg-aurora-pink/30">
+    <div className="min-h-screen bg-deep-void text-starlight">
+      <div className="min-h-screen flex flex-col p-4 selection:bg-cosmic-gold/30">
         <Header />
         <main className="w-full flex-grow flex justify-center py-10">
           {renderContent()}
         </main>
-        <footer className="text-center text-xs text-white/40 py-4">
+        <footer className="text-center text-xs text-starlight/40 py-4">
           <p>Vidhira 🔮 &copy; {new Date().getFullYear()}. For Purpose of life.</p>
         </footer>
       </div>

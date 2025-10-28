@@ -46,47 +46,47 @@ const RahuKaalCalculator: React.FC = () => {
 
     return (
         <div>
-            <h4 className="text-xl font-bold text-cool-cyan font-display mb-3">Rahu Kaal Calculator</h4>
-            <p className="text-sm text-white/70 mb-4">
+            <h4 className="text-xl font-bold text-cosmic-gold font-display mb-3">Rahu Kaal Calculator</h4>
+            <p className="text-sm text-lunar-grey mb-4">
                 Calculate the inauspicious time of the day (Rahu Kaal) to avoid starting new ventures. Enter today's sunrise and sunset times for your location.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
                 <div className="w-full">
-                    <label htmlFor="sunrise" className="block text-sm font-medium text-galactic-silver/80 mb-1">Sunrise Time</label>
+                    <label htmlFor="sunrise" className="block text-sm font-medium text-lunar-grey mb-1">Sunrise Time</label>
                     <input
                         type="time"
                         id="sunrise"
                         value={sunrise}
                         onChange={(e) => setSunrise(e.target.value)}
-                        className="w-full bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all appearance-none"
+                        className="w-full bg-deep-void/50 border border-lunar-grey/50 text-starlight rounded-lg px-4 py-2 focus:ring-2 focus:ring-cosmic-gold focus:border-cosmic-gold outline-none transition-all appearance-none"
                         style={{ colorScheme: 'dark' }}
                     />
                 </div>
                 <div className="w-full">
-                    <label htmlFor="sunset" className="block text-sm font-medium text-galactic-silver/80 mb-1">Sunset Time</label>
+                    <label htmlFor="sunset" className="block text-sm font-medium text-lunar-grey mb-1">Sunset Time</label>
                     <input
                         type="time"
                         id="sunset"
                         value={sunset}
                         onChange={(e) => setSunset(e.target.value)}
-                        className="w-full bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all appearance-none"
+                        className="w-full bg-deep-void/50 border border-lunar-grey/50 text-starlight rounded-lg px-4 py-2 focus:ring-2 focus:ring-cosmic-gold focus:border-cosmic-gold outline-none transition-all appearance-none"
                         style={{ colorScheme: 'dark' }}
                     />
                 </div>
             </div>
              <button
                 onClick={calculateRahuKaal}
-                className="w-full sm:w-auto bg-aurora-pink text-white font-bold py-2 px-6 rounded-lg hover:bg-opacity-80 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-aurora-pink/30"
+                className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20"
             >
                 Calculate for Today
             </button>
             
-            {error && <p className="text-aurora-pink text-sm mt-3">{error}</p>}
+            {error && <p className="text-cosmic-gold/90 text-sm mt-3">{error}</p>}
 
             {rahuKaal && (
-                <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg animate-slide-up text-center">
-                    <p className="text-white/80">Today's Rahu Kaal is from:</p>
-                    <p className="text-2xl font-bold font-display text-aurora-pink mt-1">{rahuKaal}</p>
+                <div className="mt-6 p-4 bg-deep-void/30 border border-lunar-grey/10 rounded-lg animate-slide-up text-center">
+                    <p className="text-lunar-grey">Today's Rahu Kaal is from:</p>
+                    <p className="text-2xl font-bold font-display text-cosmic-gold mt-1">{rahuKaal}</p>
                 </div>
             )}
         </div>

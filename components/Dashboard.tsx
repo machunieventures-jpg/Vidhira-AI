@@ -33,13 +33,7 @@ const pillarStyles: { [key: string]: string } = {
     cosmicIdentity: 'pillar-cosmic-identity',
     loshuAnalysis: 'pillar-loshu',
     wealthBusinessCareer: 'pillar-wealth',
-    healthEnergyWellness: 'pillar-health',
-    relationshipsFamilyLegacy: 'pillar-relationships',
-    psychologyShadowWork: 'pillar-psychology',
-    dailyNavigator: 'pillar-navigator',
-    spiritualAlignment: 'pillar-spiritual',
-    intellectEducation: 'pillar-intellect',
-    futureForecast: 'pillar-forecast',
+    default: 'pillar-default',
 };
 
 const otherPillars = [
@@ -51,22 +45,6 @@ const otherPillars = [
     { key: 'intellectEducation', title: 'Intellect, Education & Knowledge', icon: Icons.Intellect },
 ];
 
-const numberToClassMap: { [key: number]: string } = {
-    1: 'bg-number-1',
-    2: 'bg-number-2',
-    3: 'bg-number-3',
-    4: 'bg-number-4',
-    5: 'bg-number-5',
-    6: 'bg-number-6',
-    7: 'bg-number-7',
-    8: 'bg-number-8',
-    9: 'bg-number-9',
-    11: 'bg-number-master',
-    22: 'bg-number-master',
-    33: 'bg-number-master',
-};
-
-
 const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
   const { cosmicIdentity, loshuAnalysis, futureForecast, wealthBusinessCareer } = report;
 
@@ -77,8 +55,8 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
     <>
       <div className="w-full max-w-4xl mx-auto p-4 md:p-6 space-y-8">
         <div className="text-center animate-fade-in">
-          <h2 className="text-3xl md:text-4xl font-bold text-white font-display">Your Full Life Report Blueprint</h2>
-          <p className="text-cool-cyan mt-2">Prepared for <span className="text-aurora-pink font-semibold">{userData.fullName}</span></p>
+          <h2 className="text-3xl md:text-4xl font-bold text-starlight font-display">Your Full Life Report Blueprint</h2>
+          <p className="text-lunar-grey mt-2">Prepared for <span className="text-cosmic-gold font-semibold">{userData.fullName}</span></p>
         </div>
 
         <ReportSection 
@@ -93,23 +71,22 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
                       <NumberCard 
                         title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} 
                         data={value} 
-                        className={numberToClassMap[value.number] || ''}
                       />
-                      {key !== 'maturity' && <hr className="border-white/10" />}
+                      {key !== 'maturity' && <hr className="border-lunar-grey/10" />}
                   </React.Fragment>
               ))}
           </div>
           <div className="mt-6 space-y-4">
               <div>
-                  <h4 className="text-xl font-bold text-cool-cyan font-display">Soul Synopsis</h4>
-                  <p className="text-white/80 mt-1 whitespace-pre-wrap">{cosmicIdentity.soulSynopsis}</p>
+                  <h4 className="text-xl font-bold text-cosmic-gold font-display">Soul Synopsis</h4>
+                  <p className="text-lunar-grey mt-1 whitespace-pre-wrap">{cosmicIdentity.soulSynopsis}</p>
               </div>
               <div>
-                  <h4 className="text-xl font-bold text-cool-cyan font-display">Famous Parallel Souls</h4>
+                  <h4 className="text-xl font-bold text-cosmic-gold font-display">Famous Parallel Souls</h4>
                   <MarkdownRenderer content={cosmicIdentity.famousParallels} />
               </div>
               <div>
-                  <h4 className="text-xl font-bold text-cool-cyan font-display">Planetary Rulerships</h4>
+                  <h4 className="text-xl font-bold text-cosmic-gold font-display">Planetary Rulerships</h4>
                   <MarkdownRenderer content={cosmicIdentity.planetaryRulerships} />
               </div>
           </div>
@@ -123,20 +100,20 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
         >
           <LoshuGrid 
             grid={loshuAnalysis.grid} 
-            missingNumbers={loshuAnalysis.missingNumbers} 
+            missingNumbers={loshuAnalysis.missingNumbers}
+            overloadedNumbers={loshuAnalysis.overloadedNumbers}
             userData={userData} 
             birthNumber={mulank} 
             destinyNumber={lifePathNumber} 
           />
-          <div className="mt-6 space-y-4 text-white/90">
-              <MarkdownRenderer content={`**Overloaded Numbers:** ${loshuAnalysis.overloadedNumbers.join(', ') || 'None'}`} />
-              <h4 className="text-xl font-bold text-cool-cyan font-display mt-4">Elemental Planes Analysis</h4>
+          <div className="mt-6 space-y-4 text-starlight/90">
+              <h4 className="text-xl font-bold text-cosmic-gold font-display mt-4">Elemental Planes Analysis</h4>
               <MarkdownRenderer content={loshuAnalysis.elementalPlanes.mental} />
               <MarkdownRenderer content={loshuAnalysis.elementalPlanes.emotional} />
               <MarkdownRenderer content={loshuAnalysis.elementalPlanes.practical} />
-              <h4 className="text-xl font-bold text-cool-cyan font-display mt-4">Balance Summary</h4>
+              <h4 className="text-xl font-bold text-cosmic-gold font-display mt-4">Balance Summary</h4>
               <MarkdownRenderer content={loshuAnalysis.balanceSummary} />
-              <h4 className="text-xl font-bold text-cool-cyan font-display mt-4">Missing Number Compensation Strategy</h4>
+              <h4 className="text-xl font-bold text-cosmic-gold font-display mt-4">Missing Number Compensation Strategy</h4>
               <MarkdownRenderer content={loshuAnalysis.compensationStrategy} />
           </div>
         </ReportSection>
@@ -148,7 +125,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
           style={{ animationDelay: '300ms' }}
         >
           <MarkdownRenderer content={wealthBusinessCareer} />
-          <hr className="border-white/10 my-6" />
+          <hr className="border-lunar-grey/10 my-6" />
           <BrandAnalyzer userData={userData} report={report} />
         </ReportSection>
 
@@ -158,7 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
               key={pillar.key} 
               title={`Pillar ${index + 4}: ${pillar.title}`} 
               icon={pillar.icon}
-              className={`${pillarStyles[pillar.key]} animate-slide-up-fade`}
+              className={`${pillarStyles.default} animate-slide-up-fade`}
               style={{ animationDelay: `${450 + index * 150}ms` }}
           >
               <MarkdownRenderer content={(report as any)[pillar.key]} />
@@ -168,21 +145,20 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
           <ReportSection 
               title="Pillar 10: Advanced Future Forecast" 
               icon={Icons.Forecast}
-              className={`${pillarStyles.futureForecast} animate-slide-up-fade`}
+              className={`${pillarStyles.default} animate-slide-up-fade`}
               style={{ animationDelay: `${450 + otherPillars.length * 150}ms` }}
           >
               <div className="space-y-6">
                   <NumberCard 
                     title="Personal Year Number" 
                     data={futureForecast.personalYear} 
-                    className={numberToClassMap[futureForecast.personalYear.number] || ''}
                   />
-                  <hr className="border-white/10" />
+                  <hr className="border-lunar-grey/10" />
                   <div>
-                      <h4 className="text-xl font-bold text-cool-cyan font-display">12-Month Strategic Roadmap</h4>
+                      <h4 className="text-xl font-bold text-cosmic-gold font-display">12-Month Strategic Roadmap</h4>
                       <MarkdownRenderer content={futureForecast.strategicRoadmap} />
                   </div>
-                  <hr className="border-white/10 my-6" />
+                  <hr className="border-lunar-grey/10 my-6" />
                   <YearlyForecast userData={userData} />
               </div>
         </ReportSection>
@@ -190,7 +166,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
         <div className="text-center pt-4">
           <button
             onClick={onReset}
-            className="bg-cool-cyan/80 text-deep-purple font-bold py-2 px-6 rounded-lg hover:bg-cool-cyan transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cool-cyan/20"
+            className="border border-cosmic-gold text-cosmic-gold font-bold py-2 px-6 rounded-lg hover:bg-cosmic-gold hover:text-deep-void transform hover:scale-105 transition-all duration-300"
           >
             Analyze Another Profile
           </button>

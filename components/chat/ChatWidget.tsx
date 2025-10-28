@@ -53,18 +53,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ report, userData }) => {
         <>
             <button
                 onClick={toggleChat}
-                className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-aurora-pink to-celestial-sapphire rounded-full text-white shadow-2xl shadow-aurora-pink/30 flex items-center justify-center transform hover:scale-110 transition-transform duration-300 z-50"
+                className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-cosmic-gold to-lunar-grey/50 rounded-full text-white shadow-2xl shadow-cosmic-gold/20 flex items-center justify-center transform hover:scale-110 transition-transform duration-300 z-50"
                 aria-label="Open Vidhira AI Chat"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-deep-void" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
             </button>
 
             {isOpen && (
-                <div className="fixed bottom-24 right-6 w-[calc(100%-3rem)] max-w-md h-[70vh] max-h-[600px] bg-celestial-sapphire/70 backdrop-blur-2xl border border-cool-cyan/30 rounded-2xl shadow-2xl flex flex-col z-50 animate-slide-up">
+                <div className="fixed bottom-24 right-6 w-[calc(100%-3rem)] max-w-md h-[70vh] max-h-[600px] bg-void-tint/80 backdrop-blur-2xl border border-lunar-grey/30 rounded-2xl shadow-2xl flex flex-col z-50 animate-slide-up">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-cool-cyan/20">
-                        <h3 className="font-display text-xl font-bold text-white">Vidhira AI Companion</h3>
-                        <button onClick={toggleChat} className="text-white/70 hover:text-white">&times;</button>
+                    <div className="flex items-center justify-between p-4 border-b border-lunar-grey/20">
+                        <h3 className="font-display text-xl font-bold text-starlight">Vidhira AI Companion</h3>
+                        <button onClick={toggleChat} className="text-starlight/70 hover:text-starlight text-2xl">&times;</button>
                     </div>
 
                     {/* Messages */}
@@ -77,19 +77,19 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ report, userData }) => {
                     </div>
 
                     {/* Input */}
-                    <div className="p-4 border-t border-cool-cyan/20">
+                    <div className="p-4 border-t border-lunar-grey/20">
                         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                             <input
                                 type="text"
                                 value={userInput}
                                 onChange={(e) => setUserInput(e.target.value)}
                                 placeholder="Ask about your report..."
-                                className="flex-1 bg-white/10 border border-cool-cyan/50 text-white rounded-full px-4 py-2 focus:ring-2 focus:ring-aurora-pink outline-none transition-all"
+                                className="flex-1 bg-deep-void/50 border border-lunar-grey/50 text-starlight rounded-full px-4 py-2 focus:ring-2 focus:ring-cosmic-gold outline-none transition-all"
                                 disabled={isLoading}
                             />
                             <button
                                 type="submit"
-                                className="w-10 h-10 flex-shrink-0 bg-aurora-pink rounded-full flex items-center justify-center text-white transform hover:scale-110 transition-transform disabled:bg-gray-500 disabled:scale-100"
+                                className="w-10 h-10 flex-shrink-0 bg-cosmic-gold rounded-full flex items-center justify-center text-deep-void transform hover:scale-110 transition-transform disabled:bg-lunar-grey disabled:scale-100"
                                 disabled={isLoading || !userInput.trim()}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" /></svg>

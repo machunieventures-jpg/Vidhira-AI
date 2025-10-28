@@ -56,7 +56,7 @@ const responseSchema = {
         },
         wealthBusinessCareer: { type: Type.STRING, description: "Pillar 3. In-depth analysis formatted in Markdown. Cover Business Alignment, Career Domains, Money Frequency, and Timing Cycles." },
         healthEnergyWellness: { type: Type.STRING, description: "Pillar 4. In-depth analysis formatted in Markdown. Cover Planetary Health Zones, Energy Imbalances, and Healing Recommendations." },
-        relationshipsFamilyLegacy: { type: Type.STRING, description: "Pillar 5. In-depth analysis formatted in Markdown. Cover Partner Compatibility, Family Influence, and Karmic Lessons." },
+        relationshipsFamilyLegacy: { type: Type.STRING, description: "Pillar 5. In-depth analysis formatted in Markdown. Cover Partner Compatibility, Family Influence, and Karmic Lessons. Also include dedicated sections for **Optimal Timing for Marriage** and **Optimal Timing for Childbirth**, analyzing numerological compatibility and significant life cycle numbers for these events." },
         psychologyShadowWork: { type: Type.STRING, description: "Pillar 6. In-depth analysis formatted in Markdown. Cover Inner Traps, Self-Sabotage Patterns, and Healing Missing Numbers." },
         dailyNavigator: { type: Type.STRING, description: "Pillar 7. A 7-day tactical guide formatted in Markdown. For each day, provide a Power Code (Color, Number, Action)." },
         spiritualAlignment: { type: Type.STRING, description: "Pillar 8. In-depth analysis formatted in Markdown. Cover Mantras, Crystals, Colors, and Lucky Dates." },
@@ -91,11 +91,12 @@ export const generateWorldClassReport = async (
     // Fix: Corrected the type of 'loshu' to only include the properties being passed.
     loshu: Pick<LoshuAnalysis, 'missingNumbers' | 'overloadedNumbers'>
 ): Promise<WorldClassReport> => {
-  const { fullName, dob, time, location, gender } = userData;
+  const { fullName, dob, time, location, gender, language } = userData;
 
   const prompt = `
   Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence, following the Machuni Hub Framework.
   Your persona is inspiring, precise, and deeply personalized, blending mysticism with entrepreneurial insight.
+  Your entire response, including all text, interpretations, and markdown content, MUST be in ${language}.
   The user wants their "FULL LIFE REPORT BLUEPRINT". Generate a comprehensive, 10-pillar report based on their data.
   The output MUST be a valid JSON object that adheres to the provided schema.
   All text content, especially interpretations and markdown sections, must be insightful, empowering, personalized, and actionable.
@@ -106,6 +107,7 @@ export const generateWorldClassReport = async (
   - Time of Birth: "${time}"
   - Location of Birth: "${location}"
   - Gender: "${gender}"
+  - Preferred Language: "${language}"
 
   **CALCULATED NUMEROLOGY DATA:**
   - Life Path Number: ${coreNumbers.lifePath} (from compound ${compoundNumbers.lifePath})
@@ -117,7 +119,7 @@ export const generateWorldClassReport = async (
   - Loshu Grid Missing Numbers: ${loshu.missingNumbers.join(', ') || 'None'}
   - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
 
-  Now, generate the complete JSON report. For each core number, provide a deep, multi-paragraph interpretation covering spiritual, psychological, and practical aspects for leadership, business, and relationships. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**).
+  Now, generate the complete JSON report. For each core number, provide a deep, multi-paragraph interpretation covering spiritual, psychological, and practical aspects for leadership, business, and relationships. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**). For the 'relationshipsFamilyLegacy' pillar, you must include detailed sections on the best numerological timing for marriage and childbirth, analyzing how this timing aligns with the user's core numbers.
   `;
 
   try {
@@ -161,7 +163,8 @@ export const getLoshuNumberInterpretation = async (
   number: number,
   isMissing: boolean,
   userName: string,
-  dob: string
+  dob: string,
+  language: string
 ): Promise<string> => {
   const presence = isMissing ? 'missing from their Loshu grid' : 'present in their Loshu grid';
   const instruction = isMissing
@@ -169,6 +172,7 @@ export const getLoshuNumberInterpretation = async (
     : 'Explain the positive influence and inherent strength this number provides to their personality and life path. Keep it concise.';
 
   const prompt = `Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence. Your persona is inspiring, precise, and deeply personalized.
+  The response MUST be in ${language}.
   User's Full Name: "${userName}"
   User's Date of Birth: "${dob}"
 
@@ -193,12 +197,14 @@ export const analyzeBrandName = async (
   businessName: string,
   userName: string,
   userLifePath: number,
-  userExpression: number
+  userExpression: number,
+  language: string
 ): Promise<string> => {
     const brandNumbers = calculateNameNumbers(businessName);
     const prompt = `
     Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence, focusing on business and entrepreneurship.
     Your persona is inspiring, precise, and deeply personalized.
+    Your response MUST be in ${language} and formatted in Markdown.
 
     **USER & BRAND DATA:**
     - User's Name: "${userName}"
@@ -236,6 +242,7 @@ export const getChatResponse = async (
 
     const prompt = `
     You are Vidhira AI, a wise, inspiring, and precise numerology chat companion.
+    The entire conversation and all your responses MUST be in ${userData.language}.
     You are having a conversation with ${userData.fullName}.
 
     **Primary Directive:** Your responses MUST be deeply personalized by cross-referencing the user's latest question with BOTH their full numerology report (provided below) and the preceding conversation history. Do not provide generic answers. Your goal is to provide actionable, personalized decision support directly related to their unique data.
@@ -251,6 +258,7 @@ export const getChatResponse = async (
     - Time of Birth: ${userData.time}
     - Location of Birth: ${userData.location}
     - Gender: ${userData.gender}
+    - Preferred Language: ${userData.language}
 
 
     **CONVERSATION HISTORY:**
@@ -277,11 +285,13 @@ export const getChatResponse = async (
 
 export const getYearlyForecast = async (
   mulank: number,
-  userName: string
+  userName: string,
+  language: string
 ): Promise<string> => {
   const prompt = `
   Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence.
   Your persona is inspiring, precise, and deeply insightful.
+  Your response MUST be in ${language} and formatted in Markdown.
 
   **USER DATA:**
   - Name: "${userName}"
@@ -291,7 +301,11 @@ export const getYearlyForecast = async (
   Generate a detailed and personalized "Yearly Forecast" for this user for the year 2026. The forecast must be based on their Mulank (${mulank}). Your response must be in Markdown format and include the following sections:
 
   1.  **Mulank ${mulank} Energy for 2026:** A summary of the overarching themes, opportunities, and challenges for individuals with Mulank ${mulank} in 2026.
-  2.  **Personalized Monthly Predictions (2026):** Provide a month-by-month breakdown (Jan-Dec). For each month, give a concise paragraph of insight covering career, relationships, and health.
+  2.  **Personalized Monthly Predictions (2026):** Provide a month-by-month breakdown (Jan-Dec). For each month, provide a detailed paragraph covering the following sub-topics, using them as bolded subheadings:
+      - **Career & Finance:** Highlight specific advancement opportunities, potential challenges, and financial trends.
+      - **Relationships & Compatibility:** Discuss romantic and social energies, and compatibility trends.
+      - **Health & Wellness:** Mention potential health considerations and suggest wellness practices.
+      - **Key Dates:** List 2-3 specific dates within the month that are either auspicious for action or require caution (e.g., "5th, 18th: Favorable for new projects").
   3.  **Strategic Warnings & Opportunities:** Create a bulleted list of 3-4 key warnings (e.g., "Be cautious with investments in April") and 3-4 key opportunities (e.g., "A powerful networking opportunity arises in September").
   4.  **Beyond 2026:** Briefly touch upon the energetic trends for 2027-2028 for Mulank ${mulank}.
 
@@ -312,13 +326,15 @@ export const getYearlyForecast = async (
 
 export const getDailyHoroscope = async (
   mulank: number,
-  userName: string
+  userName: string,
+  language: string
 ): Promise<string> => {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   const prompt = `
   Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence.
   Your persona is inspiring, precise, and deeply insightful.
+  Your response MUST be in ${language} and formatted in Markdown.
 
   **USER DATA:**
   - Name: "${userName}"
