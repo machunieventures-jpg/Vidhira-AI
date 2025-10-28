@@ -91,7 +91,7 @@ export const generateWorldClassReport = async (
     // Fix: Corrected the type of 'loshu' to only include the properties being passed.
     loshu: Pick<LoshuAnalysis, 'missingNumbers' | 'overloadedNumbers'>
 ): Promise<WorldClassReport> => {
-  const { fullName, dob } = userData;
+  const { fullName, dob, time, location, gender } = userData;
 
   const prompt = `
   Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence, following the Machuni Hub Framework.
@@ -103,6 +103,9 @@ export const generateWorldClassReport = async (
   **USER DATA:**
   - Full Name: "${fullName}"
   - Date of Birth: "${dob}"
+  - Time of Birth: "${time}"
+  - Location of Birth: "${location}"
+  - Gender: "${gender}"
 
   **CALCULATED NUMEROLOGY DATA:**
   - Life Path Number: ${coreNumbers.lifePath} (from compound ${compoundNumbers.lifePath})
@@ -242,6 +245,13 @@ export const getChatResponse = async (
 
     **USER'S FULL NUMEROLOGY REPORT (CONTEXT):**
     ${reportContext}
+    
+    **USER'S PERSONAL DATA (CONTEXT):**
+    - Date of Birth: ${userData.dob}
+    - Time of Birth: ${userData.time}
+    - Location of Birth: ${userData.location}
+    - Gender: ${userData.gender}
+
 
     **CONVERSATION HISTORY:**
     ${history.map(msg => `${msg.sender === 'user' ? 'User' : 'Vidhira'}: ${msg.text}`).join('\n')}
@@ -297,5 +307,46 @@ export const getYearlyForecast = async (
   } catch (error) {
     console.error(`Error fetching yearly forecast for Mulank ${mulank}:`, error);
     return `### Forecast Error\nFailed to generate the yearly forecast. The cosmic connection is currently unstable. Please try again.`;
+  }
+};
+
+export const getDailyHoroscope = async (
+  mulank: number,
+  userName: string
+): Promise<string> => {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  const prompt = `
+  Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence.
+  Your persona is inspiring, precise, and deeply insightful.
+
+  **USER DATA:**
+  - Name: "${userName}"
+  - Mulank (Primary Birth Number): ${mulank}
+
+  **TASK:**
+  Generate a personalized "Daily Horoscope" for this user for today, ${today}.
+  The horoscope must be based on their Mulank (${mulank}) and the current date's vibrations.
+  Your response must be in Markdown format and include the following sections with these exact headings:
+
+  1.  **Today's Vibe:** A one-sentence summary of the day's energy.
+  2.  **Career & Finance:** A brief, actionable tip for their professional life.
+  3.  **Relationships:** A piece of advice for interactions with others.
+  4.  **Health & Wellness:** A small suggestion for self-care.
+  5.  **Cosmic Tip-Off:** A final piece of empowering advice for the day.
+  6.  **Today's Power Code:** Provide a lucky number and a lucky color for the day.
+
+  Keep each section very concise (1-2 sentences). The tone should be positive and empowering.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-flash-lite-latest',
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.error(`Error fetching daily horoscope for Mulank ${mulank}:`, error);
+    return `### Horoscope Error\nFailed to receive today's cosmic transmission. Please try again in a moment.`;
   }
 };

@@ -63,14 +63,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white bg-gradient-to-br from-[#1e133b] via-[#0c0a1d] to-black">
+    <div className="min-h-screen bg-dark-cosmos text-white">
       <div className="min-h-screen flex flex-col p-4 selection:bg-aurora-pink/30">
         <Header />
         <main className="w-full flex-grow flex justify-center py-10">
           {renderContent()}
         </main>
         <footer className="text-center text-xs text-white/40 py-4">
-          <p>Vidhira 🔮 &copy; {new Date().getFullYear()}. For entertainment and spiritual insight purposes only.</p>
+          <p>Vidhira 🔮 &copy; {new Date().getFullYear()}. For Purpose of life.</p>
         </footer>
       </div>
     </div>

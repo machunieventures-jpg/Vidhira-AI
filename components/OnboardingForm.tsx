@@ -9,44 +9,85 @@ interface OnboardingFormProps {
 const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
   const [fullName, setFullName] = useState('');
   const [dob, setDob] = useState('');
+  const [time, setTime] = useState('');
+  const [location, setLocation] = useState('');
+  const [gender, setGender] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !dob) {
+    if (!fullName.trim() || !dob || !time || !location || !gender) {
       setError('Please fill out all fields.');
       return;
     }
     setError('');
-    onSubmit({ fullName, dob });
+    onSubmit({ fullName, dob, time, location, gender });
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20">
-      <h2 className="text-2xl font-bold text-center text-white font-display mb-2">Unlock Your Cosmic Code</h2>
+    <div className="w-full max-w-md mx-auto p-8 bg-celestial-sapphire/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-cool-cyan/20">
+      <h2 className="text-2xl font-bold text-center text-white font-display mb-2">Unlock Your Truth</h2>
       <p className="text-center text-cool-cyan mb-6">Enter your details to generate your personalized numerology report.</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="fullName" className="block text-sm font-medium text-white/80 mb-1">Full Name (as on birth certificate)</label>
+          <label htmlFor="fullName" className="block text-sm font-medium text-galactic-silver/80 mb-1">Full Name (as on birth certificate)</label>
           <input
             type="text"
             id="fullName"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full bg-deep-purple/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all"
+            className="w-full bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all"
             placeholder="e.g., John Michael Doe"
           />
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="dob" className="block text-sm font-medium text-galactic-silver/80 mb-1">Date of Birth</label>
+              <input
+                type="date"
+                id="dob"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                className="w-full bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all appearance-none"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
+            <div>
+              <label htmlFor="time" className="block text-sm font-medium text-galactic-silver/80 mb-1">Time of Birth</label>
+              <input
+                type="time"
+                id="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all appearance-none"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
+        </div>
         <div>
-          <label htmlFor="dob" className="block text-sm font-medium text-white/80 mb-1">Date of Birth</label>
+          <label htmlFor="location" className="block text-sm font-medium text-galactic-silver/80 mb-1">Location of Birth</label>
           <input
-            type="date"
-            id="dob"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            className="w-full bg-deep-purple/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all appearance-none"
-            style={{ colorScheme: 'dark' }}
+            type="text"
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all"
+            placeholder="e.g., City, Country"
           />
+        </div>
+         <div>
+          <label htmlFor="gender" className="block text-sm font-medium text-galactic-silver/80 mb-1">Gender</label>
+          <select
+            id="gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all"
+          >
+            <option value="" disabled>Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
         {error && <p className="text-aurora-pink text-sm text-center">{error}</p>}
         <button

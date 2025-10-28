@@ -2,6 +2,9 @@
 export interface UserData {
   fullName: string;
   dob: string;
+  time: string;
+  location: string;
+  gender: string;
 }
 
 // Pillar 1: Cosmic Identity

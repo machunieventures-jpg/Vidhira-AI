@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vidhira 🔮 — AI Numerology & Destiny Intelligence System</title>
+    <title>Vidhira — Know Yourself</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,7 @@
     <style>
       body {
         font-family: 'Roboto', sans-serif;
+        background-color: #0B0B0F; /* Dark Cosmos Gray */
       }
       h1, h2, h3, h4, .font-display {
         font-family: 'Playfair Display', serif;
@@ -63,7 +64,7 @@
       }
 
       .pillar-cosmic-identity {
-        background-color: #0c0a1d;
+        background-color: #0B0B0F;
         background-image: url('https://www.transparenttextures.com/patterns/stardust.png'),
                           radial-gradient(ellipse at top, #3a0ca3, transparent),
                           radial-gradient(ellipse at bottom, #f72585, transparent);
@@ -77,7 +78,7 @@
         background-size: 40px 40px;
       }
       .pillar-wealth {
-        background: linear-gradient(135deg, #161225, #2a2040, #161225);
+        background: linear-gradient(135deg, #0B0B0F, #3A0CA320, #0B0B0F);
         background-size: 200% 200%;
         animation: background-pan 15s ease infinite;
         position: relative;
@@ -92,8 +93,8 @@
           -45deg,
           transparent,
           transparent 10px,
-          rgba(255, 215, 0, 0.05) 10px,
-          rgba(255, 215, 0, 0.05) 20px
+          rgba(224, 224, 224, 0.05) 10px,
+          rgba(224, 224, 224, 0.05) 20px
         );
         animation: background-pan 20s linear infinite;
       }
@@ -103,29 +104,42 @@
         animation: background-pan 20s ease infinite;
       }
       .pillar-relationships {
-        background: linear-gradient(-45deg, #f72585, #7209b7, #3a0ca3, #f72585);
+        background: linear-gradient(-45deg, #f72585, #3a0ca3, #4CC9F0, #f72585);
         background-size: 400% 400%;
         animation: background-pan 18s ease infinite;
       }
       .pillar-psychology {
-        background: radial-gradient(circle, #2c0b49, #0c0a1d);
+        background: radial-gradient(circle, #3a0ca330, #0B0B0F);
       }
       .pillar-navigator {
-         background: linear-gradient(120deg, #0c0a1d, #1e133b, #3a0ca3, #1e133b, #0c0a1d);
+         background: linear-gradient(120deg, #0B0B0F, #3a0ca340, #0B0B0F);
          background-size: 300% 300%;
          animation: background-pan 12s linear infinite;
       }
       .pillar-spiritual {
-        background: radial-gradient(ellipse at center, rgba(76, 201, 240, 0.2), transparent 70%), linear-gradient(to bottom, #0c0a1d, #1e133b);
+        background: radial-gradient(ellipse at center, rgba(76, 201, 240, 0.2), transparent 70%), linear-gradient(to bottom, #0B0B0F, #3a0ca330);
       }
       .pillar-intellect {
-        background-color: #0c0a1d;
-        background-image: radial-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 0);
+        background-color: #0B0B0F;
+        background-image: radial-gradient(rgba(224, 224, 224, 0.05) 2px, transparent 0);
         background-size: 30px 30px;
       }
       .pillar-forecast {
-        background: linear-gradient(180deg, rgba(12,10,29,0) 0%, rgba(76,201,240,0.1) 100%), #1e133b;
+        background: linear-gradient(180deg, rgba(11,11,15,0) 0%, rgba(76,201,240,0.1) 100%), #0B0B0F;
       }
+      
+      /* Number-specific card backgrounds */
+      .bg-number-1 { background: linear-gradient(135deg, rgba(224, 224, 224, 0.05), rgba(76, 201, 240, 0.15)); } /* Sun - Silver/Cyan */
+      .bg-number-2 { background: linear-gradient(135deg, rgba(224, 224, 224, 0.05), rgba(76, 201, 240, 0.15)); } /* Moon - Silver/Cool Blue */
+      .bg-number-3 { background: linear-gradient(135deg, rgba(58, 12, 163, 0.05), rgba(58, 12, 163, 0.15)); } /* Jupiter - Sapphire */
+      .bg-number-4 { background: linear-gradient(135deg, rgba(108, 117, 125, 0.05), rgba(76, 201, 240, 0.1)); } /* Rahu - Grey/Cyan */
+      .bg-number-5 { background: linear-gradient(135deg, rgba(76, 201, 240, 0.05), rgba(76, 201, 240, 0.15)); } /* Mercury - Cyan */
+      .bg-number-6 { background: linear-gradient(135deg, rgba(247, 37, 133, 0.05), rgba(247, 37, 133, 0.15)); } /* Venus - Pink */
+      .bg-number-7 { background: linear-gradient(135deg, rgba(76, 201, 240, 0.05), rgba(58, 12, 163, 0.15)); } /* Ketu - Teal/Purple */
+      .bg-number-8 { background: linear-gradient(135deg, rgba(58, 12, 163, 0.1), rgba(11, 11, 15, 0.2)); } /* Saturn - Sapphire/Black */
+      .bg-number-9 { background: linear-gradient(135deg, rgba(247, 37, 133, 0.05), rgba(247, 37, 133, 0.1)); } /* Mars - Pink */
+      .bg-number-master { background: linear-gradient(135deg, rgba(224, 224, 224, 0.1), rgba(247, 37, 133, 0.15)); } /* Master Numbers - Silver/Pink */
+
     </style>
     <script>
       tailwind.config = {
@@ -133,9 +147,10 @@
           extend: {
             colors: {
               'aurora-pink': '#F72585',
-              'deep-purple': '#3A0CA3',
+              'celestial-sapphire': '#3A0CA3',
               'cool-cyan': '#4CC9F0',
-              'accent-gold': '#FFD700',
+              'galactic-silver': '#E0E0E0',
+              'dark-cosmos': '#0B0B0F',
             },
           },
         },

@@ -53,14 +53,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ report, userData }) => {
         <>
             <button
                 onClick={toggleChat}
-                className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-aurora-pink to-deep-purple rounded-full text-white shadow-2xl shadow-aurora-pink/30 flex items-center justify-center transform hover:scale-110 transition-transform duration-300 z-50"
+                className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-aurora-pink to-celestial-sapphire rounded-full text-white shadow-2xl shadow-aurora-pink/30 flex items-center justify-center transform hover:scale-110 transition-transform duration-300 z-50"
                 aria-label="Open Vidhira AI Chat"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
             </button>
 
             {isOpen && (
-                <div className="fixed bottom-24 right-6 w-[calc(100%-3rem)] max-w-md h-[70vh] max-h-[600px] bg-deep-purple/70 backdrop-blur-2xl border border-cool-cyan/30 rounded-2xl shadow-2xl flex flex-col z-50 animate-slide-up">
+                <div className="fixed bottom-24 right-6 w-[calc(100%-3rem)] max-w-md h-[70vh] max-h-[600px] bg-celestial-sapphire/70 backdrop-blur-2xl border border-cool-cyan/30 rounded-2xl shadow-2xl flex flex-col z-50 animate-slide-up">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-cool-cyan/20">
                         <h3 className="font-display text-xl font-bold text-white">Vidhira AI Companion</h3>

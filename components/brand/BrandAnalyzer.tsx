@@ -51,7 +51,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                     type="text"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full flex-grow bg-deep-purple/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all"
+                    className="w-full flex-grow bg-celestial-sapphire/50 border border-cool-cyan/50 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-aurora-pink focus:border-aurora-pink outline-none transition-all"
                     placeholder="e.g., Apex Innovations"
                     disabled={isLoading}
                 />
@@ -68,7 +68,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
 
             {isLoading && (
                  <div className="mt-4 flex items-center justify-center space-x-2 text-cool-cyan">
-                    <div className="w-6 h-6 border-2 border-cool-cyan border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-6 h-6 border-2 border-cool-cyan border-t-celestial-sapphire rounded-full animate-spin"></div>
                     <span>Calculating Vibrational Synergy...</span>
                 </div>
             )}

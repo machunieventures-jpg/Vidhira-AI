@@ -7,6 +7,7 @@ import MarkdownRenderer from './common/MarkdownRenderer';
 import BrandAnalyzer from './brand/BrandAnalyzer';
 import ChatWidget from './chat/ChatWidget';
 import YearlyForecast from './forecast/YearlyForecast';
+import { calculateMulank } from '../services/numerologyService';
 
 interface DashboardProps {
   report: WorldClassReport;
@@ -50,9 +51,27 @@ const otherPillars = [
     { key: 'intellectEducation', title: 'Intellect, Education & Knowledge', icon: Icons.Intellect },
 ];
 
+const numberToClassMap: { [key: number]: string } = {
+    1: 'bg-number-1',
+    2: 'bg-number-2',
+    3: 'bg-number-3',
+    4: 'bg-number-4',
+    5: 'bg-number-5',
+    6: 'bg-number-6',
+    7: 'bg-number-7',
+    8: 'bg-number-8',
+    9: 'bg-number-9',
+    11: 'bg-number-master',
+    22: 'bg-number-master',
+    33: 'bg-number-master',
+};
+
 
 const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
   const { cosmicIdentity, loshuAnalysis, futureForecast, wealthBusinessCareer } = report;
+
+  const mulank = calculateMulank(userData.dob);
+  const lifePathNumber = cosmicIdentity.coreNumbers.lifePath.number;
 
   return (
     <>
@@ -68,10 +87,14 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
           className={`${pillarStyles.cosmicIdentity} animate-slide-up-fade`}
           style={{ animationDelay: '0ms' }}
         >
-          <div className="space-y-8">
+          <div className="space-y-6">
               {Object.entries(cosmicIdentity.coreNumbers).map(([key, value]) => (
                   <React.Fragment key={key}>
-                      <NumberCard title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} data={value} />
+                      <NumberCard 
+                        title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} 
+                        data={value} 
+                        className={numberToClassMap[value.number] || ''}
+                      />
                       {key !== 'maturity' && <hr className="border-white/10" />}
                   </React.Fragment>
               ))}
@@ -98,7 +121,13 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
           className={`${pillarStyles.loshuAnalysis} animate-slide-up-fade`}
           style={{ animationDelay: '150ms' }}
         >
-          <LoshuGrid grid={loshuAnalysis.grid} missingNumbers={loshuAnalysis.missingNumbers} userData={userData} />
+          <LoshuGrid 
+            grid={loshuAnalysis.grid} 
+            missingNumbers={loshuAnalysis.missingNumbers} 
+            userData={userData} 
+            birthNumber={mulank} 
+            destinyNumber={lifePathNumber} 
+          />
           <div className="mt-6 space-y-4 text-white/90">
               <MarkdownRenderer content={`**Overloaded Numbers:** ${loshuAnalysis.overloadedNumbers.join(', ') || 'None'}`} />
               <h4 className="text-xl font-bold text-cool-cyan font-display mt-4">Elemental Planes Analysis</h4>
@@ -143,7 +172,11 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
               style={{ animationDelay: `${450 + otherPillars.length * 150}ms` }}
           >
               <div className="space-y-6">
-                  <NumberCard title="Personal Year Number" data={futureForecast.personalYear} />
+                  <NumberCard 
+                    title="Personal Year Number" 
+                    data={futureForecast.personalYear} 
+                    className={numberToClassMap[futureForecast.personalYear.number] || ''}
+                  />
                   <hr className="border-white/10" />
                   <div>
                       <h4 className="text-xl font-bold text-cool-cyan font-display">12-Month Strategic Roadmap</h4>

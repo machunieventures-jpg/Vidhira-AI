@@ -7,11 +7,14 @@ interface LoshuGridProps {
   grid: (number | null)[][];
   missingNumbers: number[];
   userData: UserData;
+  birthNumber: number;
+  destinyNumber: number;
 }
 
-const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData }) => {
+const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData, birthNumber, destinyNumber }) => {
   const [activeNumber, setActiveNumber] = useState<{num: number, isMissing: boolean} | null>(null);
   const [interpretation, setInterpretation] = useState<string>('');
+  const [potentialInterpretation, setPotentialInterpretation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [tooltipPosition, setTooltipPosition] = useState<{top: number, left: number} | null>(null);
 
@@ -19,6 +22,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData })
       setActiveNumber(null);
       setTooltipPosition(null);
       setInterpretation('');
+      setPotentialInterpretation(null);
   }, []);
 
   const handleNumberClick = async (num: number, isMissing: boolean, event: React.MouseEvent) => {
@@ -33,10 +37,20 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData })
       setActiveNumber({num, isMissing});
       setIsLoading(true);
       setInterpretation('');
+      setPotentialInterpretation(null);
 
       try {
-          const result = await getLoshuNumberInterpretation(num, isMissing, userData.fullName, userData.dob);
-          setInterpretation(result);
+          if (isMissing) {
+              const [challenge, potential] = await Promise.all([
+                  getLoshuNumberInterpretation(num, true, userData.fullName, userData.dob),
+                  getLoshuNumberInterpretation(num, false, userData.fullName, userData.dob)
+              ]);
+              setInterpretation(challenge);
+              setPotentialInterpretation(potential);
+          } else {
+              const result = await getLoshuNumberInterpretation(num, false, userData.fullName, userData.dob);
+              setInterpretation(result);
+          }
       } catch (error) {
           setInterpretation("Could not retrieve interpretation. Please try again.");
           console.error(error);
@@ -61,7 +75,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData })
   return (
     <>
       <div className="flex flex-col md:flex-row items-center gap-8">
-        <div className="grid grid-cols-3 gap-2 p-2 bg-deep-purple/50 rounded-lg border border-cool-cyan/50">
+        <div className="grid grid-cols-3 gap-2 p-2 bg-celestial-sapphire/50 rounded-lg border border-cool-cyan/50">
           {grid.flat().map((cell, index) => {
             const isCellActive = cell && activeNumber?.num === cell && !activeNumber?.isMissing;
             return (
@@ -70,7 +84,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData })
                 className={`w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-3xl font-bold rounded-md bg-white/10 ${cell ? 'cursor-pointer hover:bg-white/20 transform transition-transform hover:scale-110' : ''} ${isCellActive ? 'animate-scale-pulse' : ''}`}
                 onClick={(e) => cell && handleNumberClick(cell, false, e)}
                 >
-                {cell ? <span className="text-accent-gold">{cell}</span> : <span className="text-white/20">-</span>}
+                {cell ? <span className="text-galactic-silver">{cell}</span> : <span className="text-white/20">-</span>}
                 </div>
             )
           })}
@@ -98,6 +112,25 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData })
           ) : (
             <p className="text-white/80 mt-1">You have no missing numbers! This indicates a balanced energetic blueprint.</p>
           )}
+
+          <div className="mt-6">
+            <h4 className="text-xl font-bold text-cool-cyan font-display">Core Identifiers</h4>
+            <div className="flex gap-4 mt-3">
+                <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-cool-cyan to-celestial-sapphire rounded-full text-white font-bold text-3xl border-2 border-galactic-silver">
+                        {birthNumber}
+                    </div>
+                    <span className="text-sm text-white/80 mt-2">Birth Number</span>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-cool-cyan to-celestial-sapphire rounded-full text-white font-bold text-3xl border-2 border-galactic-silver">
+                        {destinyNumber}
+                    </div>
+                    <span className="text-sm text-white/80 mt-2">Destiny Number</span>
+                </div>
+            </div>
+        </div>
+
         </div>
       </div>
       {activeNumber && tooltipPosition && (
@@ -106,6 +139,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, userData })
             <InterpretationTooltip
               isLoading={isLoading}
               content={interpretation}
+              potentialContent={potentialInterpretation}
               position={tooltipPosition}
               number={activeNumber.num}
               onClose={handleCloseTooltip}
