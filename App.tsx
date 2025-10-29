@@ -13,12 +13,20 @@ const App: React.FC = () => {
   const [report, setReport] = useState<WorldClassReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
 
   // Helper function to convert hex to rgba
   const hexToRgba = (hex: string, alpha: number): string => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
+    if (!/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) return `rgba(255, 215, 0, ${alpha})`; // Return default if invalid hex
+    let c = hex.substring(1).split('');
+    if (c.length === 3) {
+        c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+    }
+    const i = parseInt(c.join(''), 16);
+    const r = (i >> 16) & 255;
+    const g = (i >> 8) & 255;
+    const b = i & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
@@ -41,6 +49,7 @@ const App: React.FC = () => {
     setUserData(data);
     setError(null);
     setReport(null);
+    setIsUnlocked(false);
     try {
       const { core, compound } = calculateInitialNumbers(data);
       const { missing, overloaded } = generateLoshuGrid(data.dob);
@@ -58,12 +67,23 @@ const App: React.FC = () => {
     }
   }, []);
   
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
       setUserData(null);
       setReport(null);
       setIsLoading(false);
       setError(null);
-  }
+      setIsUnlocked(false);
+      setIsUnlocking(false);
+  }, []);
+
+  const handleUnlock = useCallback(() => {
+    setIsUnlocking(true);
+    // Simulate a payment process
+    setTimeout(() => {
+      setIsUnlocked(true);
+      setIsUnlocking(false);
+    }, 2000);
+  }, []);
 
   const renderContent = () => {
     if (isLoading) {
@@ -79,7 +99,14 @@ const App: React.FC = () => {
         );
     }
     if (report && userData) {
-      return <Dashboard report={report} userData={userData} onReset={handleReset} />;
+      return <Dashboard 
+                report={report} 
+                userData={userData} 
+                onReset={handleReset} 
+                isUnlocked={isUnlocked}
+                isUnlocking={isUnlocking}
+                onUnlock={handleUnlock}
+             />;
     }
     return <OnboardingForm onSubmit={handleFormSubmit} />;
   };

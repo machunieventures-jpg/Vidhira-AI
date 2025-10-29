@@ -6,6 +6,12 @@ export interface UserData {
   location: string;
   gender: string;
   language: string;
+  phoneNumber: string;
+}
+
+export interface PillarContent {
+  teaser: string;
+  content: string;
 }
 
 // Pillar 1: Cosmic Identity
@@ -23,9 +29,9 @@ export interface CosmicIdentity {
     personality: CoreNumberInfo;
     maturity: CoreNumberInfo;
   };
-  soulSynopsis: string;
-  famousParallels: string;
-  planetaryRulerships: string;
+  soulSynopsis: PillarContent;
+  famousParallels: PillarContent;
+  planetaryRulerships: PillarContent;
 }
 
 // Pillar 2: Loshu Grid & Numeric Matrix
@@ -34,18 +40,19 @@ export interface LoshuAnalysis {
   missingNumbers: number[];
   overloadedNumbers: number[];
   elementalPlanes: {
-      mental: string;
-      emotional: string;
-      practical: string;
+      mental: PillarContent;
+      emotional: PillarContent;
+      practical: PillarContent;
   };
-  balanceSummary: string;
-  compensationStrategy: string;
+  balanceSummary: PillarContent;
+  compensationStrategy: PillarContent;
 }
 
 // Pillar 8: Spiritual Alignment
-export interface SpiritualAlignment {
-    content: string; // Markdown text for Pillar 8
-    luckyColor: string; // Hex color code e.g., "#FFD700"
+export interface SpiritualAlignmentPillar {
+    teaser: string;
+    content: string;
+    luckyColor: string;
 }
 
 
@@ -55,20 +62,20 @@ export interface FutureForecast {
     number: number;
     interpretation: string;
   };
-  strategicRoadmap: string; // Markdown text
+  strategicRoadmap: PillarContent;
 }
 
 // Main Report Structure
 export interface WorldClassReport {
   cosmicIdentity: CosmicIdentity;
   loshuAnalysis: LoshuAnalysis;
-  wealthBusinessCareer: string; // Markdown text for Pillar 3
-  healthEnergyWellness: string; // Markdown text for Pillar 4
-  relationshipsFamilyLegacy: string; // Markdown text for Pillar 5
-  psychologyShadowWork: string; // Markdown text for Pillar 6
-  dailyNavigator: string; // Markdown text for Pillar 7
-  spiritualAlignment: SpiritualAlignment; // Pillar 8 is now a structured object
-  intellectEducation: string; // Markdown text for Pillar 9
+  wealthBusinessCareer: PillarContent;
+  healthEnergyWellness: PillarContent;
+  relationshipsFamilyLegacy: PillarContent;
+  psychologyShadowWork: PillarContent;
+  dailyNavigator: PillarContent;
+  spiritualAlignment: SpiritualAlignmentPillar;
+  intellectEducation: PillarContent;
   futureForecast: FutureForecast;
 }
 

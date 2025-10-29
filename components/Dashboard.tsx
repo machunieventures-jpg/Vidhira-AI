@@ -9,11 +9,15 @@ import BrandAnalyzer from './brand/BrandAnalyzer';
 import ChatWidget from './chat/ChatWidget';
 import YearlyForecast from './forecast/YearlyForecast';
 import { calculateMulank } from '../services/numerologyService';
+import UnlockReportCTA from './common/UnlockReportCTA';
 
 interface DashboardProps {
   report: WorldClassReport;
   userData: UserData;
   onReset: () => void;
+  isUnlocked: boolean;
+  isUnlocking: boolean;
+  onUnlock: () => void;
 }
 
 // Icon Components
@@ -37,34 +41,45 @@ const pillarStyles: { [key: string]: string } = {
     default: 'pillar-default',
 };
 
-const otherPillars = [
-    { key: 'healthEnergyWellness', title: 'Health, Energy & Wellness', icon: Icons.Health },
-    { key: 'relationshipsFamilyLegacy', title: 'Relationships, Family & Legacy', icon: Icons.Relationships },
-    { key: 'psychologyShadowWork', title: 'Psychology & Shadow Work', icon: Icons.Psychology },
-    { key: 'dailyNavigator', title: 'Daily Navigator & Timing', icon: Icons.Navigator },
-    { key: 'spiritualAlignment', title: 'Spiritual Alignment & Remedies', icon: Icons.Spiritual },
-    { key: 'intellectEducation', title: 'Intellect, Education & Knowledge', icon: Icons.Intellect },
+const pillarData = [
+    { key: 'wealthBusinessCareer', title: 'Wealth, Business & Career', icon: Icons.Wealth, tooltip: "Analyzes your financial destiny, ideal career paths, and entrepreneurial vibrations based on your core numbers." },
+    { key: 'healthEnergyWellness', title: 'Health, Energy & Wellness', icon: Icons.Health, tooltip: "Reveals the connection between your numbers and physical well-being, highlighting potential energy imbalances and healing strategies." },
+    { key: 'relationshipsFamilyLegacy', title: 'Relationships, Family & Legacy', icon: Icons.Relationships, tooltip: "Explores your compatibility with others, family dynamics, karmic lessons in relationships, and auspicious timing for major life events." },
+    { key: 'psychologyShadowWork', title: 'Psychology & Shadow Work', icon: Icons.Psychology, tooltip: "Dives into your inner world, identifying subconscious patterns, challenges (shadow work), and pathways to psychological integration." },
+    { key: 'dailyNavigator', title: 'Daily Navigator & Timing', icon: Icons.Navigator, tooltip: "Provides a tactical guide for navigating daily life, offering power codes (colors, numbers, actions) for alignment and success." },
+    { key: 'spiritualAlignment', title: 'Spiritual Alignment & Remedies', icon: Icons.Spiritual, tooltip: "Offers personalized spiritual tools like mantras, crystals, and lucky dates to align your energy and manifest your goals." },
+    { key: 'intellectEducation', title: 'Intellect, Education & Knowledge', icon: Icons.Intellect, tooltip: "Uncovers your unique learning style, creative intelligence, and the domains of study where you are most likely to excel." },
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
-  const { cosmicIdentity, loshuAnalysis, futureForecast, wealthBusinessCareer } = report;
-
+const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlocked, isUnlocking, onUnlock }) => {
+  const { cosmicIdentity, loshuAnalysis, futureForecast } = report;
   const mulank = calculateMulank(userData.dob);
   const lifePathNumber = cosmicIdentity.coreNumbers.lifePath.number;
+
+  const renderPillarContent = (pillarKey: keyof WorldClassReport) => {
+    const pillar = (report as any)[pillarKey];
+    if (!pillar) return null;
+    const content = pillar.content || pillar; // Handle spiritual alignment structure
+    const teaser = pillar.teaser;
+    return <MarkdownRenderer content={isUnlocked ? content : teaser} />;
+  }
 
   return (
     <>
       <div className="w-full max-w-4xl mx-auto p-4 md:p-6 space-y-8">
         <div className="text-center animate-fade-in">
-          <h2 className="text-3xl md:text-4xl font-bold text-starlight font-display">Your Full Life Report Blueprint</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-starlight font-display">Your Life Blueprint</h2>
           <p className="text-lunar-grey mt-2">Prepared for <span className="text-cosmic-gold font-semibold">{userData.fullName}</span></p>
         </div>
+
+        {!isUnlocked && <UnlockReportCTA onUnlock={onUnlock} isLoading={isUnlocking} />}
 
         <ReportSection 
           title="Pillar 1: Cosmic Identity" 
           icon={Icons.CosmicIdentity}
           className={`${pillarStyles.cosmicIdentity} animate-pillar-reveal`}
           style={{ animationDelay: '0ms' }}
+          tooltipText="This pillar decodes your fundamental energetic signature through five core numbers, revealing your life's purpose, personality, and soul's desire."
         >
           <div className="space-y-6">
               {Object.entries(cosmicIdentity.coreNumbers).map(([key, value]) => (
@@ -80,24 +95,25 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
           <div className="mt-6 space-y-4">
               <div>
                   <h4 className="text-xl font-bold text-cosmic-gold font-display">Soul Synopsis</h4>
-                  <p className="text-lunar-grey mt-1 whitespace-pre-wrap">{cosmicIdentity.soulSynopsis}</p>
+                  <MarkdownRenderer content={isUnlocked ? cosmicIdentity.soulSynopsis.content : cosmicIdentity.soulSynopsis.teaser} />
               </div>
               <div>
                   <h4 className="text-xl font-bold text-cosmic-gold font-display">Famous Parallel Souls</h4>
-                  <MarkdownRenderer content={cosmicIdentity.famousParallels} />
+                  <MarkdownRenderer content={isUnlocked ? cosmicIdentity.famousParallels.content : cosmicIdentity.famousParallels.teaser} />
               </div>
               <div>
                   <h4 className="text-xl font-bold text-cosmic-gold font-display">Planetary Rulerships</h4>
-                  <MarkdownRenderer content={cosmicIdentity.planetaryRulerships} />
+                  <MarkdownRenderer content={isUnlocked ? cosmicIdentity.planetaryRulerships.content : cosmicIdentity.planetaryRulerships.teaser} />
               </div>
           </div>
         </ReportSection>
 
         <ReportSection 
-          title="Pillar 2: Loshu Grid & Numeric Matrix" 
+          title="Pillar 2: Loshu Grid" 
           icon={Icons.LoshuGrid}
           className={`${pillarStyles.loshuAnalysis} animate-pillar-reveal`}
           style={{ animationDelay: '150ms' }}
+          tooltipText="A mystical 3x3 grid derived from your birth date that reveals your strengths, weaknesses, and the balance of energies in your life."
         >
           <LoshuGrid 
             grid={loshuAnalysis.grid} 
@@ -107,39 +123,24 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
             birthNumber={mulank} 
             destinyNumber={lifePathNumber} 
           />
-          <div className="mt-6 space-y-4 text-starlight/90">
-              <h4 className="text-xl font-bold text-cosmic-gold font-display mt-4">Elemental Planes Analysis</h4>
-              <MarkdownRenderer content={loshuAnalysis.elementalPlanes.mental} />
-              <MarkdownRenderer content={loshuAnalysis.elementalPlanes.emotional} />
-              <MarkdownRenderer content={loshuAnalysis.elementalPlanes.practical} />
-              <h4 className="text-xl font-bold text-cosmic-gold font-display mt-4">Balance Summary</h4>
-              <MarkdownRenderer content={loshuAnalysis.balanceSummary} />
-              <h4 className="text-xl font-bold text-cosmic-gold font-display mt-4">Missing Number Compensation Strategy</h4>
-              <MarkdownRenderer content={loshuAnalysis.compensationStrategy} />
-          </div>
         </ReportSection>
 
-        <ReportSection 
-          title="Pillar 3: Wealth, Business & Career" 
-          icon={Icons.Wealth}
-          className={`${pillarStyles.wealthBusinessCareer} animate-pillar-reveal`}
-          style={{ animationDelay: '300ms' }}
-        >
-          <MarkdownRenderer content={wealthBusinessCareer} />
-          <hr className="border-lunar-grey/10 my-6" />
-          <BrandAnalyzer userData={userData} report={report} />
-        </ReportSection>
-
-
-        {otherPillars.map((pillar, index) => (
+        {pillarData.map((pillar, index) => (
           <ReportSection 
               key={pillar.key} 
-              title={`Pillar ${index + 4}: ${pillar.title}`} 
+              title={`Pillar ${index + 3}: ${pillar.title}`} 
               icon={pillar.icon}
               className={`${pillarStyles.default} animate-pillar-reveal`}
-              style={{ animationDelay: `${450 + index * 150}ms` }}
+              style={{ animationDelay: `${300 + index * 150}ms` }}
+              tooltipText={pillar.tooltip}
           >
-              <MarkdownRenderer content={pillar.key === 'spiritualAlignment' ? report.spiritualAlignment.content : (report as any)[pillar.key]} />
+             {renderPillarContent(pillar.key as keyof WorldClassReport)}
+             {pillar.key === 'wealthBusinessCareer' && isUnlocked && (
+                <>
+                 <hr className="border-lunar-grey/10 my-6" />
+                 <BrandAnalyzer userData={userData} report={report} />
+                </>
+             )}
           </ReportSection>
         ))}
 
@@ -147,7 +148,8 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
               title="Pillar 10: Advanced Future Forecast" 
               icon={Icons.Forecast}
               className={`${pillarStyles.default} animate-pillar-reveal`}
-              style={{ animationDelay: `${450 + otherPillars.length * 150}ms` }}
+              style={{ animationDelay: `${300 + pillarData.length * 150}ms` }}
+              tooltipText="Projects your personal energetic cycles into the future, offering a strategic roadmap and detailed monthly predictions."
           >
               <div className="space-y-6">
                   <NumberCard 
@@ -157,10 +159,14 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
                   <hr className="border-lunar-grey/10" />
                   <div>
                       <h4 className="text-xl font-bold text-cosmic-gold font-display">12-Month Strategic Roadmap</h4>
-                      <MarkdownRenderer content={futureForecast.strategicRoadmap} />
+                      <MarkdownRenderer content={isUnlocked ? futureForecast.strategicRoadmap.content : futureForecast.strategicRoadmap.teaser} />
                   </div>
-                  <hr className="border-lunar-grey/10 my-6" />
-                  <YearlyForecast userData={userData} />
+                  {isUnlocked && (
+                    <>
+                      <hr className="border-lunar-grey/10 my-6" />
+                      <YearlyForecast userData={userData} />
+                    </>
+                  )}
               </div>
         </ReportSection>
 

@@ -13,16 +13,17 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
   const [location, setLocation] = useState('');
   const [gender, setGender] = useState('');
   const [language, setLanguage] = useState('English');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !dob || !time || !location || !gender || !language) {
+    if (!fullName.trim() || !dob || !time || !location || !gender || !language || !phoneNumber) {
       setError('Please fill out all fields to generate your blueprint.');
       return;
     }
     setError('');
-    onSubmit({ fullName, dob, time, location, gender, language });
+    onSubmit({ fullName, dob, time, location, gender, language, phoneNumber });
   };
 
   return (
@@ -91,6 +92,17 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
           </select>
         </div>
         <div>
+          <label htmlFor="phoneNumber" className="block text-sm font-medium text-lunar-grey mb-1">Phone Number</label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="w-full bg-deep-void/50 border border-lunar-grey/50 text-starlight rounded-lg px-4 py-2 focus:ring-2 focus:ring-cosmic-gold focus:border-cosmic-gold outline-none transition-all"
+            placeholder="+1 (555) 123-4567"
+          />
+        </div>
+        <div>
           <label htmlFor="language" className="block text-sm font-medium text-lunar-grey mb-1">Preferred Language</label>
           <select
             id="language"
@@ -99,6 +111,7 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
             className="w-full bg-deep-void/50 border border-lunar-grey/50 text-starlight rounded-lg px-4 py-2 focus:ring-2 focus:ring-cosmic-gold focus:border-cosmic-gold outline-none transition-all"
           >
             <option value="English">English</option>
+            <option value="Nepali">नेपाली (Nepali)</option>
             <option value="Spanish">Español (Spanish)</option>
             <option value="French">Français (French)</option>
             <option value="German">Deutsch (German)</option>
@@ -111,7 +124,7 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
           type="submit"
           className="w-full bg-cosmic-gold text-deep-void font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
         >
-          Generate My Report
+          Generate My Blueprint
         </button>
       </form>
        <div className="text-center text-xs text-starlight/40 mt-4">

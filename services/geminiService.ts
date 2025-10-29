@@ -14,6 +14,15 @@ const coreNumberSchema = {
     required: ['number', 'interpretation']
 };
 
+const pillarContentSchema = {
+    type: Type.OBJECT,
+    properties: {
+        teaser: { type: Type.STRING, description: "A 1-2 sentence compelling teaser for this pillar." },
+        content: { type: Type.STRING, description: "The full, in-depth markdown analysis for this pillar." }
+    },
+    required: ['teaser', 'content']
+};
+
 const responseSchema = {
     type: Type.OBJECT,
     properties: {
@@ -31,9 +40,9 @@ const responseSchema = {
                     },
                     required: ['lifePath', 'expression', 'soulUrge', 'personality', 'maturity']
                 },
-                soulSynopsis: { type: Type.STRING, description: "A 100-word poetic summary of the user's destiny essence." },
-                famousParallels: { type: Type.STRING, description: "2-3 historical/famous figures with same core numbers and a brief explanation." },
-                planetaryRulerships: { type: Type.STRING, description: "Analysis of the planetary rulers for their core numbers." },
+                soulSynopsis: pillarContentSchema,
+                famousParallels: pillarContentSchema,
+                planetaryRulerships: pillarContentSchema,
             },
             required: ['coreNumbers', 'soulSynopsis', 'famousParallels', 'planetaryRulerships']
         },
@@ -43,31 +52,32 @@ const responseSchema = {
                 elementalPlanes: {
                     type: Type.OBJECT,
                     properties: {
-                        mental: { type: Type.STRING, description: "Analysis of the mental plane (4-9-2)." },
-                        emotional: { type: Type.STRING, description: "Analysis of the emotional plane (3-5-7)." },
-                        practical: { type: Type.STRING, description: "Analysis of the practical plane (8-1-6)." },
+                        mental: pillarContentSchema,
+                        emotional: pillarContentSchema,
+                        practical: pillarContentSchema,
                     },
                     required: ['mental', 'emotional', 'practical']
                 },
-                balanceSummary: { type: Type.STRING, description: "A summary of the grid's balance, strengths and weaknesses." },
-                compensationStrategy: { type: Type.STRING, description: "Actionable strategies for balancing missing numbers." }
+                balanceSummary: pillarContentSchema,
+                compensationStrategy: pillarContentSchema
              },
              required: ['elementalPlanes', 'balanceSummary', 'compensationStrategy']
         },
-        wealthBusinessCareer: { type: Type.STRING, description: "Pillar 3. In-depth analysis formatted in Markdown. Cover Business Alignment, Career Domains, Money Frequency, and Timing Cycles." },
-        healthEnergyWellness: { type: Type.STRING, description: "Pillar 4. In-depth analysis formatted in Markdown. Cover Planetary Health Zones, Energy Imbalances, and Healing Recommendations." },
-        relationshipsFamilyLegacy: { type: Type.STRING, description: "Pillar 5. In-depth analysis formatted in Markdown. Cover Partner Compatibility, Family Influence, and Karmic Lessons. Also include dedicated sections for **Optimal Timing for Marriage** and **Optimal Timing for Childbirth**, analyzing numerological compatibility and significant life cycle numbers for these events." },
-        psychologyShadowWork: { type: Type.STRING, description: "Pillar 6. In-depth analysis formatted in Markdown. Cover Inner Traps, Self-Sabotage Patterns, and Healing Missing Numbers." },
-        dailyNavigator: { type: Type.STRING, description: "Pillar 7. A 7-day tactical guide formatted in Markdown. For each day, provide a Power Code (Color, Number, Action)." },
+        wealthBusinessCareer: pillarContentSchema,
+        healthEnergyWellness: pillarContentSchema,
+        relationshipsFamilyLegacy: pillarContentSchema,
+        psychologyShadowWork: pillarContentSchema,
+        dailyNavigator: pillarContentSchema,
         spiritualAlignment: {
             type: Type.OBJECT,
             properties: {
+                 teaser: { type: Type.STRING, description: "A 1-2 sentence compelling teaser for this pillar." },
                  content: { type: Type.STRING, description: "Pillar 8. In-depth analysis formatted in Markdown. Cover Mantras, Crystals, Colors, and Lucky Dates." },
                  luckyColor: { type: Type.STRING, description: "Based on the user's core numbers, determine their single most powerful lucky color. Provide this as a standard HEX color code string (e.g., '#3A0CA3'). This color should feel empowering and aligned with their core energy." }
             },
-            required: ['content', 'luckyColor']
+            required: ['teaser', 'content', 'luckyColor']
         },
-        intellectEducation: { type: Type.STRING, description: "Pillar 9. In-depth analysis formatted in Markdown. Cover Learning Style, Creative Intelligence, and Ideal Study Domains." },
+        intellectEducation: pillarContentSchema,
         futureForecast: {
             type: Type.OBJECT,
             properties: {
@@ -79,7 +89,7 @@ const responseSchema = {
                     },
                     required: ['number', 'interpretation']
                 },
-                strategicRoadmap: { type: Type.STRING, description: "A summary for the next 12 months based on their personal year, formatted in Markdown." },
+                strategicRoadmap: pillarContentSchema,
             },
             required: ['personalYear', 'strategicRoadmap']
         }
@@ -95,10 +105,9 @@ export const generateWorldClassReport = async (
     userData: UserData,
     coreNumbers: CoreNumbers,
     compoundNumbers: CompoundNumbers,
-    // Fix: Corrected the type of 'loshu' to only include the properties being passed.
     loshu: Pick<LoshuAnalysis, 'missingNumbers' | 'overloadedNumbers'>
 ): Promise<WorldClassReport> => {
-  const { fullName, dob, time, location, gender, language } = userData;
+  const { fullName, dob, time, location, gender, language, phoneNumber } = userData;
 
   const prompt = `
   Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence, following the Machuni Hub Framework.
@@ -106,7 +115,10 @@ export const generateWorldClassReport = async (
   Your entire response, including all text, interpretations, and markdown content, MUST be in ${language}.
   The user wants their "FULL LIFE REPORT BLUEPRINT". Generate a comprehensive, 10-pillar report based on their data.
   The output MUST be a valid JSON object that adheres to the provided schema.
-  All text content, especially interpretations and markdown sections, must be insightful, empowering, personalized, and actionable.
+  
+  **IMPORTANT**: For every pillar or sub-pillar that has a 'teaser' and 'content' field in the schema, you MUST provide both. 
+  - The 'teaser' must be a short, 1-2 sentence summary designed to entice the user to unlock the full report.
+  - The 'content' must be the full, detailed analysis as originally requested.
 
   **USER DATA:**
   - Full Name: "${fullName}"
@@ -114,6 +126,7 @@ export const generateWorldClassReport = async (
   - Time of Birth: "${time}"
   - Location of Birth: "${location}"
   - Gender: "${gender}"
+  - Phone Number: "${phoneNumber}"
   - Preferred Language: "${language}"
 
   **CALCULATED NUMEROLOGY DATA:**
@@ -126,7 +139,7 @@ export const generateWorldClassReport = async (
   - Loshu Grid Missing Numbers: ${loshu.missingNumbers.join(', ') || 'None'}
   - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
 
-  Now, generate the complete JSON report. For each core number, provide a deep, multi-paragraph interpretation covering spiritual, psychological, and practical aspects for leadership, business, and relationships. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**). For the 'relationshipsFamilyLegacy' pillar, you must include detailed sections on the best numerological timing for marriage and childbirth, analyzing how this timing aligns with the user's core numbers. For the 'spiritualAlignment' pillar, determine their primary lucky color and provide its hex code.
+  Now, generate the complete JSON report. For each core number, provide a deep, multi-paragraph interpretation. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**). For 'relationshipsFamilyLegacy', include detailed sections on marriage and childbirth timing. For 'spiritualAlignment', determine their primary lucky color and provide its hex code. Remember to generate a 'teaser' for every pillar.
   `;
 
   try {
@@ -139,8 +152,6 @@ export const generateWorldClassReport = async (
       },
     });
 
-    // Fix: Corrected misleading comment. The .text property holds the string content.
-    // The Gemini API returns a stringified JSON object that needs to be parsed.
     const responseText = response.text;
     const reportData = JSON.parse(responseText);
 
@@ -309,10 +320,10 @@ export const getYearlyForecast = async (
 
   1.  **Mulank ${mulank} Energy for 2026:** A summary of the overarching themes, opportunities, and challenges for individuals with Mulank ${mulank} in 2026.
   2.  **Personalized Monthly Predictions (2026):** Provide a month-by-month breakdown (Jan-Dec). For each month, provide a detailed paragraph covering the following sub-topics, using them as bolded subheadings:
-      - **Career & Finance:** Highlight specific advancement opportunities, potential challenges, and financial trends.
-      - **Relationships & Compatibility:** Discuss romantic and social energies, and compatibility trends.
-      - **Health & Wellness:** Mention potential health considerations and suggest wellness practices.
-      - **Key Dates:** List 2-3 specific dates within the month that are either auspicious for action or require caution (e.g., "5th, 18th: Favorable for new projects").
+      - **Career & Finance:** Go into detail about career advancement opportunities (e.g., promotions, new job prospects), and financial trends (e.g., investment opportunities, periods for financial caution).
+      - **Relationships & Compatibility:** Provide specific insights into relationship compatibility with other numbers. Discuss energies affecting romantic partnerships, family dynamics, and social life.
+      - **Health & Wellness:** Detail potential health considerations (e.g., stress-related issues, physical vulnerabilities) and suggest targeted wellness practices or preventative measures.
+      - **Key Dates:** Identify 2-3 specific dates within the month. For each date, explain *why* it is significant (e.g., "12th: Excellent for financial decisions due to Jupiter's influence") and label it as either auspicious or requiring caution.
   3.  **Strategic Warnings & Opportunities:** Create a bulleted list of 3-4 key warnings (e.g., "Be cautious with investments in April") and 3-4 key opportunities (e.g., "A powerful networking opportunity arises in September").
   4.  **Beyond 2026:** Briefly touch upon the energetic trends for 2027-2028 for Mulank ${mulank}.
 
