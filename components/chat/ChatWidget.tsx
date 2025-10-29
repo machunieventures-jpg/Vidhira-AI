@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import type { ChatMessage, UserData, WorldClassReport } from '../../types';
 import { getChatResponse } from '../../services/geminiService';
@@ -53,7 +54,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ report, userData }) => {
         <>
             <button
                 onClick={toggleChat}
-                className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-cosmic-gold to-lunar-grey/50 rounded-full text-white shadow-2xl shadow-cosmic-gold/20 flex items-center justify-center transform hover:scale-110 transition-transform duration-300 z-50"
+                className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-cosmic-gold to-lunar-grey/50 rounded-full text-white shadow-2xl shadow-cosmic-gold/20 flex items-center justify-center transform hover:scale-110 transition-transform duration-300 z-50 hover:shadow-[0_0_20px_var(--lucky-color-glow)]"
                 aria-label="Open Vidhira AI Chat"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-deep-void" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
@@ -89,7 +90,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ report, userData }) => {
                             />
                             <button
                                 type="submit"
-                                className="w-10 h-10 flex-shrink-0 bg-cosmic-gold rounded-full flex items-center justify-center text-deep-void transform hover:scale-110 transition-transform disabled:bg-lunar-grey disabled:scale-100"
+                                className="w-10 h-10 flex-shrink-0 bg-cosmic-gold rounded-full flex items-center justify-center text-deep-void transform hover:scale-110 transition-transform disabled:bg-lunar-grey disabled:scale-100 hover:shadow-[0_0_12px_var(--lucky-color-glow)]"
                                 disabled={isLoading || !userInput.trim()}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" /></svg>

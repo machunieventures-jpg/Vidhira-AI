@@ -59,7 +59,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                 />
                 <button
                     type="submit"
-                    className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 disabled:bg-lunar-grey disabled:scale-100 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)] disabled:bg-lunar-grey disabled:scale-100 disabled:cursor-not-allowed"
                     disabled={isLoading}
                 >
                     {isLoading ? 'Analyzing...' : 'Analyze'}

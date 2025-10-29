@@ -78,7 +78,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
             return (
                 <div
                 key={index}
-                className={`w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-3xl font-bold rounded-md bg-deep-void/50 ${cell ? 'cursor-pointer hover:bg-lunar-grey/20 transform transition-transform hover:scale-110' : ''} ${isCellActive ? 'animate-scale-pulse' : ''}`}
+                className={`w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-3xl font-bold rounded-md bg-deep-void/50 ${cell ? 'cursor-pointer hover:bg-lunar-grey/20 transform transition-all duration-300 hover:scale-110 hover:shadow-[0_0_12px_var(--lucky-color-glow)]' : ''} ${isCellActive ? 'animate-scale-pulse' : ''}`}
                 onClick={(e) => cell && handleNumberClick(cell, false, e)}
                 >
                 {cell ? <span className="text-starlight">{cell}</span> : <span className="text-starlight/20">-</span>}
@@ -117,7 +117,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
                         return (
                             <div 
                                 key={num} 
-                                className={`w-10 h-10 flex items-center justify-center bg-cosmic-gold/10 border border-cosmic-gold/50 rounded-full text-cosmic-gold font-bold cursor-pointer hover:bg-cosmic-gold/20 transform transition-transform hover:scale-110 ${isMissingActive ? 'animate-scale-pulse' : ''}`}
+                                className={`w-10 h-10 flex items-center justify-center bg-cosmic-gold/10 border border-cosmic-gold/50 rounded-full text-cosmic-gold font-bold cursor-pointer hover:bg-cosmic-gold/20 transform transition-all duration-300 hover:scale-110 hover:shadow-[0_0_12px_var(--lucky-color-glow)] ${isMissingActive ? 'animate-scale-pulse' : ''}`}
                                 onClick={(e) => handleNumberClick(num, true, e)}
                                 >
                                 {num}

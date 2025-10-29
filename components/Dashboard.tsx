@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { WorldClassReport, UserData } from '../types';
 import ReportSection from './ReportSection';
@@ -166,7 +167,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
         <div className="text-center pt-4">
           <button
             onClick={onReset}
-            className="border border-cosmic-gold text-cosmic-gold font-bold py-2 px-6 rounded-lg hover:bg-cosmic-gold hover:text-deep-void transform hover:scale-105 transition-all duration-300"
+            className="border border-cosmic-gold text-cosmic-gold font-bold py-2 px-6 rounded-lg hover:bg-cosmic-gold hover:text-deep-void transform hover:scale-105 transition-all duration-300 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
           >
             Analyze Another Profile
           </button>

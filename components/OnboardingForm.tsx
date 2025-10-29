@@ -109,7 +109,7 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
         {error && <p className="text-cosmic-gold/90 text-sm text-center">{error}</p>}
         <button
           type="submit"
-          className="w-full bg-cosmic-gold text-deep-void font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20"
+          className="w-full bg-cosmic-gold text-deep-void font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
         >
           Generate My Report
         </button>

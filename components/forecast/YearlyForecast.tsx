@@ -62,7 +62,7 @@ const YearlyForecast: React.FC<YearlyForecastProps> = ({ userData }) => {
                 </p>
                  <button
                     onClick={handleGenerateDailyHoroscope}
-                    className="w-full sm:w-auto border border-cosmic-gold text-cosmic-gold font-bold py-2 px-6 rounded-lg hover:bg-cosmic-gold hover:text-deep-void transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto border border-cosmic-gold text-cosmic-gold font-bold py-2 px-6 rounded-lg hover:bg-cosmic-gold hover:text-deep-void transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
                     disabled={isDailyLoading}
                 >
                     {isDailyLoading ? "Tuning in..." : (dailyHoroscope ? "Refresh Today's Insight" : "Get Today's Insight")}
@@ -100,7 +100,7 @@ const YearlyForecast: React.FC<YearlyForecastProps> = ({ userData }) => {
                 
                 <button
                     onClick={handleGenerateForecast}
-                    className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 disabled:bg-lunar-grey disabled:scale-100 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 disabled:bg-lunar-grey disabled:scale-100 disabled:cursor-not-allowed hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
                     disabled={isLoading}
                 >
                     {isLoading ? 'Generating...' : (forecast ? 'Regenerate Forecast' : 'Generate Forecast')}

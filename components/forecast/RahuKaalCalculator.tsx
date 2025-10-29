@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 const RahuKaalCalculator: React.FC = () => {
@@ -76,7 +77,7 @@ const RahuKaalCalculator: React.FC = () => {
             </div>
              <button
                 onClick={calculateRahuKaal}
-                className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20"
+                className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
             >
                 Calculate for Today
             </button>
