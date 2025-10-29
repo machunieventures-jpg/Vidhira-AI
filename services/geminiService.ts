@@ -59,7 +59,14 @@ const responseSchema = {
         relationshipsFamilyLegacy: { type: Type.STRING, description: "Pillar 5. In-depth analysis formatted in Markdown. Cover Partner Compatibility, Family Influence, and Karmic Lessons. Also include dedicated sections for **Optimal Timing for Marriage** and **Optimal Timing for Childbirth**, analyzing numerological compatibility and significant life cycle numbers for these events." },
         psychologyShadowWork: { type: Type.STRING, description: "Pillar 6. In-depth analysis formatted in Markdown. Cover Inner Traps, Self-Sabotage Patterns, and Healing Missing Numbers." },
         dailyNavigator: { type: Type.STRING, description: "Pillar 7. A 7-day tactical guide formatted in Markdown. For each day, provide a Power Code (Color, Number, Action)." },
-        spiritualAlignment: { type: Type.STRING, description: "Pillar 8. In-depth analysis formatted in Markdown. Cover Mantras, Crystals, Colors, and Lucky Dates." },
+        spiritualAlignment: {
+            type: Type.OBJECT,
+            properties: {
+                 content: { type: Type.STRING, description: "Pillar 8. In-depth analysis formatted in Markdown. Cover Mantras, Crystals, Colors, and Lucky Dates." },
+                 luckyColor: { type: Type.STRING, description: "Based on the user's core numbers, determine their single most powerful lucky color. Provide this as a standard HEX color code string (e.g., '#3A0CA3'). This color should feel empowering and aligned with their core energy." }
+            },
+            required: ['content', 'luckyColor']
+        },
         intellectEducation: { type: Type.STRING, description: "Pillar 9. In-depth analysis formatted in Markdown. Cover Learning Style, Creative Intelligence, and Ideal Study Domains." },
         futureForecast: {
             type: Type.OBJECT,
@@ -119,7 +126,7 @@ export const generateWorldClassReport = async (
   - Loshu Grid Missing Numbers: ${loshu.missingNumbers.join(', ') || 'None'}
   - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
 
-  Now, generate the complete JSON report. For each core number, provide a deep, multi-paragraph interpretation covering spiritual, psychological, and practical aspects for leadership, business, and relationships. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**). For the 'relationshipsFamilyLegacy' pillar, you must include detailed sections on the best numerological timing for marriage and childbirth, analyzing how this timing aligns with the user's core numbers.
+  Now, generate the complete JSON report. For each core number, provide a deep, multi-paragraph interpretation covering spiritual, psychological, and practical aspects for leadership, business, and relationships. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**). For the 'relationshipsFamilyLegacy' pillar, you must include detailed sections on the best numerological timing for marriage and childbirth, analyzing how this timing aligns with the user's core numbers. For the 'spiritualAlignment' pillar, determine their primary lucky color and provide its hex code.
   `;
 
   try {

@@ -45,6 +45,7 @@ const InterpretationTooltip: React.FC<InterpretationTooltipProps> = ({
                 <h6 className="text-sm font-semibold text-cosmic-gold/80">Challenge (As a Missing Number)</h6>
                 <p className="text-sm text-starlight/90">{content}</p>
               </div>
+              <hr className="border-lunar-grey/20" />
               <div>
                 <h6 className="text-sm font-semibold text-starlight">Potential (If Cultivated)</h6>
                 <p className="text-sm text-starlight/90">{potentialContent}</p>

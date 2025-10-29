@@ -62,7 +62,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
         <ReportSection 
           title="Pillar 1: Cosmic Identity" 
           icon={Icons.CosmicIdentity}
-          className={`${pillarStyles.cosmicIdentity} animate-slide-up-fade`}
+          className={`${pillarStyles.cosmicIdentity} animate-pillar-reveal`}
           style={{ animationDelay: '0ms' }}
         >
           <div className="space-y-6">
@@ -95,7 +95,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
         <ReportSection 
           title="Pillar 2: Loshu Grid & Numeric Matrix" 
           icon={Icons.LoshuGrid}
-          className={`${pillarStyles.loshuAnalysis} animate-slide-up-fade`}
+          className={`${pillarStyles.loshuAnalysis} animate-pillar-reveal`}
           style={{ animationDelay: '150ms' }}
         >
           <LoshuGrid 
@@ -121,7 +121,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
         <ReportSection 
           title="Pillar 3: Wealth, Business & Career" 
           icon={Icons.Wealth}
-          className={`${pillarStyles.wealthBusinessCareer} animate-slide-up-fade`}
+          className={`${pillarStyles.wealthBusinessCareer} animate-pillar-reveal`}
           style={{ animationDelay: '300ms' }}
         >
           <MarkdownRenderer content={wealthBusinessCareer} />
@@ -135,17 +135,17 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
               key={pillar.key} 
               title={`Pillar ${index + 4}: ${pillar.title}`} 
               icon={pillar.icon}
-              className={`${pillarStyles.default} animate-slide-up-fade`}
+              className={`${pillarStyles.default} animate-pillar-reveal`}
               style={{ animationDelay: `${450 + index * 150}ms` }}
           >
-              <MarkdownRenderer content={(report as any)[pillar.key]} />
+              <MarkdownRenderer content={pillar.key === 'spiritualAlignment' ? report.spiritualAlignment.content : (report as any)[pillar.key]} />
           </ReportSection>
         ))}
 
           <ReportSection 
               title="Pillar 10: Advanced Future Forecast" 
               icon={Icons.Forecast}
-              className={`${pillarStyles.default} animate-slide-up-fade`}
+              className={`${pillarStyles.default} animate-pillar-reveal`}
               style={{ animationDelay: `${450 + otherPillars.length * 150}ms` }}
           >
               <div className="space-y-6">

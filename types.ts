@@ -42,6 +42,13 @@ export interface LoshuAnalysis {
   compensationStrategy: string;
 }
 
+// Pillar 8: Spiritual Alignment
+export interface SpiritualAlignment {
+    content: string; // Markdown text for Pillar 8
+    luckyColor: string; // Hex color code e.g., "#FFD700"
+}
+
+
 // Pillar 10: Advanced Future Forecast
 export interface FutureForecast {
   personalYear: {
@@ -60,7 +67,7 @@ export interface WorldClassReport {
   relationshipsFamilyLegacy: string; // Markdown text for Pillar 5
   psychologyShadowWork: string; // Markdown text for Pillar 6
   dailyNavigator: string; // Markdown text for Pillar 7
-  spiritualAlignment: string; // Markdown text for Pillar 8
+  spiritualAlignment: SpiritualAlignment; // Pillar 8 is now a structured object
   intellectEducation: string; // Markdown text for Pillar 9
   futureForecast: FutureForecast;
 }

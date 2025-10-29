@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/common/Header';
 import OnboardingForm from './components/OnboardingForm';
 import Dashboard from './components/Dashboard';
@@ -13,6 +13,28 @@ const App: React.FC = () => {
   const [report, setReport] = useState<WorldClassReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper function to convert hex to rgba
+  const hexToRgba = (hex: string, alpha: number): string => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  useEffect(() => {
+    if (report?.spiritualAlignment?.luckyColor) {
+      const luckyColor = report.spiritualAlignment.luckyColor;
+      document.documentElement.style.setProperty('--lucky-color', luckyColor);
+      document.documentElement.style.setProperty('--lucky-color-glow', hexToRgba(luckyColor, 0.5));
+      document.documentElement.style.setProperty('--lucky-color-glow-faint', hexToRgba(luckyColor, 0.03));
+    } else {
+        // Reset to default if no report
+        document.documentElement.style.setProperty('--lucky-color', '#FFD700');
+        document.documentElement.style.setProperty('--lucky-color-glow', 'rgba(255, 215, 0, 0.5)');
+        document.documentElement.style.setProperty('--lucky-color-glow-faint', 'rgba(255, 215, 0, 0.03)');
+    }
+  }, [report]);
 
   const handleFormSubmit = useCallback(async (data: UserData) => {
     setIsLoading(true);
