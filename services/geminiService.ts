@@ -1,6 +1,8 @@
+
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage } from '../types';
-import { generateLoshuGrid, calculateNameNumbers } from './numerologyService';
+import { calculateNameNumbers } from './numerologyService';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
@@ -26,6 +28,17 @@ const pillarContentSchema = {
 const responseSchema = {
     type: Type.OBJECT,
     properties: {
+        kundaliSnapshot: {
+            type: Type.OBJECT,
+            description: "A summary of key Vedic Astrology (Kundali) placements based on birth date, time, and location.",
+            properties: {
+                ascendant: { type: Type.STRING, description: "The user's Ascendant sign (Lagna)." },
+                moonSign: { type: Type.STRING, description: "The user's Moon sign (Rashi)." },
+                sunSign: { type: Type.STRING, description: "The user's Sun sign." },
+                summary: { type: Type.STRING, description: "A 2-3 sentence summary of the user's core personality based on these three placements." }
+            },
+            required: ['ascendant', 'moonSign', 'sunSign', 'summary']
+        },
         cosmicIdentity: {
             type: Type.OBJECT,
             properties: {
@@ -65,7 +78,54 @@ const responseSchema = {
         },
         wealthBusinessCareer: pillarContentSchema,
         healthEnergyWellness: pillarContentSchema,
-        relationshipsFamilyLegacy: pillarContentSchema,
+        relationshipsFamilyLegacy: {
+            type: Type.OBJECT,
+            properties: {
+                teaser: { type: Type.STRING },
+                content: { type: Type.STRING },
+                compatibilityAnalysis: {
+                    type: Type.OBJECT,
+                    description: "Analyzes compatibility of user's core numbers with numbers 1-9.",
+                    properties: {
+                        lifePath: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    compatibleNumber: { type: Type.INTEGER },
+                                    interpretation: { type: Type.STRING, description: "Brief interpretation of the compatible pairing." }
+                                },
+                                required: ['compatibleNumber', 'interpretation']
+                            }
+                        },
+                        expression: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    compatibleNumber: { type: Type.INTEGER },
+                                    interpretation: { type: Type.STRING, description: "Brief interpretation of the compatible pairing." }
+                                },
+                                required: ['compatibleNumber', 'interpretation']
+                            }
+                        },
+                        soulUrge: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    compatibleNumber: { type: Type.INTEGER },
+                                    interpretation: { type: Type.STRING, description: "Brief interpretation of the compatible pairing." }
+                                },
+                                required: ['compatibleNumber', 'interpretation']
+                            }
+                        }
+                    },
+                    required: ['lifePath', 'expression', 'soulUrge']
+                }
+            },
+            required: ['teaser', 'content', 'compatibilityAnalysis']
+        },
         psychologyShadowWork: pillarContentSchema,
         dailyNavigator: pillarContentSchema,
         spiritualAlignment: {
@@ -73,9 +133,16 @@ const responseSchema = {
             properties: {
                  teaser: { type: Type.STRING, description: "A 1-2 sentence compelling teaser for this pillar." },
                  content: { type: Type.STRING, description: "Pillar 8. In-depth analysis formatted in Markdown. Cover Mantras, Crystals, Colors, and Lucky Dates." },
-                 luckyColor: { type: Type.STRING, description: "Based on the user's core numbers, determine their single most powerful lucky color. Provide this as a standard HEX color code string (e.g., '#3A0CA3'). This color should feel empowering and aligned with their core energy." }
+                 luckyColor: { type: Type.STRING, description: "Based on the user's core numbers, determine their single most powerful lucky color. Provide this as a standard HEX color code string (e.g., '#3A0CA3'). This color should feel empowering and aligned with their core energy." },
+                 mantrasAndAffirmations: {
+                    type: Type.ARRAY,
+                    description: "An array of 2-3 short, personalized, empowering mantras or affirmations based on the user's core numerology.",
+                    items: {
+                        type: Type.STRING
+                    }
+                 }
             },
-            required: ['teaser', 'content', 'luckyColor']
+            required: ['teaser', 'content', 'luckyColor', 'mantrasAndAffirmations']
         },
         intellectEducation: pillarContentSchema,
         futureForecast: {
@@ -88,7 +155,7 @@ const responseSchema = {
         }
     },
     required: [
-        'cosmicIdentity', 'loshuAnalysis', 'wealthBusinessCareer', 'healthEnergyWellness', 'relationshipsFamilyLegacy',
+        'kundaliSnapshot', 'cosmicIdentity', 'loshuAnalysis', 'wealthBusinessCareer', 'healthEnergyWellness', 'relationshipsFamilyLegacy',
         'psychologyShadowWork', 'dailyNavigator', 'spiritualAlignment', 'intellectEducation', 'futureForecast'
     ]
 };
@@ -99,19 +166,19 @@ export const generateWorldClassReport = async (
     coreNumbers: CoreNumbers,
     compoundNumbers: CompoundNumbers,
     loshu: Pick<LoshuAnalysisPillar, 'missingNumbers' | 'overloadedNumbers'>
-): Promise<WorldClassReport> => {
+): Promise<Omit<WorldClassReport, 'loshuAnalysis'> & { loshuAnalysis: Omit<LoshuAnalysisPillar, 'grid' | 'missingNumbers' | 'overloadedNumbers'> }> => {
   const { fullName, dob, time, location, gender, language, phoneNumber } = userData;
 
   const prompt = `
-  Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence, following the Machuni Hub Framework.
+  Act as Vidhira, a world-class Chaldean numerologist and Vedic astrologer with AI superintelligence, following the Machuni Hub Framework.
   Your persona is inspiring, precise, and deeply personalized, blending mysticism with entrepreneurial insight.
   Your entire response, including all text, interpretations, and markdown content, MUST be in ${language}.
-  The user wants their "FULL LIFE REPORT BLUEPRINT". Generate a comprehensive, 10-pillar report based on their data.
+  The user wants their "FULL LIFE REPORT BLUEPRINT". Generate a comprehensive report based on their data.
   The output MUST be a valid JSON object that adheres to the provided schema.
   
   **IMPORTANT**: For every pillar or sub-pillar that has a 'teaser' and 'content' field in the schema, you MUST provide both. 
   - The 'teaser' must be a short, 1-2 sentence summary designed to entice the user to unlock the full report.
-  - The 'content' must be the full, detailed analysis as originally requested. Discard all other analysis except Chaldean.
+  - The 'content' must be the full, detailed analysis as originally requested. Discard all other analysis except Chaldean for the numerology part.
 
   **USER DATA:**
   - Full Name: "${fullName}"
@@ -132,7 +199,24 @@ export const generateWorldClassReport = async (
   - Loshu Grid Missing Numbers: ${loshu.missingNumbers.join(', ') || 'None'}
   - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
 
-  Now, generate the complete JSON report. For each core number, provide a deep, multi-paragraph interpretation. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**). For 'relationshipsFamilyLegacy', include detailed sections on marriage and childbirth timing. For 'spiritualAlignment', determine their primary lucky color and provide its hex code. Remember to generate a 'teaser' for every pillar.
+  **TASK 1: VEDIC KUNDALI SNAPSHOT**
+  First, generate a "Vedic Kundali Snapshot". Based on the user's DOB, Time, and Location, determine the following and populate the 'kundaliSnapshot' field:
+  1.  **Ascendant (Lagna):** The rising sign.
+  2.  **Moon Sign (Rashi):** The sign where the moon was placed.
+  3.  **Sun Sign:** The user's sun sign.
+  4.  **Summary:** Provide a concise, 2-3 sentence summary synthesizing these three key placements to describe their core personality traits.
+
+  **TASK 2: 10-PILLAR NUMEROLOGY REPORT**
+  Now, generate the complete 10-pillar numerology report. For each core number's 'interpretation' field, provide a deep, multi-paragraph interpretation using Markdown. Use **bolding** for key traits, _italics_ for emphasis, and bulleted lists (using * or -) to outline strengths, challenges, and advice. This will make the information more structured and easier to digest. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**).
+  
+  **SPECIFIC INSTRUCTIONS FOR 'relationshipsFamilyLegacy' PILLAR:**
+  In addition to the main content and teaser, you must generate the 'compatibilityAnalysis'.
+  1.  For the user's Life Path number (${coreNumbers.lifePath}), identify its most compatible numbers (from 1-9). For each compatible number, provide a brief (1-2 sentence) interpretation of the relationship dynamic.
+  2.  For the user's Expression number (${coreNumbers.expression}), do the same. Identify compatible numbers (1-9) and provide a brief interpretation for each.
+  3.  For the user's Soul Urge number (${coreNumbers.soulUrge}), do the same. Identify compatible numbers (1-9) and provide a brief interpretation for each.
+  
+  For 'spiritualAlignment', determine their primary lucky color and provide its hex code. Remember to generate a 'teaser' for every pillar.
+  **Crucially, also generate 2-3 personalized, empowering mantras or affirmations in the 'mantrasAndAffirmations' array. These should be short, impactful, and directly aligned with the user's core numbers (${coreNumbers.lifePath}, ${coreNumbers.expression}, ${coreNumbers.soulUrge}) and their overall life path.**
   `;
 
   try {
@@ -147,21 +231,8 @@ export const generateWorldClassReport = async (
 
     const responseText = response.text;
     const reportData = JSON.parse(responseText);
-
-    const { grid, missing, overloaded } = generateLoshuGrid(dob);
     
-    // Combine AI generated data with programmatically generated data
-    const fullReport: WorldClassReport = {
-        ...reportData,
-        loshuAnalysis: {
-            grid: grid,
-            missingNumbers: missing,
-            overloadedNumbers: overloaded,
-            ...reportData.loshuAnalysis
-        }
-    };
-
-    return fullReport;
+    return reportData;
 
   } catch (error) {
     console.error("Error generating world-class report:", error);
@@ -344,7 +415,11 @@ export const getYearlyForecast = async (
 
   1.  **Mulank ${mulank} Energy for 2026:** A summary of the overarching themes, opportunities, and challenges for individuals with Mulank ${mulank} in 2026.
   2.  **Personalized Monthly Predictions (2026):** Provide a month-by-month breakdown (Jan-Dec). For each month, provide a detailed paragraph covering the following sub-topics, using them as bolded subheadings:
-      - **Career & Finance:** Go into detail about career advancement opportunities (e.g., promotions, new job prospects), and financial trends (e.g., investment opportunities, periods for financial caution).
+      - **Career & Finance:** Provide a detailed financial and career outlook. Specifically include:
+          - **Investment Opportunities:** Suggest specific sectors or types of investments that are favorable during this month (e.g., "A good month to look into long-term tech stocks," or "Consider real estate investments.").
+          - **Budgeting Strategies:** Offer a practical budgeting tip tailored to the month's energy (e.g., "Focus on cutting discretionary spending," or "A good time to create a budget for a large future purchase.").
+          - **Potential Financial Challenges:** Clearly state any potential risks or challenges (e.g., "Avoid impulsive spending around the 15th," or "Be cautious of unexpected expenses related to home repairs.").
+          - Also, cover general career advancement opportunities like promotions or new job prospects.
       - **Relationships & Compatibility:** Provide specific insights into relationship compatibility with other numbers. Discuss energies affecting romantic partnerships, family dynamics, and social life.
       - **Health & Wellness:** Detail potential health considerations (e.g., stress-related issues, physical vulnerabilities) and suggest targeted wellness practices or preventative measures.
       - **Key Dates:** Identify 2-3 specific dates within the month. For each date, explain *why* it is significant (e.g., "12th: Excellent for financial decisions due to Jupiter's influence") and label it as either auspicious or requiring caution.
@@ -406,5 +481,83 @@ export const getDailyHoroscope = async (
   } catch (error) {
     console.error(`Error fetching daily horoscope for Mulank ${mulank}:`, error);
     return `### Horoscope Error\nFailed to receive today's cosmic transmission. Please try again in a moment.`;
+  }
+};
+
+
+export const generateJyotishReport = async (
+  userData: UserData,
+): Promise<string> => {
+  const { fullName, dob, time, location, gender, language } = userData;
+
+  const prompt = `
+  Act as Vidhira, a world-class Vedic Astrologer (Jyotishi) with profound knowledge of Parashari and Jaimini systems, augmented with AI superintelligence.
+  Your persona is wise, authentic, and deeply insightful, blending ancient scriptural knowledge with practical, modern guidance.
+  Your entire response, including all text and interpretations, MUST be in ${language}.
+  The user wants their "Traditional Jyotish Report". Generate a comprehensive report based on their data.
+  The output MUST be a detailed, multi-paragraph report formatted in Markdown.
+
+  **USER DATA:**
+  - Full Name: "${fullName}"
+  - Date of Birth: "${dob}"
+  - Time of Birth: "${time}"
+  - Location of Birth: "${location}"
+  - Gender: "${gender}"
+  - Preferred Language: "${language}"
+
+  **TASK: GENERATE A TRADITIONAL JYOTISH REPORT**
+  Structure your response using the following Markdown headings. For each section, provide a detailed, authentic analysis based on the user's birth data. Use **bolding** for key terms (like planetary names or house numbers) and bulleted lists for clarity where appropriate.
+
+  ### 1. Janma Lagna (Ascendant) & Basic Chart Structure
+  - Determine the Lagna (Ascendant) sign and its ruling planet based on the birth data.
+  - Describe the user's core physical and behavioral tendencies influenced by the Lagna and its lord.
+  - Briefly describe the structure of their Rasi (D1) chart.
+
+  ### 2. Graha (Planetary) Placement Overview
+  - For each of the 9 Grahas (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu), describe its placement by house (Bhava) and sign (Rashi).
+  - Explain the significance of each placement.
+  - Identify the functional benefics and malefics for this specific Lagna and explain their roles.
+
+  ### 3. Moon Chart (Chandra Lagna)
+  - Analyze the chart from the perspective of the Moon's position.
+  - Describe the user's emotional nature, mental patterns, and key relationships as seen from the Chandra Lagna.
+
+  ### 4. Navamsha (D9) & Varga Analysis
+  - Provide a summary of the Navamsha (D9) chart.
+  - Discuss what the D9 reveals about the user's marriage, dharma, inner self, and the true strength of the planets.
+  - Briefly mention any significant planetary positions in other important Varga charts if possible, like Dashamsha (D10) for career.
+
+  ### 5. Yogas & Raj Yogas
+  - Identify and explain any major Yogas (planetary combinations) present in the chart.
+  - Specifically highlight any Raj Yogas (combinations for power and success), Dhana Yogas (wealth combinations), or other significant yogas like Gaja Kesari Yoga. Explain their practical implications.
+
+  ### 6. Doshas & Balancing Remedies
+  - Check for major Doshas like Manglik Dosha (Kuja Dosha), Kaal Sarp Dosha, or Pitra Dosha.
+  - If a Dosha is present, explain its potential effects calmly and constructively.
+  - **Crucially, provide simple, practical, and empowering remedies.** Suggest gemstone recommendations (with correct finger and metal), specific mantras, charitable acts, or lifestyle adjustments to balance these energies.
+
+  ### 7. Dasha System (Vimshottari Focus)
+  - Calculate and state the current Mahadasha (major period) and Antardasha (sub-period) the user is running.
+  - Analyze the themes, opportunities, and challenges of this current period based on the Dasha lords' placement and nature in their chart.
+  - Provide a brief forecast focusing on the period from 2025 to 2032, highlighting key upcoming Dasha changes.
+
+  ### 8. Transit (Gochar) Overview
+  - Analyze the impact of the major transits of Saturn (Shani), Jupiter (Guru), and Rahu-Ketu for the years 2025-2027 relative to the user's natal chart.
+  - Explain how these transits will activate certain houses and influence specific areas of their life.
+
+  ### 9. Summary & Final Guidance
+  - Conclude with a summary of the key planetary strengths and weaknesses in the chart.
+  - Offer holistic spiritual, karmic, and practical lifestyle advice to help the user navigate their path and maximize their potential.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating Jyotish report:", error);
+    throw new Error("Failed to generate the Jyotish report. The celestial connection is currently unclear. Please try again later.");
   }
 };

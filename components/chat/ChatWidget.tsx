@@ -4,6 +4,7 @@ import type { ChatMessage, UserData, WorldClassReport } from '../../types';
 import { getChatResponse } from '../../services/geminiService';
 import ChatMessageBubble from './ChatMessage';
 import TypingIndicator from './TypingIndicator';
+import { trackEvent } from '../../services/analyticsService';
 
 interface ChatWidgetProps {
     report: WorldClassReport;
@@ -39,6 +40,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ report, userData }) => {
         setMessages(newMessages);
         setUserInput('');
         setIsLoading(true);
+        trackEvent('CHAT_MESSAGE_SENT', { messageLength: trimmedInput.length });
 
         try {
             const aiResponse = await getChatResponse(newMessages, trimmedInput, report, userData);

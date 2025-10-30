@@ -10,16 +10,55 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
     // A simple parser to convert markdown-like syntax to JSX
     const renderContent = () => {
-        return content.split('\n').map((line, index) => {
-            // Bold **text**
-            line = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-starlight/90">$1</strong>');
-            // List items * or -
-            if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
-                 return <li key={index} dangerouslySetInnerHTML={{ __html: line.substring(2) }} className="ml-5 list-disc" />;
+        const lines = content.split('\n');
+        const elements = [];
+        let listItems: string[] = [];
+
+        const flushList = () => {
+            if (listItems.length > 0) {
+                elements.push(
+                    <ul key={`ul-${elements.length}`} className="list-disc pl-5 space-y-1 mb-2">
+                        {listItems.map((item, i) => (
+                            <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
+                        ))}
+                    </ul>
+                );
+                listItems = [];
             }
-            // Simple paragraph with line breaks
-            return <p key={index} dangerouslySetInnerHTML={{ __html: line }} className="mb-2" />;
+        };
+
+        lines.forEach((line, index) => {
+            let processedLine = line
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-starlight/90">$1</strong>')
+                .replace(/\_(.*?)\_/g, '<em class="italic">$1</em>');
+
+            if (processedLine.trim().startsWith('### ')) {
+                flushList();
+                elements.push(<h3 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(4) }} className="text-xl font-bold text-cosmic-gold font-display mt-6 mb-3" />);
+                return;
+            }
+            if (processedLine.trim().startsWith('## ')) {
+                flushList();
+                elements.push(<h2 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(3) }} className="text-2xl font-bold text-starlight font-display mt-8 mb-4" />);
+                return;
+            }
+            if (processedLine.trim().startsWith('* ') || processedLine.trim().startsWith('- ')) {
+                listItems.push(processedLine.substring(2).trim());
+                return;
+            }
+            
+            flushList();
+            if (processedLine.trim()) {
+                elements.push(<p key={index} dangerouslySetInnerHTML={{ __html: processedLine }} className="mb-2" />);
+            } else if (elements.length > 0 && elements[elements.length - 1].type === 'p') {
+                // To create some space between paragraphs
+                elements.push(<div key={`space-${index}`} className="h-2"></div>);
+            }
         });
+        
+        flushList(); // Flush any remaining list items
+
+        return elements;
     };
 
     return <div className="text-lunar-grey space-y-2 text-justify">{renderContent()}</div>;

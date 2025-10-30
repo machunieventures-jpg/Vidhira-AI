@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface UnlockReportCTAProps {
@@ -21,7 +20,7 @@ const UnlockReportCTA: React.FC<UnlockReportCTAProps> = ({ onUnlock, isLoading }
         disabled={isLoading}
         className="bg-cosmic-gold text-deep-void font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_20px_var(--lucky-color-glow)] disabled:bg-lunar-grey disabled:scale-100 disabled:cursor-not-allowed"
       >
-        {isLoading ? 'Unlocking...' : 'Unlock Full Report ($15.00)'}
+        {isLoading ? 'Unlocking...' : 'Unlock Full Report ($3.30)'}
       </button>
     </div>
   );

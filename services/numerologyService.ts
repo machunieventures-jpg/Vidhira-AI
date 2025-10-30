@@ -79,22 +79,29 @@ export const calculateInitialNumbers = (userData: UserData): { core: CoreNumbers
   };
 };
 
-export const generateLoshuGrid = (dob: string): { grid: (number | null)[][], missing: number[], overloaded: number[] } => {
-    const digits = dob.replace(/-/g, '').split('').map(Number);
+export const generateLoshuGrid = (dob: string, birthNumber?: number, destinyNumber?: number): { grid: (string | null)[][], missing: number[], overloaded: number[] } => {
+    const dobDigits = dob.replace(/-/g, '').split('').map(Number);
+    const specialNumbers = [birthNumber, destinyNumber].filter((n): n is number => n !== undefined && n > 0 && n <= 9);
+    const allDigits = [...dobDigits, ...specialNumbers];
+
     const gridMap: { [key: number]: number } = {
         4: 0, 9: 1, 2: 2,
         3: 3, 5: 4, 7: 5,
         8: 6, 1: 7, 6: 8
     };
-    const flatGrid: (number | null)[] = Array(9).fill(null);
+
+    const flatGrid: (string | null)[] = Array(9).fill(null);
     const counts: { [key: number]: number } = {};
 
-    digits.forEach(digit => {
-        if (digit > 0) {
+    allDigits.forEach(digit => {
+        if (digit > 0 && digit <= 9) {
             counts[digit] = (counts[digit] || 0) + 1;
-            if (gridMap[digit] !== undefined) {
-                flatGrid[gridMap[digit]] = digit;
-            }
+        }
+    });
+
+    Object.keys(counts).map(Number).forEach(digit => {
+        if (gridMap[digit] !== undefined) {
+             flatGrid[gridMap[digit]] = digit.toString().repeat(counts[digit]);
         }
     });
 
@@ -104,7 +111,7 @@ export const generateLoshuGrid = (dob: string): { grid: (number | null)[][], mis
         [flatGrid[6], flatGrid[7], flatGrid[8]]
     ];
 
-    const presentNumbers = new Set(digits.filter(d => d > 0));
+    const presentNumbers = new Set(Object.keys(counts).map(Number));
     const missing: number[] = [];
     for (let i = 1; i <= 9; i++) {
         if (!presentNumbers.has(i)) {

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { analyzeBrandName } from '../../services/geminiService';
 import type { UserData, WorldClassReport } from '../../types';
 import MarkdownRenderer from '../common/MarkdownRenderer';
+import { trackEvent } from '../../services/analyticsService';
 
 interface BrandAnalyzerProps {
     userData: UserData;
@@ -34,6 +35,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                 userData.language
             );
             setAnalysisResult(result);
+            trackEvent('BRAND_ANALYZED', { businessName });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
             setError(`Failed to analyze brand name. ${errorMessage}`);

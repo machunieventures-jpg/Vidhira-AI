@@ -4,16 +4,18 @@ import type { UserData } from '../types';
 
 interface OnboardingFormProps {
   onSubmit: (data: UserData) => void;
+  initialData?: UserData;
+  onCancel?: () => void;
 }
 
-const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
-  const [fullName, setFullName] = useState('');
-  const [dob, setDob] = useState('');
-  const [time, setTime] = useState('');
-  const [location, setLocation] = useState('');
-  const [gender, setGender] = useState('');
-  const [language, setLanguage] = useState('English');
-  const [phoneNumber, setPhoneNumber] = useState('');
+const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit, initialData, onCancel }) => {
+  const [fullName, setFullName] = useState(initialData?.fullName || '');
+  const [dob, setDob] = useState(initialData?.dob || '');
+  const [time, setTime] = useState(initialData?.time || '');
+  const [location, setLocation] = useState(initialData?.location || '');
+  const [gender, setGender] = useState(initialData?.gender || '');
+  const [language, setLanguage] = useState(initialData?.language || 'English');
+  const [phoneNumber, setPhoneNumber] = useState(initialData?.phoneNumber || '');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,14 +24,32 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
       setError('Please fill out all fields to generate your blueprint.');
       return;
     }
+
+    // Validate Date of Birth
+    const birthDate = new Date(dob);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Compare against the start of today to allow today's date
+
+    if (isNaN(birthDate.getTime())) {
+        setError('The date of birth entered is not a valid date.');
+        return;
+    }
+
+    if (birthDate > today) {
+        setError('Date of birth cannot be in the future.');
+        return;
+    }
+    
     setError('');
     onSubmit({ fullName, dob, time, location, gender, language, phoneNumber });
   };
 
+  const isEditing = !!initialData;
+
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-void-tint/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-lunar-grey/20">
-      <h2 className="text-2xl font-bold text-center text-starlight font-display mb-2">Generate Your Blueprint</h2>
-      <p className="text-center text-lunar-grey mb-6">Enter your details for a personalized life report.</p>
+    <div className="w-full max-w-md mx-auto p-8 bg-void-tint/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-lunar-grey/20 animate-fade-in">
+      <h2 className="text-2xl font-bold text-center text-starlight font-display mb-2">{isEditing ? 'Edit Your Profile' : 'Generate Your Blueprint'}</h2>
+      <p className="text-center text-lunar-grey mb-6">{isEditing ? 'Update your details to regenerate your report.' : 'Enter your details for a personalized life report.'}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="fullName" className="block text-sm font-medium text-lunar-grey mb-1">Full Name (as on birth certificate)</label>
@@ -120,16 +140,30 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit }) => {
           </select>
         </div>
         {error && <p className="text-cosmic-gold/90 text-sm text-center">{error}</p>}
-        <button
-          type="submit"
-          className="w-full bg-cosmic-gold text-deep-void font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
-        >
-          Generate My Blueprint
-        </button>
+        
+        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+            {onCancel && (
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="w-full border border-lunar-grey/50 text-lunar-grey font-bold py-3 px-4 rounded-lg hover:bg-lunar-grey/20 hover:text-starlight transition-all duration-300"
+                >
+                    Cancel
+                </button>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-cosmic-gold text-deep-void font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
+            >
+              {isEditing ? 'Update & Regenerate' : 'Generate My Blueprint'}
+            </button>
+        </div>
       </form>
-       <div className="text-center text-xs text-starlight/40 mt-4">
-        By continuing, you agree to our Terms of Service.
-      </div>
+       {!isEditing && (
+         <div className="text-center text-xs text-starlight/40 mt-4">
+           By continuing, you agree to our Terms of Service.
+         </div>
+       )}
     </div>
   );
 };

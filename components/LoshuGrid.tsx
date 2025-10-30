@@ -2,10 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getLoshuNumberInterpretation, getCoreIdentifierInterpretation } from '../services/geminiService';
 import type { UserData, LoshuAnalysisPillar } from '../types';
 import InterpretationTooltip from './common/InterpretationTooltip';
-import MarkdownRenderer from './common/MarkdownRenderer';
 
 interface LoshuGridProps {
-  grid: (number | null)[][];
+  grid: (string | null)[][];
   missingNumbers: number[];
   overloadedNumbers: number[];
   userData: UserData;
@@ -22,12 +21,10 @@ const numberToGridPosition: { [key: number]: { row: number, col: number } } = {
     8: { row: 2, col: 0 }, 1: { row: 2, col: 1 }, 6: { row: 2, col: 2 },
 };
 
-const badgeOffsets: { [key: number]: { x: number, y: number } } = {
-    4: { x: -0.6, y: -0.6 }, 9: { x: 0, y: -0.8 }, 2: { x: 0.6, y: -0.6 },
-    3: { x: -0.8, y: 0 }, 5: { x: 0, y: -1.2 },
-    7: { x: 0.8, y: 0 },
-    8: { x: -0.6, y: 0.6 }, 1: { x: 0, y: 0.8 }, 6: { x: 0.6, y: 0.6 },
-};
+const positionToNumberMap = Object.fromEntries(
+  Object.entries(numberToGridPosition).map(([num, pos]) => [`${pos.row}-${pos.col}`, Number(num)])
+);
+
 
 const planes = {
     mental: { name: 'Mental Plane', numbers: [4, 9, 2], description: 'Represents thinking, creativity, and analytical abilities.' },
@@ -160,24 +157,13 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
     return () => { window.removeEventListener('scroll', handleScroll, true); };
   }, [activeNumber, handleCloseTooltip]);
 
-  const presentNumbers = useMemo(() => new Set(grid.flat().filter((num): num is number => num !== null)), [grid]);
+  const presentNumbers = useMemo(() => {
+    const all = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    missingNumbers.forEach(n => all.delete(n));
+    return all;
+  }, [missingNumbers]);
+
   const isPlaneComplete = useCallback((planeNumbers: number[]) => planeNumbers.every(num => presentNumbers.has(num)), [presentNumbers]);
-  const completedPlanes = useMemo(() => Object.keys(planes).filter(key => isPlaneComplete(planes[key as keyof typeof planes].numbers)), [isPlaneComplete]);
-
-  const isBirthPresent = useMemo(() => presentNumbers.has(birthNumber), [presentNumbers, birthNumber]);
-  const isDestinyPresent = useMemo(() => presentNumbers.has(destinyNumber), [presentNumbers, destinyNumber]);
-  const isSameSpecialNumber = birthNumber === destinyNumber;
-
-  const floatingNumbers = useMemo(() => {
-      const numbers = [];
-      if (isSameSpecialNumber) {
-          if (!isBirthPresent) numbers.push({ num: birthNumber, type: 'Birth & Destiny' as const });
-      } else {
-          if (!isBirthPresent) numbers.push({ num: birthNumber, type: 'Birth' as const });
-          if (!isDestinyPresent) numbers.push({ num: destinyNumber, type: 'Destiny' as const });
-      }
-      return numbers;
-  }, [isSameSpecialNumber, isBirthPresent, isDestinyPresent, birthNumber, destinyNumber]);
 
   return (
     <>
@@ -185,77 +171,33 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
         {/* Left: Grid */}
         <div className="relative w-[256px] h-[256px] self-center md:self-start">
             <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 bg-void-tint rounded-lg border border-lunar-grey/50">
-            {grid.flat().map((cell, index) => {
-                const isCellActive = cell && activeNumber?.num === cell && !activeNumber?.isMissing;
-                const isBirthHighlight = isBirthPresent && cell === birthNumber;
-                const isDestinyHighlight = isDestinyPresent && cell === destinyNumber;
-                const isBoth = isBirthHighlight && isDestinyHighlight;
+            {grid.flat().map((cellContent, index) => {
+                const row = Math.floor(index / 3);
+                const col = index % 3;
+                const numberForCell = positionToNumberMap[`${row}-${col}`];
 
-                const highlightClass = isBoth ? 'highlight-both' : isBirthHighlight ? 'highlight-birth' : isDestinyHighlight ? 'highlight-destiny' : '';
-                const type: 'Birth' | 'Destiny' | 'Birth & Destiny' = isBoth ? 'Birth & Destiny' : isBirthHighlight ? 'Birth' : 'Destiny';
+                const isCellActive = cellContent && activeNumber?.num === numberForCell && !activeNumber?.isMissing;
+                
+                const containsBirth = cellContent && cellContent.includes(birthNumber.toString());
+                const containsDestiny = cellContent && cellContent.includes(destinyNumber.toString());
+                const isBoth = containsBirth && containsDestiny;
+
+                const highlightClass = isBoth ? 'highlight-both' : containsBirth ? 'highlight-birth' : containsDestiny ? 'highlight-destiny' : '';
+                const type: 'Birth' | 'Destiny' | 'Birth & Destiny' = isBoth ? 'Birth & Destiny' : containsBirth ? 'Birth' : 'Destiny';
 
                 return (
                     <div
                         key={index}
-                        className={`w-full h-full flex items-center justify-center text-3xl font-bold rounded-md bg-deep-void/50 border-2 border-transparent ${cell ? 'cursor-pointer hover:bg-lunar-grey/20' : ''} ${isCellActive ? 'animate-scale-pulse' : ''} ${highlightClass}`}
-                        onClick={(e) => cell && handleNumberClick(cell, false, e)}
-                        onMouseEnter={(e) => (isBirthHighlight || isDestinyHighlight) && handleSpecialNumberEnter(cell!, type, e)}
-                        onMouseLeave={(e) => (isBirthHighlight || isDestinyHighlight) && handleSpecialNumberLeave()}
+                        className={`w-full h-full flex items-center justify-center font-bold rounded-md bg-deep-void/50 border-2 border-transparent ${cellContent ? 'cursor-pointer hover:bg-lunar-grey/20' : ''} ${isCellActive ? 'animate-scale-pulse' : ''} ${highlightClass}`}
+                        onClick={(e) => cellContent && handleNumberClick(numberForCell, false, e)}
+                        onMouseEnter={(e) => (containsBirth || containsDestiny) && handleSpecialNumberEnter(numberForCell, type, e)}
+                        onMouseLeave={(e) => (containsBirth || containsDestiny) && handleSpecialNumberLeave()}
                     >
-                        {cell ? <span className={isBoth ? "bg-clip-text text-transparent bg-gradient-to-r from-cosmic-gold to-cyan-400" : "text-starlight"}>{cell}</span> : <span className="text-starlight/20">-</span>}
+                        {cellContent ? <span className={`${cellContent.length > 2 ? 'text-xl' : 'text-3xl'} ${isBoth ? "bg-clip-text text-transparent bg-gradient-to-r from-cosmic-gold to-cyan-400" : "text-starlight"}`}>{cellContent}</span> : <span className="text-starlight/20">-</span>}
                     </div>
                 )
             })}
             </div>
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 256 256">
-                {/* Lines for floating badges will go here */}
-                {floatingNumbers.map(({ num, type }) => {
-                    const pos = numberToGridPosition[num];
-                    if (!pos) return null;
-                    const offset = badgeOffsets[num];
-                    const cellSize = 80;
-                    const gap = 8;
-                    const cellCenterX = pos.col * (cellSize + gap) + cellSize / 2 + gap / 2;
-                    const cellCenterY = pos.row * (cellSize + gap) + cellSize / 2 + gap / 2;
-                    const badgeCenterX = cellCenterX + offset.x * cellSize;
-                    const badgeCenterY = cellCenterY + offset.y * cellSize;
-
-                    return (
-                        <line
-                            key={`${num}-${type}`}
-                            x1={cellCenterX} y1={cellCenterY}
-                            x2={badgeCenterX} y2={badgeCenterY}
-                            className={`floating-badge-line ${type === 'Birth' || type === 'Birth & Destiny' ? 'stroke-cosmic-gold/70' : 'stroke-cyan-400/70'}`}
-                        />
-                    );
-                })}
-            </svg>
-            {floatingNumbers.map(({ num, type }) => {
-                const pos = numberToGridPosition[num];
-                if (!pos) return null;
-                const offset = badgeOffsets[num];
-                const cellSize = 80;
-                const gap = 8;
-                const badgeSize = 48;
-                const cellCenterX = pos.col * (cellSize + gap) + cellSize / 2 + gap / 2;
-                const cellCenterY = pos.row * (cellSize + gap) + cellSize / 2 + gap / 2;
-                const badgeCenterX = cellCenterX + offset.x * cellSize;
-                const badgeCenterY = cellCenterY + offset.y * cellSize;
-                const badgeClass = type === 'Birth' || type === 'Birth & Destiny' ? 'border-cosmic-gold text-cosmic-gold' : 'border-cyan-400 text-cyan-400';
-
-                return (
-                     <div
-                        key={`${num}-${type}`}
-                        className={`floating-badge absolute w-12 h-12 flex items-center justify-center bg-void-tint font-bold text-2xl border-2 rounded-full cursor-pointer pointer-events-auto ${badgeClass}`}
-                        style={{ top: badgeCenterY - badgeSize/2, left: badgeCenterX - badgeSize/2 }}
-                        onMouseEnter={(e) => handleSpecialNumberEnter(num, type, e)}
-                        onMouseLeave={handleSpecialNumberLeave}
-                    >
-                       {num}
-                    </div>
-                );
-            })}
-
         </div>
         
         {/* Right: Core Matrix Analysis */}

@@ -5,6 +5,7 @@ import { getYearlyForecast, getDailyHoroscope } from '../../services/geminiServi
 import type { UserData } from '../../types';
 import MarkdownRenderer from '../common/MarkdownRenderer';
 import RahuKaalCalculator from './RahuKaalCalculator';
+import { trackEvent } from '../../services/analyticsService';
 
 interface YearlyForecastProps {
     userData: UserData;
@@ -29,6 +30,7 @@ const YearlyForecast: React.FC<YearlyForecastProps> = ({ userData }) => {
         try {
             const result = await getYearlyForecast(mulank, userData.fullName, userData.language);
             setForecast(result);
+            trackEvent('YEARLY_FORECAST_GENERATED', { mulank });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
             setError(`Failed to generate forecast. ${errorMessage}`);
@@ -45,6 +47,7 @@ const YearlyForecast: React.FC<YearlyForecastProps> = ({ userData }) => {
         try {
             const result = await getDailyHoroscope(mulank, userData.fullName, userData.language);
             setDailyHoroscope(result);
+            trackEvent('DAILY_HOROSCOPE_GENERATED', { mulank });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
             setDailyError(`Failed to generate today's horoscope. ${errorMessage}`);

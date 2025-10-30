@@ -35,7 +35,7 @@ export interface PersonalCoreNumbersPillar {
 
 // Section 4: Loshu Grid
 export interface LoshuAnalysisPillar {
-    grid: (number | null)[][];
+    grid: (string | null)[][];
     missingNumbers: number[];
     overloadedNumbers: number[];
     elementalPlanes: {
@@ -53,10 +53,32 @@ export interface SpiritualAlignmentPillar {
   teaser: string;
   content: string;
   luckyColor: string;
+  mantrasAndAffirmations: string[];
+}
+
+// Compatibility Analysis
+export interface CompatibilityPairing {
+    compatibleNumber: number;
+    interpretation: string;
+}
+
+export interface CompatibilityAnalysis {
+    lifePath: CompatibilityPairing[];
+    expression: CompatibilityPairing[];
+    soulUrge: CompatibilityPairing[];
+}
+
+// Kundali Snapshot
+export interface KundaliSnapshot {
+    ascendant: string;
+    moonSign: string;
+    sunSign: string;
+    summary: string;
 }
 
 // Main Report Structure
 export interface WorldClassReport {
+  kundaliSnapshot: KundaliSnapshot;
   cosmicIdentity: {
     coreNumbers: {
         lifePath: CoreNumberInfo;
@@ -72,7 +94,9 @@ export interface WorldClassReport {
   loshuAnalysis: LoshuAnalysisPillar;
   wealthBusinessCareer: PillarContent;
   healthEnergyWellness: PillarContent;
-  relationshipsFamilyLegacy: PillarContent;
+  relationshipsFamilyLegacy: PillarContent & {
+    compatibilityAnalysis: CompatibilityAnalysis;
+  };
   psychologyShadowWork: PillarContent;
   dailyNavigator: PillarContent;
   spiritualAlignment: SpiritualAlignmentPillar;
