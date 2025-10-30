@@ -175,10 +175,13 @@ export const generateWorldClassReport = async (
   Your entire response, including all text, interpretations, and markdown content, MUST be in ${language}.
   The user wants their "FULL LIFE REPORT BLUEPRINT". Generate a comprehensive report based on their data.
   The output MUST be a valid JSON object that adheres to the provided schema.
-  
-  **IMPORTANT**: For every pillar or sub-pillar that has a 'teaser' and 'content' field in the schema, you MUST provide both. 
-  - The 'teaser' must be a short, 1-2 sentence summary designed to entice the user to unlock the full report.
-  - The 'content' must be the full, detailed analysis as originally requested. Discard all other analysis except Chaldean for the numerology part.
+
+  **CRITICAL INSTRUCTIONS:**
+  1.  **Terminology:** For key numerological and astrological terms, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. For example: "Life Path Number (Sanskrit: Jeevan Pathank)", "Expression Number (Sanskrit: Namank)", "Ascendant (Sanskrit: Lagna)". This is crucial for authenticity and proper rendering.
+  2.  **Specificity:** Generic advice is not acceptable. For the 'wealthBusinessCareer' and 'intellectEducation' pillars, you must provide highly specific and actionable recommendations.
+      *   **For Career:** Instead of "good in business", suggest specific industries (e.g., "fintech, sustainable agriculture, AI-driven marketing") and roles (e.g., "product manager, data scientist, strategic consultant"). Be bold and precise.
+      *   **For Education:** Instead of "suited for higher learning", recommend specific degree programs or certifications (e.g., "a Master's in Computer Science with a specialization in Machine Learning", "a certification in Digital Marketing from Google or HubSpot", "a degree in Psychology focusing on cognitive-behavioral therapy"). Base these on the user's core numbers for maximum relevance.
+  3.  **Teasers & Content:** For every pillar or sub-pillar with a 'teaser' and 'content' field, you MUST provide both. The 'teaser' must be a short, 1-2 sentence summary. The 'content' must be the full, detailed analysis. Discard all other analysis except Chaldean for the numerology part.
 
   **USER DATA:**
   - Full Name: "${fullName}"
@@ -200,23 +203,22 @@ export const generateWorldClassReport = async (
   - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
 
   **TASK 1: VEDIC KUNDALI SNAPSHOT**
-  First, generate a "Vedic Kundali Snapshot". Based on the user's DOB, Time, and Location, determine the following and populate the 'kundaliSnapshot' field:
-  1.  **Ascendant (Lagna):** The rising sign.
-  2.  **Moon Sign (Rashi):** The sign where the moon was placed.
+  First, generate a "Vedic Kundali Snapshot". Based on the user's DOB, Time, and Location, determine the following and populate the 'kundaliSnapshot' field. Remember to use Sanskrit terms.
+  1.  **Ascendant (Sanskrit: Lagna):** The rising sign.
+  2.  **Moon Sign (Sanskrit: Rashi):** The sign where the moon was placed.
   3.  **Sun Sign:** The user's sun sign.
-  4.  **Summary:** Provide a concise, 2-3 sentence summary synthesizing these three key placements to describe their core personality traits.
+  4.  **Summary:** Provide a concise, 2-3 sentence summary synthesizing these three key placements.
 
   **TASK 2: 10-PILLAR NUMEROLOGY REPORT**
-  Now, generate the complete 10-pillar numerology report. For each core number's 'interpretation' field, provide a deep, multi-paragraph interpretation using Markdown. Use **bolding** for key traits, _italics_ for emphasis, and bulleted lists (using * or -) to outline strengths, challenges, and advice. This will make the information more structured and easier to digest. For all markdown pillars, provide rich, detailed content with clear headings (e.g., using **Heading**).
-  
+  Now, generate the complete 10-pillar numerology report. For each core number's 'interpretation' field, provide a deep, multi-paragraph interpretation using Markdown. Use **bolding** for key traits, _italics_ for emphasis, and bulleted lists. For all markdown pillars, provide rich, detailed content with clear headings.
+
   **SPECIFIC INSTRUCTIONS FOR 'relationshipsFamilyLegacy' PILLAR:**
-  In addition to the main content and teaser, you must generate the 'compatibilityAnalysis'.
-  1.  For the user's Life Path number (${coreNumbers.lifePath}), identify its most compatible numbers (from 1-9). For each compatible number, provide a brief (1-2 sentence) interpretation of the relationship dynamic.
-  2.  For the user's Expression number (${coreNumbers.expression}), do the same. Identify compatible numbers (1-9) and provide a brief interpretation for each.
-  3.  For the user's Soul Urge number (${coreNumbers.soulUrge}), do the same. Identify compatible numbers (1-9) and provide a brief interpretation for each.
+  In addition to the main content, generate the 'compatibilityAnalysis'.
+  1.  For the user's Life Path number (${coreNumbers.lifePath}), identify its most compatible numbers (1-9) and provide a brief interpretation for each pairing.
+  2.  For the user's Expression number (${coreNumbers.expression}), do the same.
+  3.  For the user's Soul Urge number (${coreNumbers.soulUrge}), do the same.
   
-  For 'spiritualAlignment', determine their primary lucky color and provide its hex code. Remember to generate a 'teaser' for every pillar.
-  **Crucially, also generate 2-3 personalized, empowering mantras or affirmations in the 'mantrasAndAffirmations' array. These should be short, impactful, and directly aligned with the user's core numbers (${coreNumbers.lifePath}, ${coreNumbers.expression}, ${coreNumbers.soulUrge}) and their overall life path.**
+  For 'spiritualAlignment', determine their primary lucky color and provide its hex code. Also, generate 2-3 personalized, empowering mantras in the 'mantrasAndAffirmations' array.
   `;
 
   try {
@@ -497,6 +499,8 @@ export const generateJyotishReport = async (
   The user wants their "Traditional Jyotish Report". Generate a comprehensive report based on their data.
   The output MUST be a detailed, multi-paragraph report formatted in Markdown.
 
+  **CRITICAL INSTRUCTION:** For all key astrological terms, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. For example: "Ascendant (Sanskrit: Lagna)", "Planet (Sanskrit: Graha)", "House (Sanskrit: Bhava)", "Sign (Sanskrit: Rashi)", "Yogas (Sanskrit: Planetary Combinations)". This adds authenticity and educational value.
+
   **USER DATA:**
   - Full Name: "${fullName}"
   - Date of Birth: "${dob}"
@@ -509,40 +513,40 @@ export const generateJyotishReport = async (
   Structure your response using the following Markdown headings. For each section, provide a detailed, authentic analysis based on the user's birth data. Use **bolding** for key terms (like planetary names or house numbers) and bulleted lists for clarity where appropriate.
 
   ### 1. Janma Lagna (Ascendant) & Basic Chart Structure
-  - Determine the Lagna (Ascendant) sign and its ruling planet based on the birth data.
+  - Determine the Lagna (Sanskrit: Lagna) sign and its ruling planet based on the birth data.
   - Describe the user's core physical and behavioral tendencies influenced by the Lagna and its lord.
-  - Briefly describe the structure of their Rasi (D1) chart.
+  - Briefly describe the structure of their Rasi (Sanskrit: Rasi) (D1) chart.
 
   ### 2. Graha (Planetary) Placement Overview
-  - For each of the 9 Grahas (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu), describe its placement by house (Bhava) and sign (Rashi).
+  - For each of the 9 Grahas (Sanskrit: Graha) (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu), describe its placement by house (Sanskrit: Bhava) and sign (Sanskrit: Rashi).
   - Explain the significance of each placement.
   - Identify the functional benefics and malefics for this specific Lagna and explain their roles.
 
   ### 3. Moon Chart (Chandra Lagna)
-  - Analyze the chart from the perspective of the Moon's position.
+  - Analyze the chart from the perspective of the Moon's position (Sanskrit: Chandra Lagna).
   - Describe the user's emotional nature, mental patterns, and key relationships as seen from the Chandra Lagna.
 
   ### 4. Navamsha (D9) & Varga Analysis
-  - Provide a summary of the Navamsha (D9) chart.
+  - Provide a summary of the Navamsha (Sanskrit: Navamsha) (D9) chart.
   - Discuss what the D9 reveals about the user's marriage, dharma, inner self, and the true strength of the planets.
   - Briefly mention any significant planetary positions in other important Varga charts if possible, like Dashamsha (D10) for career.
 
   ### 5. Yogas & Raj Yogas
-  - Identify and explain any major Yogas (planetary combinations) present in the chart.
-  - Specifically highlight any Raj Yogas (combinations for power and success), Dhana Yogas (wealth combinations), or other significant yogas like Gaja Kesari Yoga. Explain their practical implications.
+  - Identify and explain any major Yogas (Sanskrit: Yoga) (planetary combinations) present in the chart.
+  - Specifically highlight any Raj Yogas (Sanskrit: Raja Yoga) (combinations for power and success), Dhana Yogas (Sanskrit: Dhana Yoga) (wealth combinations), or other significant yogas like Gaja Kesari Yoga. Explain their practical implications.
 
   ### 6. Doshas & Balancing Remedies
-  - Check for major Doshas like Manglik Dosha (Kuja Dosha), Kaal Sarp Dosha, or Pitra Dosha.
+  - Check for major Doshas (Sanskrit: Dosha) like Manglik Dosha (Sanskrit: Kuja Dosha), Kaal Sarp Dosha, or Pitra Dosha.
   - If a Dosha is present, explain its potential effects calmly and constructively.
   - **Crucially, provide simple, practical, and empowering remedies.** Suggest gemstone recommendations (with correct finger and metal), specific mantras, charitable acts, or lifestyle adjustments to balance these energies.
 
   ### 7. Dasha System (Vimshottari Focus)
-  - Calculate and state the current Mahadasha (major period) and Antardasha (sub-period) the user is running.
+  - Calculate and state the current Mahadasha (Sanskrit: Mahadasha) (major period) and Antardasha (Sanskrit: Antardasha) (sub-period) the user is running.
   - Analyze the themes, opportunities, and challenges of this current period based on the Dasha lords' placement and nature in their chart.
   - Provide a brief forecast focusing on the period from 2025 to 2032, highlighting key upcoming Dasha changes.
 
   ### 8. Transit (Gochar) Overview
-  - Analyze the impact of the major transits of Saturn (Shani), Jupiter (Guru), and Rahu-Ketu for the years 2025-2027 relative to the user's natal chart.
+  - Analyze the impact of the major transits (Sanskrit: Gochara) of Saturn (Sanskrit: Shani), Jupiter (Sanskrit: Guru), and Rahu-Ketu for the years 2025-2027 relative to the user's natal chart.
   - Explain how these transits will activate certain houses and influence specific areas of their life.
 
   ### 9. Summary & Final Guidance

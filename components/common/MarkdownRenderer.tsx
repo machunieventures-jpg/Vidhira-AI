@@ -30,7 +30,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         lines.forEach((line, index) => {
             let processedLine = line
                 .replace(/\*\*(.*?)\*\*/g, '<strong class="text-starlight/90">$1</strong>')
-                .replace(/\_(.*?)\_/g, '<em class="italic">$1</em>');
+                .replace(/\_(.*?)\_/g, '<em class="italic">$1</em>')
+                // New regex to handle and style Sanskrit terms
+                .replace(/\(Sanskrit: (.*?)\)/g, '(<span class="sanskrit" style="font-family: \'Hind\', sans-serif; font-weight: 500; color: #F0F6FC;">$1</span>)');
 
             if (processedLine.trim().startsWith('### ')) {
                 flushList();
