@@ -14,61 +14,62 @@ export interface PillarContent {
   content: string;
 }
 
-// Pillar 1: Cosmic Identity
+// Section 2: Personal Core Numbers
 export interface CoreNumberInfo {
   number: number;
   compound?: number;
   interpretation: string;
 }
 
-export interface CosmicIdentity {
-  coreNumbers: {
-    lifePath: CoreNumberInfo;
+export interface PersonalCoreNumbersPillar {
+  teaser: string;
+  content: {
     expression: CoreNumberInfo;
     soulUrge: CoreNumberInfo;
     personality: CoreNumberInfo;
-    maturity: CoreNumberInfo;
+    lifePath: CoreNumberInfo;
+    hiddenSubconscious: CoreNumberInfo;
+    compoundNumbersAnalysis: string;
   };
-  soulSynopsis: PillarContent;
-  famousParallels: PillarContent;
-  planetaryRulerships: PillarContent;
 }
 
-// Pillar 2: Loshu Grid & Numeric Matrix
-export interface LoshuAnalysis {
-  grid: (number | null)[][];
-  missingNumbers: number[];
-  overloadedNumbers: number[];
-  elementalPlanes: {
+// Section 4: Loshu Grid
+export interface LoshuAnalysisPillar {
+    grid: (number | null)[][];
+    missingNumbers: number[];
+    overloadedNumbers: number[];
+    elementalPlanes: {
       mental: PillarContent;
       emotional: PillarContent;
       practical: PillarContent;
-  };
-  balanceSummary: PillarContent;
-  compensationStrategy: PillarContent;
+    },
+    balanceSummary: PillarContent;
+    compensationStrategy: PillarContent;
 }
 
-// Pillar 8: Spiritual Alignment
+
+// Section 8: Spiritual Alignment
 export interface SpiritualAlignmentPillar {
-    teaser: string;
-    content: string;
-    luckyColor: string;
-}
-
-
-// Pillar 10: Advanced Future Forecast
-export interface FutureForecast {
-  personalYear: {
-    number: number;
-    interpretation: string;
-  };
-  strategicRoadmap: PillarContent;
+  teaser: string;
+  content: string;
+  luckyColor: string;
 }
 
 // Main Report Structure
 export interface WorldClassReport {
-  cosmicIdentity: CosmicIdentity;
-  loshuAnalysis: LoshuAnalysis;
+  cosmicIdentity: {
+    coreNumbers: {
+        lifePath: CoreNumberInfo;
+        expression: CoreNumberInfo;
+        soulUrge: CoreNumberInfo;
+        personality: CoreNumberInfo;
+        maturity: CoreNumberInfo;
+    };
+    soulSynopsis: PillarContent;
+    famousParallels: PillarContent;
+    planetaryRulerships: PillarContent;
+  };
+  loshuAnalysis: LoshuAnalysisPillar;
   wealthBusinessCareer: PillarContent;
   healthEnergyWellness: PillarContent;
   relationshipsFamilyLegacy: PillarContent;
@@ -76,8 +77,12 @@ export interface WorldClassReport {
   dailyNavigator: PillarContent;
   spiritualAlignment: SpiritualAlignmentPillar;
   intellectEducation: PillarContent;
-  futureForecast: FutureForecast;
+  futureForecast: {
+    personalYear: CoreNumberInfo;
+    strategicRoadmap: PillarContent;
+  };
 }
+
 
 // Chat Companion
 export interface ChatMessage {
@@ -85,8 +90,7 @@ export interface ChatMessage {
   text: string;
 }
 
-
-// Keep old types for compatibility during transition if needed, though they are being replaced.
+// Core calculation types
 export interface CoreNumbers {
   lifePath: number;
   expression: number;

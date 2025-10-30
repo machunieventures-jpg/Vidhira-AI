@@ -56,7 +56,7 @@ export const calculateInitialNumbers = (userData: UserData): { core: CoreNumbers
   const personalitySum = calculateNameSum(fullName, 'consonants');
   const maturitySum = lifePathSum + expressionSum;
 
-  const [day, month] = dob.split('-').slice(1).map(Number);
+  const [year, month, day] = dob.split('-').map(Number);
   const currentYear = new Date().getFullYear();
   const personalYearSum = day + month + currentYear;
 

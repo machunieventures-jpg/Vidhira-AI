@@ -1,8 +1,8 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { getLoshuNumberInterpretation } from '../services/geminiService';
-import type { UserData } from '../types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { getLoshuNumberInterpretation, getCoreIdentifierInterpretation } from '../services/geminiService';
+import type { UserData, LoshuAnalysisPillar } from '../types';
 import InterpretationTooltip from './common/InterpretationTooltip';
+import MarkdownRenderer from './common/MarkdownRenderer';
 
 interface LoshuGridProps {
   grid: (number | null)[][];
@@ -11,14 +11,81 @@ interface LoshuGridProps {
   userData: UserData;
   birthNumber: number;
   destinyNumber: number;
+  elementalPlanes: LoshuAnalysisPillar['elementalPlanes'];
+  isUnlocked: boolean;
 }
 
-const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedNumbers, userData, birthNumber, destinyNumber }) => {
+// --- CONSTANTS & HELPERS ---
+const numberToGridPosition: { [key: number]: { row: number, col: number } } = {
+    4: { row: 0, col: 0 }, 9: { row: 0, col: 1 }, 2: { row: 0, col: 2 },
+    3: { row: 1, col: 0 }, 5: { row: 1, col: 1 }, 7: { row: 1, col: 2 },
+    8: { row: 2, col: 0 }, 1: { row: 2, col: 1 }, 6: { row: 2, col: 2 },
+};
+
+const badgeOffsets: { [key: number]: { x: number, y: number } } = {
+    4: { x: -0.6, y: -0.6 }, 9: { x: 0, y: -0.8 }, 2: { x: 0.6, y: -0.6 },
+    3: { x: -0.8, y: 0 }, 5: { x: 0, y: -1.2 },
+    7: { x: 0.8, y: 0 },
+    8: { x: -0.6, y: 0.6 }, 1: { x: 0, y: 0.8 }, 6: { x: 0.6, y: 0.6 },
+};
+
+const planes = {
+    mental: { name: 'Mental Plane', numbers: [4, 9, 2], description: 'Represents thinking, creativity, and analytical abilities.' },
+    emotional: { name: 'Emotional Plane', numbers: [3, 5, 7], description: 'Governs intuition, spiritual depth, and emotional expression.' },
+    practical: { name: 'Practical Plane', numbers: [8, 1, 6], description: 'Relates to grounding, physical work, and material success.' },
+    thought: { name: 'Thought Plane', numbers: [4, 3, 8], description: 'Indicates the ability to conceive ideas and visualize.' },
+    will: { name: 'Will Plane', numbers: [9, 5, 1], description: 'Shows determination, patience, and follow-through.' },
+    action: { name: 'Action Plane', numbers: [2, 7, 6], description: 'Represents the capacity to put plans into dynamic action.' },
+    determination: { name: 'Determination Plane', numbers: [4, 5, 6], description: 'A powerful diagonal of resolve and success against odds.' },
+    spiritual: { name: 'Spiritual Plane', numbers: [2, 5, 8], description: 'Highlights a strong connection to intuition and inner guidance.' },
+};
+
+// --- SUB-COMPONENTS ---
+const PlaneInterpretationCard: React.FC<{title: string, status: string, interpretation: string}> = ({title, status, interpretation}) => (
+    <div className="bg-void-tint/30 p-4 rounded-lg border border-lunar-grey/10">
+        <div className="flex justify-between items-start mb-2">
+            <span className="font-semibold text-starlight">{title}</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${status === 'Complete' ? 'bg-cosmic-gold/20 text-cosmic-gold' : 'bg-lunar-grey/20 text-lunar-grey'}`}>
+                {status}
+            </span>
+        </div>
+        <p className="text-lunar-grey text-sm">{interpretation}</p>
+    </div>
+);
+
+const SpecialNumberTooltip: React.FC<{
+    content: string;
+    position: { top: number; left: number };
+}> = ({ content, position }) => {
+    const style = {
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        transform: 'translate(-50%, -100%)',
+    };
+    return (
+        <div
+            className="fixed z-50 p-2 bg-void-tint/90 backdrop-blur-xl rounded-md shadow-lg border border-lunar-grey/50 text-starlight text-sm animate-fade-in-fast"
+            style={style}
+        >
+            {content}
+        </div>
+    );
+};
+
+// --- MAIN COMPONENT ---
+const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedNumbers, userData, birthNumber, destinyNumber, elementalPlanes, isUnlocked }) => {
+  // State for original number interpretation tooltip
   const [activeNumber, setActiveNumber] = useState<{num: number, isMissing: boolean} | null>(null);
   const [interpretation, setInterpretation] = useState<string>('');
   const [potentialInterpretation, setPotentialInterpretation] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingInterpretation, setIsLoadingInterpretation] = useState<boolean>(false);
   const [tooltipPosition, setTooltipPosition] = useState<{top: number, left: number} | null>(null);
+
+  // State for new Birth/Destiny number tooltip
+  const [specialTooltip, setSpecialTooltip] = useState<{
+    content: string;
+    position: { top: number; left: number };
+  } | null>(null);
 
   const handleCloseTooltip = useCallback(() => {
       setActiveNumber(null);
@@ -28,38 +95,63 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
   }, []);
 
   const handleNumberClick = async (num: number, isMissing: boolean, event: React.MouseEvent) => {
-      event.stopPropagation();
-      if (activeNumber?.num === num && activeNumber.isMissing === isMissing) {
-          handleCloseTooltip();
-          return;
-      }
+    if (activeNumber && activeNumber.num === num && activeNumber.isMissing === isMissing) {
+        handleCloseTooltip();
+        return;
+    }
 
-      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-      setTooltipPosition({ top: rect.bottom + window.scrollY, left: rect.left + rect.width / 2 + window.scrollX });
-      setActiveNumber({num, isMissing});
-      setIsLoading(true);
-      setInterpretation('');
-      setPotentialInterpretation(null);
+    handleCloseTooltip(); // Close any existing tooltip first
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    setActiveNumber({ num, isMissing });
+    setTooltipPosition({ top: rect.bottom + window.scrollY, left: rect.left + rect.width / 2 + window.scrollX });
+    setIsLoadingInterpretation(true);
 
-      try {
-          if (isMissing) {
-              const [challenge, potential] = await Promise.all([
-                  getLoshuNumberInterpretation(num, true, userData.fullName, userData.dob, userData.language),
-                  getLoshuNumberInterpretation(num, false, userData.fullName, userData.dob, userData.language)
-              ]);
-              setInterpretation(challenge);
-              setPotentialInterpretation(potential);
-          } else {
-              const result = await getLoshuNumberInterpretation(num, false, userData.fullName, userData.dob, userData.language);
-              setInterpretation(result);
-          }
-      } catch (error) {
-          setInterpretation("Could not retrieve interpretation. Please try again.");
-          console.error(error);
-      } finally {
-          setIsLoading(false);
-      }
+    try {
+        const result = await getLoshuNumberInterpretation(
+            num,
+            isMissing,
+            userData.fullName,
+            userData.dob,
+            userData.language
+        );
+        setInterpretation(result);
+
+        // For missing numbers, also fetch the positive interpretation to show their potential
+        if (isMissing) {
+             const potentialResult = await getLoshuNumberInterpretation(
+                num,
+                false, // isMissing = false
+                userData.fullName,
+                userData.dob,
+                userData.language
+            );
+            setPotentialInterpretation(potentialResult);
+        }
+    } catch (error) {
+        console.error('Error fetching number interpretation:', error);
+        setInterpretation('Could not retrieve interpretation at this time.');
+    } finally {
+        setIsLoadingInterpretation(false);
+    }
   };
+
+  const handleSpecialNumberEnter = useCallback(async (
+    num: number,
+    type: 'Birth' | 'Destiny' | 'Birth & Destiny',
+    event: React.MouseEvent
+  ) => {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    setSpecialTooltip({
+      content: 'Consulting...',
+      position: { top: rect.top + window.scrollY, left: rect.left + rect.width / 2 + window.scrollX }
+    });
+    const result = await getCoreIdentifierInterpretation(num, type, userData.fullName, userData.language);
+    setSpecialTooltip(prev => prev ? { ...prev, content: result } : null);
+  }, [userData]);
+
+  const handleSpecialNumberLeave = useCallback(() => {
+    setSpecialTooltip(null);
+  }, []);
 
   useEffect(() => {
     if (!activeNumber) return;
@@ -68,44 +160,106 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
     return () => { window.removeEventListener('scroll', handleScroll, true); };
   }, [activeNumber, handleCloseTooltip]);
 
+  const presentNumbers = useMemo(() => new Set(grid.flat().filter((num): num is number => num !== null)), [grid]);
+  const isPlaneComplete = useCallback((planeNumbers: number[]) => planeNumbers.every(num => presentNumbers.has(num)), [presentNumbers]);
+  const completedPlanes = useMemo(() => Object.keys(planes).filter(key => isPlaneComplete(planes[key as keyof typeof planes].numbers)), [isPlaneComplete]);
+
+  const isBirthPresent = useMemo(() => presentNumbers.has(birthNumber), [presentNumbers, birthNumber]);
+  const isDestinyPresent = useMemo(() => presentNumbers.has(destinyNumber), [presentNumbers, destinyNumber]);
+  const isSameSpecialNumber = birthNumber === destinyNumber;
+
+  const floatingNumbers = useMemo(() => {
+      const numbers = [];
+      if (isSameSpecialNumber) {
+          if (!isBirthPresent) numbers.push({ num: birthNumber, type: 'Birth & Destiny' as const });
+      } else {
+          if (!isBirthPresent) numbers.push({ num: birthNumber, type: 'Birth' as const });
+          if (!isDestinyPresent) numbers.push({ num: destinyNumber, type: 'Destiny' as const });
+      }
+      return numbers;
+  }, [isSameSpecialNumber, isBirthPresent, isDestinyPresent, birthNumber, destinyNumber]);
+
   return (
     <>
       <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
         {/* Left: Grid */}
-        <div className="grid grid-cols-3 gap-2 p-2 bg-void-tint rounded-lg border border-lunar-grey/50 self-center md:self-start">
-          {grid.flat().map((cell, index) => {
-            const isCellActive = cell && activeNumber?.num === cell && !activeNumber?.isMissing;
-            return (
-                <div
-                key={index}
-                className={`w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-3xl font-bold rounded-md bg-deep-void/50 ${cell ? 'cursor-pointer hover:bg-lunar-grey/20 transform transition-all duration-300 hover:scale-110 hover:shadow-[0_0_12px_var(--lucky-color-glow)]' : ''} ${isCellActive ? 'animate-scale-pulse' : ''}`}
-                onClick={(e) => cell && handleNumberClick(cell, false, e)}
-                >
-                {cell ? <span className="text-starlight">{cell}</span> : <span className="text-starlight/20">-</span>}
-                </div>
-            )
-          })}
+        <div className="relative w-[256px] h-[256px] self-center md:self-start">
+            <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 bg-void-tint rounded-lg border border-lunar-grey/50">
+            {grid.flat().map((cell, index) => {
+                const isCellActive = cell && activeNumber?.num === cell && !activeNumber?.isMissing;
+                const isBirthHighlight = isBirthPresent && cell === birthNumber;
+                const isDestinyHighlight = isDestinyPresent && cell === destinyNumber;
+                const isBoth = isBirthHighlight && isDestinyHighlight;
+
+                const highlightClass = isBoth ? 'highlight-both' : isBirthHighlight ? 'highlight-birth' : isDestinyHighlight ? 'highlight-destiny' : '';
+                const type: 'Birth' | 'Destiny' | 'Birth & Destiny' = isBoth ? 'Birth & Destiny' : isBirthHighlight ? 'Birth' : 'Destiny';
+
+                return (
+                    <div
+                        key={index}
+                        className={`w-full h-full flex items-center justify-center text-3xl font-bold rounded-md bg-deep-void/50 border-2 border-transparent ${cell ? 'cursor-pointer hover:bg-lunar-grey/20' : ''} ${isCellActive ? 'animate-scale-pulse' : ''} ${highlightClass}`}
+                        onClick={(e) => cell && handleNumberClick(cell, false, e)}
+                        onMouseEnter={(e) => (isBirthHighlight || isDestinyHighlight) && handleSpecialNumberEnter(cell!, type, e)}
+                        onMouseLeave={(e) => (isBirthHighlight || isDestinyHighlight) && handleSpecialNumberLeave()}
+                    >
+                        {cell ? <span className={isBoth ? "bg-clip-text text-transparent bg-gradient-to-r from-cosmic-gold to-cyan-400" : "text-starlight"}>{cell}</span> : <span className="text-starlight/20">-</span>}
+                    </div>
+                )
+            })}
+            </div>
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 256 256">
+                {/* Lines for floating badges will go here */}
+                {floatingNumbers.map(({ num, type }) => {
+                    const pos = numberToGridPosition[num];
+                    if (!pos) return null;
+                    const offset = badgeOffsets[num];
+                    const cellSize = 80;
+                    const gap = 8;
+                    const cellCenterX = pos.col * (cellSize + gap) + cellSize / 2 + gap / 2;
+                    const cellCenterY = pos.row * (cellSize + gap) + cellSize / 2 + gap / 2;
+                    const badgeCenterX = cellCenterX + offset.x * cellSize;
+                    const badgeCenterY = cellCenterY + offset.y * cellSize;
+
+                    return (
+                        <line
+                            key={`${num}-${type}`}
+                            x1={cellCenterX} y1={cellCenterY}
+                            x2={badgeCenterX} y2={badgeCenterY}
+                            className={`floating-badge-line ${type === 'Birth' || type === 'Birth & Destiny' ? 'stroke-cosmic-gold/70' : 'stroke-cyan-400/70'}`}
+                        />
+                    );
+                })}
+            </svg>
+            {floatingNumbers.map(({ num, type }) => {
+                const pos = numberToGridPosition[num];
+                if (!pos) return null;
+                const offset = badgeOffsets[num];
+                const cellSize = 80;
+                const gap = 8;
+                const badgeSize = 48;
+                const cellCenterX = pos.col * (cellSize + gap) + cellSize / 2 + gap / 2;
+                const cellCenterY = pos.row * (cellSize + gap) + cellSize / 2 + gap / 2;
+                const badgeCenterX = cellCenterX + offset.x * cellSize;
+                const badgeCenterY = cellCenterY + offset.y * cellSize;
+                const badgeClass = type === 'Birth' || type === 'Birth & Destiny' ? 'border-cosmic-gold text-cosmic-gold' : 'border-cyan-400 text-cyan-400';
+
+                return (
+                     <div
+                        key={`${num}-${type}`}
+                        className={`floating-badge absolute w-12 h-12 flex items-center justify-center bg-void-tint font-bold text-2xl border-2 rounded-full cursor-pointer pointer-events-auto ${badgeClass}`}
+                        style={{ top: badgeCenterY - badgeSize/2, left: badgeCenterX - badgeSize/2 }}
+                        onMouseEnter={(e) => handleSpecialNumberEnter(num, type, e)}
+                        onMouseLeave={handleSpecialNumberLeave}
+                    >
+                       {num}
+                    </div>
+                );
+            })}
+
         </div>
         
         {/* Right: Core Matrix Analysis */}
         <div className="flex-1 space-y-6">
-            <div>
-                <h4 className="text-xl font-bold text-cosmic-gold font-display">Core Identifiers</h4>
-                <div className="flex gap-4 mt-3">
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-void-tint to-deep-void rounded-full text-starlight font-bold text-4xl border-2 border-cosmic-gold/50">
-                            {birthNumber}
-                        </div>
-                        <span className="text-sm text-lunar-grey mt-2">Birth Number</span>
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-void-tint to-deep-void rounded-full text-starlight font-bold text-4xl border-2 border-cosmic-gold/50">
-                            {destinyNumber}
-                        </div>
-                        <span className="text-sm text-lunar-grey mt-2">Destiny Number</span>
-                    </div>
-                </div>
-            </div>
             <div>
                 <h4 className="text-xl font-bold text-cosmic-gold font-display">Missing Numbers</h4>
                 {missingNumbers.length > 0 ? (
@@ -152,11 +306,52 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
             </div>
         </div>
       </div>
+
+       <div className="mt-8 pt-6 border-t border-lunar-grey/10">
+            <h4 className="text-xl font-bold text-cosmic-gold font-display mb-4">Elemental Planes Analysis</h4>
+             <div className="grid md:grid-cols-3 gap-4">
+                <PlaneInterpretationCard
+                    title="Mental Plane (4-9-2)"
+                    status={isPlaneComplete(planes.mental.numbers) ? 'Complete' : 'Incomplete'}
+                    interpretation={isUnlocked ? elementalPlanes.mental.content : elementalPlanes.mental.teaser}
+                />
+                 <PlaneInterpretationCard
+                    title="Emotional Plane (3-5-7)"
+                    status={isPlaneComplete(planes.emotional.numbers) ? 'Complete' : 'Incomplete'}
+                    interpretation={isUnlocked ? elementalPlanes.emotional.content : elementalPlanes.emotional.teaser}
+                />
+                 <PlaneInterpretationCard
+                    title="Practical Plane (8-1-6)"
+                    status={isPlaneComplete(planes.practical.numbers) ? 'Complete' : 'Incomplete'}
+                    interpretation={isUnlocked ? elementalPlanes.practical.content : elementalPlanes.practical.teaser}
+                />
+            </div>
+        </div>
+         <div className="mt-8 pt-6 border-t border-lunar-grey/10">
+            <h4 className="text-xl font-bold text-cosmic-gold font-display mb-4">Arrows of Strength & Weakness</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {Object.values(planes).map(plane => (
+                    <div key={plane.name} className="bg-void-tint/30 p-3 rounded-lg border border-lunar-grey/10">
+                        <div className="flex justify-between items-start">
+                            <span className="font-semibold text-starlight">{plane.name}</span>
+                            {isPlaneComplete(plane.numbers) ? (
+                                <span className="text-cosmic-gold">✓</span>
+                            ) : (
+                                <span className="text-lunar-grey/50">✗</span>
+                            )}
+                        </div>
+                        <p className="text-lunar-grey text-xs mt-1">{plane.description}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+
+
       {activeNumber && tooltipPosition && (
         <>
             <div className="fixed inset-0 z-40" onClick={handleCloseTooltip}></div>
             <InterpretationTooltip
-              isLoading={isLoading}
+              isLoading={isLoadingInterpretation}
               content={interpretation}
               potentialContent={potentialInterpretation}
               position={tooltipPosition}
@@ -164,6 +359,12 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
               onClose={handleCloseTooltip}
             />
         </>
+      )}
+      {specialTooltip && (
+          <SpecialNumberTooltip
+            content={specialTooltip.content}
+            position={specialTooltip.position}
+           />
       )}
     </>
   );

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysis, ChatMessage } from '../types';
+import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage } from '../types';
 import { generateLoshuGrid, calculateNameNumbers } from './numerologyService';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -81,14 +81,7 @@ const responseSchema = {
         futureForecast: {
             type: Type.OBJECT,
             properties: {
-                personalYear: {
-                    type: Type.OBJECT,
-                    properties: {
-                        number: { type: Type.INTEGER },
-                        interpretation: { type: Type.STRING, description: "Detailed interpretation of their Personal Year number." }
-                    },
-                    required: ['number', 'interpretation']
-                },
+                personalYear: coreNumberSchema,
                 strategicRoadmap: pillarContentSchema,
             },
             required: ['personalYear', 'strategicRoadmap']
@@ -105,7 +98,7 @@ export const generateWorldClassReport = async (
     userData: UserData,
     coreNumbers: CoreNumbers,
     compoundNumbers: CompoundNumbers,
-    loshu: Pick<LoshuAnalysis, 'missingNumbers' | 'overloadedNumbers'>
+    loshu: Pick<LoshuAnalysisPillar, 'missingNumbers' | 'overloadedNumbers'>
 ): Promise<WorldClassReport> => {
   const { fullName, dob, time, location, gender, language, phoneNumber } = userData;
 
@@ -118,7 +111,7 @@ export const generateWorldClassReport = async (
   
   **IMPORTANT**: For every pillar or sub-pillar that has a 'teaser' and 'content' field in the schema, you MUST provide both. 
   - The 'teaser' must be a short, 1-2 sentence summary designed to entice the user to unlock the full report.
-  - The 'content' must be the full, detailed analysis as originally requested.
+  - The 'content' must be the full, detailed analysis as originally requested. Discard all other analysis except Chaldean.
 
   **USER DATA:**
   - Full Name: "${fullName}"
@@ -129,7 +122,7 @@ export const generateWorldClassReport = async (
   - Phone Number: "${phoneNumber}"
   - Preferred Language: "${language}"
 
-  **CALCULATED NUMEROLOGY DATA:**
+  **CALCULATED NUMEROLOGY DATA (Chaldean Method):**
   - Life Path Number: ${coreNumbers.lifePath} (from compound ${compoundNumbers.lifePath})
   - Expression Number: ${coreNumbers.expression} (from compound ${compoundNumbers.expression})
   - Soul Urge Number: ${coreNumbers.soulUrge} (from compound ${compoundNumbers.soulUrge})
@@ -208,6 +201,37 @@ export const getLoshuNumberInterpretation = async (
   } catch (error) {
     console.error(`Error fetching interpretation for Loshu number ${number}:`, error);
     return `Failed to generate an interpretation for number ${number}. Please try again.`;
+  }
+};
+
+export const getCoreIdentifierInterpretation = async (
+  number: number,
+  type: 'Birth' | 'Destiny' | 'Birth & Destiny',
+  userName: string,
+  language: string
+): Promise<string> => {
+  const prompt = `
+  Act as Vidhira, a world-class Chaldean numerologist.
+  The response MUST be in ${language}.
+  User's Name: "${userName}"
+  Number: ${number}
+  Type: "${type} Number"
+
+  Provide a very brief, keyword-focused interpretation for this number's influence.
+  Format: Start with the title (e.g., "Birth Number 5"), followed by a dash, then 3-4 powerful keywords.
+  Example: "Birth Number 5 — Freedom, Curiosity, Expansion"
+  Do not add any other text or explanation. Just one line.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-flash-lite-latest',
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.error(`Error fetching interpretation for ${type} Number ${number}:`, error);
+    return `Failed to generate an interpretation for ${type} Number ${number}.`;
   }
 };
 

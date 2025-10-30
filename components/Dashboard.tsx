@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { WorldClassReport, UserData } from '../types';
 import ReportSection from './ReportSection';
@@ -32,6 +31,7 @@ const Icons: { [key: string]: React.ReactNode } = {
     Spiritual: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c1.14 0 2.233-.234 3.224-.674M12 21A9 9 0 013 12c0-4.97 4.03-9 9-9s9 4.03 9 9c0 .356-.02.71-.058 1.05M3.464 15.036A9.004 9.004 0 0112 3c1.603 0 3.11.416 4.41 1.126M12 3c-1.14 0-2.233.234-3.224.674m6.448 0A9.004 9.004 0 0012 3z" /></svg>,
     Intellect: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>,
     Forecast: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
+    About: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
 };
 
 const pillarStyles: { [key: string]: string } = {
@@ -42,13 +42,13 @@ const pillarStyles: { [key: string]: string } = {
 };
 
 const pillarData = [
-    { key: 'wealthBusinessCareer', title: 'Wealth, Business & Career', icon: Icons.Wealth, tooltip: "Analyzes your financial destiny, ideal career paths, and entrepreneurial vibrations based on your core numbers." },
-    { key: 'healthEnergyWellness', title: 'Health, Energy & Wellness', icon: Icons.Health, tooltip: "Reveals the connection between your numbers and physical well-being, highlighting potential energy imbalances and healing strategies." },
-    { key: 'relationshipsFamilyLegacy', title: 'Relationships, Family & Legacy', icon: Icons.Relationships, tooltip: "Explores your compatibility with others, family dynamics, karmic lessons in relationships, and auspicious timing for major life events." },
-    { key: 'psychologyShadowWork', title: 'Psychology & Shadow Work', icon: Icons.Psychology, tooltip: "Dives into your inner world, identifying subconscious patterns, challenges (shadow work), and pathways to psychological integration." },
-    { key: 'dailyNavigator', title: 'Daily Navigator & Timing', icon: Icons.Navigator, tooltip: "Provides a tactical guide for navigating daily life, offering power codes (colors, numbers, actions) for alignment and success." },
-    { key: 'spiritualAlignment', title: 'Spiritual Alignment & Remedies', icon: Icons.Spiritual, tooltip: "Offers personalized spiritual tools like mantras, crystals, and lucky dates to align your energy and manifest your goals." },
-    { key: 'intellectEducation', title: 'Intellect, Education & Knowledge', icon: Icons.Intellect, tooltip: "Uncovers your unique learning style, creative intelligence, and the domains of study where you are most likely to excel." },
+    { key: 'wealthBusinessCareer', title: 'Wealth, Business & Career', icon: Icons.Wealth, tooltip: "Analyzes financial destiny and career paths. e.g., A strong '8' suggests leadership in business, while a '6' points towards creative or healing professions." },
+    { key: 'healthEnergyWellness', title: 'Health, Energy & Wellness', icon: Icons.Health, tooltip: "Connects numbers to well-being. e.g., Number '9' can indicate high energy but also a susceptibility to stress, suggesting practices like meditation." },
+    { key: 'relationshipsFamilyLegacy', title: 'Relationships, Family & Legacy', icon: Icons.Relationships, tooltip: "Explores compatibility and karmic lessons. e.g., Life Path '2' is highly compatible with '6', and we can forecast auspicious periods for marriage." },
+    { key: 'psychologyShadowWork', title: 'Psychology & Shadow Work', icon: Icons.Psychology, tooltip: "Identifies subconscious patterns and challenges. e.g., A prominent '4' might indicate a fear of instability, a key area for personal growth." },
+    { key: 'dailyNavigator', title: 'Daily Navigator & Timing', icon: Icons.Navigator, tooltip: "A tactical guide for daily alignment. e.g., On a day ruled by '1', wearing red can boost confidence for an important meeting." },
+    { key: 'spiritualAlignment', title: 'Spiritual Alignment & Remedies', icon: Icons.Spiritual, tooltip: "Personalized spiritual tools to manifest goals. e.g., For a Life Path '7', Amethyst can enhance intuition, and specific mantras deepen connection." },
+    { key: 'intellectEducation', title: 'Intellect, Education & Knowledge', icon: Icons.Intellect, tooltip: "Uncovers your unique learning style. e.g., A dominant '5' suggests excelling in dynamic fields like communication or marketing." },
 ];
 
 const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlocked, isUnlocking, onUnlock }) => {
@@ -59,7 +59,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlo
   const renderPillarContent = (pillarKey: keyof WorldClassReport) => {
     const pillar = (report as any)[pillarKey];
     if (!pillar) return null;
-    const content = pillar.content || pillar; // Handle spiritual alignment structure
+    const content = pillar.content || pillar; // Handle nested structures
     const teaser = pillar.teaser;
     return <MarkdownRenderer content={isUnlocked ? content : teaser} />;
   }
@@ -68,18 +68,18 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlo
     <>
       <div className="w-full max-w-4xl mx-auto p-4 md:p-6 space-y-8">
         <div className="text-center animate-fade-in">
-          <h2 className="text-3xl md:text-4xl font-bold text-starlight font-display">Your Life Blueprint</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-starlight font-display">Your Soul Map</h2>
           <p className="text-lunar-grey mt-2">Prepared for <span className="text-cosmic-gold font-semibold">{userData.fullName}</span></p>
         </div>
 
         {!isUnlocked && <UnlockReportCTA onUnlock={onUnlock} isLoading={isUnlocking} />}
 
         <ReportSection 
-          title="Pillar 1: Cosmic Identity" 
+          title="Section 1: Cosmic Identity" 
           icon={Icons.CosmicIdentity}
-          className={`${pillarStyles.cosmicIdentity} animate-pillar-reveal`}
+          className={`${pillarStyles.cosmicIdentity} animate-pillar-reveal report-section`}
           style={{ animationDelay: '0ms' }}
-          tooltipText="This pillar decodes your fundamental energetic signature through five core numbers, revealing your life's purpose, personality, and soul's desire."
+          tooltipText="Decodes your energetic signature. e.g., Your Life Path number reveals your life's main journey, while your Expression number shows your innate talents."
         >
           <div className="space-y-6">
               {Object.entries(cosmicIdentity.coreNumbers).map(([key, value]) => (
@@ -109,11 +109,11 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlo
         </ReportSection>
 
         <ReportSection 
-          title="Pillar 2: Loshu Grid" 
+          title="Section 2: Loshu Grid" 
           icon={Icons.LoshuGrid}
-          className={`${pillarStyles.loshuAnalysis} animate-pillar-reveal`}
-          style={{ animationDelay: '150ms' }}
-          tooltipText="A mystical 3x3 grid derived from your birth date that reveals your strengths, weaknesses, and the balance of energies in your life."
+          className={`${pillarStyles.loshuAnalysis} animate-pillar-reveal report-section`}
+          style={{ animationDelay: '100ms' }}
+          tooltipText="A mystical grid from your birth date revealing strengths and weaknesses. e.g., Missing numbers indicate areas for growth, like a missing '5' suggesting a need for more adaptability."
         >
           <LoshuGrid 
             grid={loshuAnalysis.grid} 
@@ -121,17 +121,19 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlo
             overloadedNumbers={loshuAnalysis.overloadedNumbers}
             userData={userData} 
             birthNumber={mulank} 
-            destinyNumber={lifePathNumber} 
+            destinyNumber={lifePathNumber}
+            elementalPlanes={loshuAnalysis.elementalPlanes}
+            isUnlocked={isUnlocked}
           />
         </ReportSection>
 
         {pillarData.map((pillar, index) => (
           <ReportSection 
               key={pillar.key} 
-              title={`Pillar ${index + 3}: ${pillar.title}`} 
+              title={`Section ${index + 3}: ${pillar.title}`} 
               icon={pillar.icon}
-              className={`${pillarStyles.default} animate-pillar-reveal`}
-              style={{ animationDelay: `${300 + index * 150}ms` }}
+              className={`${pillarStyles.default} animate-pillar-reveal report-section`}
+              style={{ animationDelay: `${200 + index * 100}ms` }}
               tooltipText={pillar.tooltip}
           >
              {renderPillarContent(pillar.key as keyof WorldClassReport)}
@@ -145,11 +147,11 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlo
         ))}
 
           <ReportSection 
-              title="Pillar 10: Advanced Future Forecast" 
+              title={`Section ${3 + pillarData.length}: Future Forecast`} 
               icon={Icons.Forecast}
-              className={`${pillarStyles.default} animate-pillar-reveal`}
-              style={{ animationDelay: `${300 + pillarData.length * 150}ms` }}
-              tooltipText="Projects your personal energetic cycles into the future, offering a strategic roadmap and detailed monthly predictions."
+              className={`${pillarStyles.default} animate-pillar-reveal report-section`}
+              style={{ animationDelay: `${200 + pillarData.length * 100}ms` }}
+              tooltipText="Projects your energetic cycles into the future. e.g., Your Personal Year number for 2026 might be '3', indicating a year of creativity and social expansion."
           >
               <div className="space-y-6">
                   <NumberCard 
@@ -170,13 +172,35 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, isUnlo
               </div>
         </ReportSection>
 
-        <div className="text-center pt-4">
+        <ReportSection
+            title={`Section ${3 + pillarData.length + 1}: About Vidhira`}
+            icon={Icons.About}
+            className={`${pillarStyles.default} animate-pillar-reveal report-section`}
+            style={{ animationDelay: `${200 + (pillarData.length + 1) * 100}ms` }}
+            tooltipText="Learn more about the philosophy and technology behind the Vidhira system."
+        >
+            <MarkdownRenderer content={`**Vidhira: Your AI Destiny Intelligence System**
+
+Vidhira is a next-generation numerology platform that fuses the ancient, time-tested wisdom of Chaldean Numerology with the power of advanced Artificial Intelligence. Our mission is to provide you with a 'spiritual operating manual'—a dynamic, interactive life dashboard that decodes the complex vibrational patterns of your life into clear, actionable intelligence.
+
+Powered by Google's Gemini AI models, Vidhira goes beyond static reports. It offers a deeply personalized experience, analyzing your core numbers to provide profound insights into your personality, purpose, and potential. Whether you're an entrepreneur seeking strategic alignment, a professional navigating your career path, or a seeker on a journey of self-discovery, Vidhira is designed to be your trusted companion for making conscious, soul-aligned decisions.`} />
+        </ReportSection>
+
+        <div className="text-center pt-4 flex justify-center items-center gap-4 no-print">
           <button
             onClick={onReset}
             className="border border-cosmic-gold text-cosmic-gold font-bold py-2 px-6 rounded-lg hover:bg-cosmic-gold hover:text-deep-void transform hover:scale-105 transition-all duration-300 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
           >
             Analyze Another Profile
           </button>
+          {isUnlocked && (
+             <button
+                onClick={() => window.print()}
+                className="bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
+              >
+                Download PDF
+              </button>
+          )}
         </div>
       </div>
       <ChatWidget report={report} userData={userData} />

@@ -8,13 +8,14 @@ import type { UserData, WorldClassReport } from './types';
 import { calculateInitialNumbers, generateLoshuGrid } from './services/numerologyService';
 import { generateWorldClassReport } from './services/geminiService';
 
+type UnlockState = 'locked' | 'unlocking' | 'success' | 'unlocked';
+
 const App: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [report, setReport] = useState<WorldClassReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockState, setUnlockState] = useState<UnlockState>('locked');
 
   // Helper function to convert hex to rgba
   const hexToRgba = (hex: string, alpha: number): string => {
@@ -49,7 +50,7 @@ const App: React.FC = () => {
     setUserData(data);
     setError(null);
     setReport(null);
-    setIsUnlocked(false);
+    setUnlockState('locked');
     try {
       const { core, compound } = calculateInitialNumbers(data);
       const { missing, overloaded } = generateLoshuGrid(data.dob);
@@ -72,16 +73,18 @@ const App: React.FC = () => {
       setReport(null);
       setIsLoading(false);
       setError(null);
-      setIsUnlocked(false);
-      setIsUnlocking(false);
+      setUnlockState('locked');
   }, []);
 
   const handleUnlock = useCallback(() => {
-    setIsUnlocking(true);
+    setUnlockState('unlocking');
     // Simulate a payment process
     setTimeout(() => {
-      setIsUnlocked(true);
-      setIsUnlocking(false);
+      setUnlockState('success');
+      // After showing success message, show the full report
+      setTimeout(() => {
+        setUnlockState('unlocked');
+      }, 2500);
     }, 2000);
   }, []);
 
@@ -98,13 +101,26 @@ const App: React.FC = () => {
             </div>
         );
     }
+    if (unlockState === 'success') {
+        return (
+            <div className="text-center animate-fade-in">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-cosmic-gold/10 border-2 border-cosmic-gold/30 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-cosmic-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h2 className="text-3xl font-bold font-display text-starlight">Blueprint Unlocked!</h2>
+                <p className="text-lunar-grey mt-2">Enjoy your full, personalized life report.</p>
+            </div>
+        );
+    }
     if (report && userData) {
       return <Dashboard 
                 report={report} 
                 userData={userData} 
                 onReset={handleReset} 
-                isUnlocked={isUnlocked}
-                isUnlocking={isUnlocking}
+                isUnlocked={unlockState === 'unlocked'}
+                isUnlocking={unlockState === 'unlocking'}
                 onUnlock={handleUnlock}
              />;
     }
@@ -118,7 +134,7 @@ const App: React.FC = () => {
         <main className="w-full flex-grow flex justify-center py-10">
           {renderContent()}
         </main>
-        <footer className="text-center text-xs text-starlight/40 py-4">
+        <footer className="text-center text-xs text-starlight/40 py-4 no-print">
           <p>Vidhira 🔮 &copy; {new Date().getFullYear()}. For Purpose of life.</p>
         </footer>
       </div>
