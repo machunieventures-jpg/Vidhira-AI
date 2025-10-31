@@ -157,7 +157,7 @@
         animation: fadeIn 0.8s ease-out forwards;
       }
 
-      /* Payment Modal */
+      /* Modal Styles */
       @keyframes modal-fade-in {
         from { opacity: 0; transform: translateY(1rem) scale(0.98); }
         to { opacity: 1; transform: translateY(0) scale(1); }
@@ -183,6 +183,69 @@
           margin: 0.5in;
         }
       }
+      
+      /* Interactivity Enhancements */
+      .expandable-content {
+        transition: max-height 0.7s ease-in-out;
+        overflow: hidden;
+      }
+
+      /* PDF Light Theme Styles (applied dynamically) */
+      body.pdf-light-theme {
+        --lucky-color: #D4AF37;
+        --lucky-color-glow: rgba(212, 175, 55, 0.4);
+        background-color: #ffffff !important;
+        color: #111827 !important;
+      }
+      .pdf-light-theme #report-container {
+        color: #1f2937;
+      }
+      .pdf-light-theme .report-section {
+        background: #f9fafb !important;
+        border-color: #e5e7eb !important;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+      }
+      .pdf-light-theme .text-starlight,
+      .pdf-light-theme .text-starlight\/90 {
+        color: #111827 !important;
+      }
+      .pdf-light-theme .text-lunar-grey {
+        color: #4b5563 !important;
+      }
+      .pdf-light-theme .text-cosmic-gold,
+      .pdf-light-theme .text-cosmic-gold\/90,
+      .pdf-light-theme .text-cosmic-gold\/80,
+      .pdf-light-theme .text-cosmic-gold\/70 {
+        color: #b45309 !important;
+      }
+       .pdf-light-theme .border-lunar-grey\/50,
+       .pdf-light-theme .border-lunar-grey\/20,
+       .pdf-light-theme .border-lunar-grey\/10 {
+        border-color: #e5e7eb !important;
+      }
+      .pdf-light-theme .bg-void-tint,
+      .pdf-light-theme .bg-void-tint\/30,
+      .pdf-light-theme .bg-void-tint\/50,
+      .pdf-light-theme .bg-void-tint\/60,
+      .pdf-light-theme .bg-void-tint\/80 {
+        background-color: #ffffff !important;
+      }
+       .pdf-light-theme .bg-deep-void\/20,
+       .pdf-light-theme .bg-deep-void\/30,
+       .pdf-light-theme .bg-deep-void\/50 {
+         background-color: #f9fafb !important;
+       }
+       .pdf-light-theme .pillar-kundali,
+       .pdf-light-theme .pillar-cosmic-identity,
+       .pdf-light-theme .pillar-loshu,
+       .pdf-light-theme .pillar-wealth,
+       .pdf-light-theme .pillar-default {
+          background-image: none !important;
+          background-color: #f9fafb !important;
+       }
+       .pdf-light-theme .sanskrit {
+         color: #111827 !important;
+       }
 
     </style>
     <script>
@@ -196,6 +259,11 @@
               'cosmic-gold': 'var(--lucky-color, #FFD700)',
               'lunar-grey': '#8B949E',
             },
+            maxHeight: {
+              '0': '0',
+              '120px': '120px',
+              '1000px': '1000px',
+            }
           },
         },
       }
@@ -206,7 +274,8 @@
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+    "recharts": "https://aistudiocdn.com/recharts@^2.12.7"
   }
 }
 </script>

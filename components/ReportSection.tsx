@@ -3,7 +3,8 @@ import React from 'react';
 import InfoTooltip from './common/InfoTooltip';
 
 interface ReportSectionProps {
-  title: string;
+  // Fix: Changed title type from string to React.ReactNode to allow passing JSX elements.
+  title: React.ReactNode;
   icon: React.ReactNode;
   children: React.ReactNode;
   className?: string;

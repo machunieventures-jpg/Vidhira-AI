@@ -1,4 +1,5 @@
 
+
 export interface UserData {
   fullName: string;
   dob: string;
@@ -130,4 +131,17 @@ export interface CompoundNumbers {
   soulUrge: number;
   personality: number;
   maturity: number;
+}
+
+// Jyotish Report Types
+export interface PlanetaryPlacement {
+  planet: string;
+  sign: string;
+  house: number;
+}
+
+export interface JyotishReportData {
+  markdownReport: string;
+  planetaryPlacements: PlanetaryPlacement[];
+  ascendantSign: string; // The user's ascendant sign (e.g., "Aries")
 }

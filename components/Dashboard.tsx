@@ -1,6 +1,5 @@
-
 import React, { useRef, useState, useEffect } from 'react';
-import type { WorldClassReport, UserData, CompatibilityPairing } from '../types';
+import type { WorldClassReport, UserData } from '../types';
 import ReportSection from './ReportSection';
 import NumberCard from './NumberCard';
 import LoshuGrid from './LoshuGrid';
@@ -11,7 +10,9 @@ import YearlyForecast from './forecast/YearlyForecast';
 import { calculateMulank } from '../services/numerologyService';
 import UnlockReportCTA from './common/UnlockReportCTA';
 import JyotishFeature from './jyotish/JyotishFeature';
-import { exportReportAsPDF } from '../services/pdfService';
+import PdfOptionsModal from './common/PdfOptionsModal';
+import DefinitionTooltip from './common/DefinitionTooltip';
+import CompatibilityList from './common/CompatibilityList';
 
 // AnimateOnScroll Wrapper Component
 const AnimateOnScroll: React.FC<{children: React.ReactNode, delay?: number, className?: string}> = ({ children, delay = 0, className = '' }) => {
@@ -98,23 +99,7 @@ const pillarData = [
     { key: 'intellectEducation', title: 'Intellect, Education & Knowledge', icon: Icons.Intellect, tooltip: "Uncovers your unique learning style. e.g., A dominant '5' suggests excelling in dynamic fields like communication or marketing." },
 ];
 
-const CompatibilityList: React.FC<{ title: string; pairings: CompatibilityPairing[] }> = ({ title, pairings }) => (
-    <div>
-        <h5 className="text-lg font-bold text-starlight font-display mb-3">{title}</h5>
-        <div className="space-y-3">
-            {pairings.map(p => (
-                <div key={p.compatibleNumber} className="flex items-start gap-4 p-3 bg-deep-void/20 rounded-lg">
-                    <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-cosmic-gold/10 border border-cosmic-gold/50 rounded-full text-cosmic-gold font-bold text-xl">
-                        {p.compatibleNumber}
-                    </div>
-                    <p className="text-lunar-grey text-sm">{p.interpretation}</p>
-                </div>
-            ))}
-        </div>
-    </div>
-);
-
-const KundaliSignCard: React.FC<{ title: string, sign: string, icon: React.ReactNode }> = ({ title, sign, icon }) => (
+const KundaliSignCard: React.FC<{ title: React.ReactNode, sign: string, icon: React.ReactNode }> = ({ title, sign, icon }) => (
     <div className="flex-1 p-4 rounded-xl bg-void-tint/50 border border-lunar-grey/20 text-center">
         <div className="w-10 h-10 mx-auto mb-2 text-cosmic-gold">{icon}</div>
         <h5 className="text-sm font-semibold text-lunar-grey">{title}</h5>
@@ -127,19 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, onEdit
   const { kundaliSnapshot, cosmicIdentity, loshuAnalysis, futureForecast, relationshipsFamilyLegacy, spiritualAlignment } = report;
   const mulank = calculateMulank(userData.dob);
   const lifePathNumber = cosmicIdentity.coreNumbers.lifePath.number;
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-
-  const handleDownloadPdf = async () => {
-    setIsGeneratingPdf(true);
-    try {
-      await exportReportAsPDF(userData.fullName);
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-      alert("Sorry, there was an issue creating the PDF. Please try again or check the console for errors.");
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
   const renderPillarContent = (pillarKey: keyof Omit<WorldClassReport, 'relationshipsFamilyLegacy'>) => {
     const pillar = (report as any)[pillarKey];
@@ -166,199 +139,222 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, onEdit
         }
 
         <AnimateOnScroll delay={200}>
-            <ReportSection 
-              title="Section 1: Vedic Kundali Snapshot" 
-              icon={Icons.Kundali}
-              className={`${pillarStyles.kundaliSnapshot} report-section`}
-              tooltipText="A high-level summary of your Vedic astrological chart based on your birth time and location. This reveals your core personality drivers."
-            >
-              <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                  <KundaliSignCard title="Ascendant (Lagna)" sign={kundaliSnapshot.ascendant} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
-                  <KundaliSignCard title="Moon Sign (Rashi)" sign={kundaliSnapshot.moonSign} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>} />
-                  <KundaliSignCard title="Sun Sign" sign={kundaliSnapshot.sunSign} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>} />
-              </div>
-               <MarkdownRenderer content={kundaliSnapshot.summary} />
-            </ReportSection>
+            <div data-section-key="kundaliSnapshot" className="report-section-wrapper">
+                <ReportSection 
+                  title="Section 1: Vedic Kundali Snapshot" 
+                  icon={Icons.Kundali}
+                  className={`${pillarStyles.kundaliSnapshot} report-section`}
+                  tooltipText="A high-level summary of your Vedic astrological chart based on your birth time and location. This reveals your core personality drivers."
+                >
+                  <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                      <KundaliSignCard title={<DefinitionTooltip definition="The zodiac sign rising on the eastern horizon at your birth time. It governs your outer personality and physical self.">Ascendant (Lagna)</DefinitionTooltip>} sign={kundaliSnapshot.ascendant} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
+                      <KundaliSignCard title={<DefinitionTooltip definition="The zodiac sign where the Moon was positioned at your birth. It rules your mind, emotions, and inner self.">Moon Sign (Rashi)</DefinitionTooltip>} sign={kundaliSnapshot.moonSign} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>} />
+                      <KundaliSignCard title="Sun Sign" sign={kundaliSnapshot.sunSign} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>} />
+                  </div>
+                   <MarkdownRenderer content={kundaliSnapshot.summary} />
+                </ReportSection>
+            </div>
         </AnimateOnScroll>
         
         <AnimateOnScroll delay={300}>
-            <ReportSection 
-              title="Section 2: Vedic Astrology Deep Dive (Jyotish)"
-              icon={Icons.Jyotish}
-              className={`${pillarStyles.default} report-section`}
-              tooltipText="A comprehensive Vedic astrology analysis covering planetary positions, yogas (special combinations), doshas (challenges), and timing of life events (Dasha system)."
-            >
-              {isUnlocked ? (
-                <JyotishFeature userData={userData} />
-              ) : (
-                <div className="text-center text-lunar-grey p-4">
-                    <p>Unlock the full report to access your detailed Traditional Jyotish analysis.</p>
-                </div>
-              )}
-            </ReportSection>
+            <div data-section-key="jyotish" className="report-section-wrapper">
+                <ReportSection 
+                  title="Section 2: Vedic Astrology Deep Dive (Jyotish)"
+                  icon={Icons.Jyotish}
+                  className={`${pillarStyles.default} report-section`}
+                  tooltipText="A comprehensive Vedic astrology analysis covering planetary positions, yogas (special combinations), doshas (challenges), and timing of life events (Dasha system)."
+                >
+                  {isUnlocked ? (
+                    <JyotishFeature userData={userData} />
+                  ) : (
+                    <div className="text-center text-lunar-grey p-4">
+                        <p>Unlock the full report to access your detailed Traditional Jyotish analysis.</p>
+                    </div>
+                  )}
+                </ReportSection>
+            </div>
         </AnimateOnScroll>
 
         <AnimateOnScroll delay={400}>
-            <ReportSection 
-              title="Section 3: Cosmic Identity (Numerology)" 
-              icon={Icons.CosmicIdentity}
-              className={`${pillarStyles.cosmicIdentity} report-section`}
-              tooltipText="Decodes your energetic signature. e.g., Your Life Path number reveals your life's main journey, while your Expression number shows your innate talents."
-            >
-              <div className="space-y-6">
-                  {Object.entries(cosmicIdentity.coreNumbers).map(([key, value], index) => (
-                      <AnimateOnScroll key={key} delay={index * 100}>
+            <div data-section-key="cosmicIdentity" className="report-section-wrapper">
+                <ReportSection 
+                  title="Section 3: Cosmic Identity (Numerology)" 
+                  icon={Icons.CosmicIdentity}
+                  className={`${pillarStyles.cosmicIdentity} report-section`}
+                  tooltipText="Decodes your energetic signature. e.g., Your Life Path number reveals your life's main journey, while your Expression number shows your innate talents."
+                >
+                  <div className="space-y-6">
+                      {Object.entries(cosmicIdentity.coreNumbers).map(([key, value], index) => (
+                          <AnimateOnScroll key={key} delay={index * 100}>
+                              <div>
+                                <NumberCard 
+                                  title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} 
+                                  data={value} 
+                                />
+                                {key !== 'maturity' && <hr className="border-lunar-grey/10 mt-6" />}
+                              </div>
+                          </AnimateOnScroll>
+                      ))}
+                  </div>
+                  <div className="mt-6 space-y-4">
+                      <AnimateOnScroll>
                           <div>
-                            <NumberCard 
-                              title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} 
-                              data={value} 
-                            />
-                            {key !== 'maturity' && <hr className="border-lunar-grey/10 mt-6" />}
+                              <h4 className="text-xl font-bold text-cosmic-gold font-display">Your Soul's Essence</h4>
+                              <MarkdownRenderer content={isUnlocked ? cosmicIdentity.soulSynopsis.content : cosmicIdentity.soulSynopsis.teaser} />
                           </div>
                       </AnimateOnScroll>
-                  ))}
-              </div>
-              <div className="mt-6 space-y-4">
-                  <AnimateOnScroll>
-                      <div>
-                          <h4 className="text-xl font-bold text-cosmic-gold font-display">Your Soul's Essence</h4>
-                          <MarkdownRenderer content={isUnlocked ? cosmicIdentity.soulSynopsis.content : cosmicIdentity.soulSynopsis.teaser} />
-                      </div>
-                  </AnimateOnScroll>
-                  <AnimateOnScroll delay={100}>
-                      <div>
-                          <h4 className="text-xl font-bold text-cosmic-gold font-display">Echoes of Greatness: Famous Parallels</h4>
-                          <MarkdownRenderer content={isUnlocked ? cosmicIdentity.famousParallels.content : cosmicIdentity.famousParallels.teaser} />
-                      </div>
-                  </AnimateOnScroll>
-                   <AnimateOnScroll delay={200}>
-                      <div>
-                          <h4 className="text-xl font-bold text-cosmic-gold font-display">Planetary Rulerships</h4>
-                          <MarkdownRenderer content={isUnlocked ? cosmicIdentity.planetaryRulerships.content : cosmicIdentity.planetaryRulerships.teaser} />
-                      </div>
-                  </AnimateOnScroll>
-              </div>
-            </ReportSection>
+                      <AnimateOnScroll delay={100}>
+                          <div>
+                              <h4 className="text-xl font-bold text-cosmic-gold font-display">Echoes of Greatness: Famous Parallels</h4>
+                              <MarkdownRenderer content={isUnlocked ? cosmicIdentity.famousParallels.content : cosmicIdentity.famousParallels.teaser} />
+                          </div>
+                      </AnimateOnScroll>
+                       <AnimateOnScroll delay={200}>
+                          <div>
+                              <h4 className="text-xl font-bold text-cosmic-gold font-display">Planetary Rulerships</h4>
+                              <MarkdownRenderer content={isUnlocked ? cosmicIdentity.planetaryRulerships.content : cosmicIdentity.planetaryRulerships.teaser} />
+                          </div>
+                      </AnimateOnScroll>
+                  </div>
+                </ReportSection>
+            </div>
         </AnimateOnScroll>
 
         <AnimateOnScroll delay={500}>
-            <ReportSection 
-              title="Section 4: Loshu Grid" 
-              icon={Icons.LoshuGrid}
-              className={`${pillarStyles.loshuAnalysis} report-section`}
-              tooltipText="A mystical grid from your birth date revealing strengths and weaknesses. e.g., Missing numbers indicate areas for growth, like a missing '5' suggesting a need for more adaptability."
-            >
-              <LoshuGrid 
-                grid={loshuAnalysis.grid} 
-                missingNumbers={loshuAnalysis.missingNumbers}
-                overloadedNumbers={loshuAnalysis.overloadedNumbers}
-                userData={userData} 
-                birthNumber={mulank} 
-                destinyNumber={lifePathNumber}
-                elementalPlanes={loshuAnalysis.elementalPlanes}
-                isUnlocked={isUnlocked}
-              />
-            </ReportSection>
+            <div data-section-key="loshuAnalysis" className="report-section-wrapper">
+                <ReportSection 
+                  title={<span>Section 4: <DefinitionTooltip definition="A mystical 3x3 grid from your birth date revealing strengths and weaknesses. Missing numbers indicate areas for growth, while repeated numbers show core strengths.">Loshu Grid</DefinitionTooltip></span>}
+                  icon={Icons.LoshuGrid}
+                  className={`${pillarStyles.loshuAnalysis} report-section`}
+                  tooltipText="A mystical grid from your birth date revealing strengths and weaknesses. e.g., Missing numbers indicate areas for growth, like a missing '5' suggesting a need for more adaptability."
+                >
+                  <LoshuGrid 
+                    grid={loshuAnalysis.grid} 
+                    missingNumbers={loshuAnalysis.missingNumbers}
+                    overloadedNumbers={loshuAnalysis.overloadedNumbers}
+                    userData={userData} 
+                    birthNumber={mulank} 
+                    destinyNumber={lifePathNumber}
+                    elementalPlanes={loshuAnalysis.elementalPlanes}
+                    isUnlocked={isUnlocked}
+                  />
+                </ReportSection>
+            </div>
         </AnimateOnScroll>
 
         {pillarData.map((pillar, index) => (
           <AnimateOnScroll key={pillar.key} delay={600 + index * 100}>
-              <ReportSection 
-                  title={`Section ${index + 5}: ${pillar.title}`} 
-                  icon={pillar.icon}
-                  className={`${pillarStyles.default} report-section`}
-                  tooltipText={pillar.tooltip}
-              >
-                 { pillar.key === 'relationshipsFamilyLegacy' 
-                   ? <MarkdownRenderer content={isUnlocked ? relationshipsFamilyLegacy.content : relationshipsFamilyLegacy.teaser} />
-                   : renderPillarContent(pillar.key as keyof Omit<WorldClassReport, 'relationshipsFamilyLegacy'>)
-                 }
-                 {pillar.key === 'wealthBusinessCareer' && isUnlocked && (
-                    <AnimateOnScroll>
-                     <>
-                     <hr className="border-lunar-grey/10 my-6" />
-                     <BrandAnalyzer userData={userData} report={report} />
-                    </>
-                    </AnimateOnScroll>
-                 )}
-                 {pillar.key === 'relationshipsFamilyLegacy' && isUnlocked && relationshipsFamilyLegacy.compatibilityAnalysis && (
-                    <AnimateOnScroll>
-                        <>
-                            <hr className="border-lunar-grey/10 my-8" />
-                            <h4 className="text-xl font-bold text-cosmic-gold font-display mb-4">Core Number Compatibility</h4>
-                            <div className="space-y-6">
-                                <CompatibilityList title={`Life Path ${cosmicIdentity.coreNumbers.lifePath.number} Compatibility`} pairings={relationshipsFamilyLegacy.compatibilityAnalysis.lifePath} />
-                                <CompatibilityList title={`Expression ${cosmicIdentity.coreNumbers.expression.number} Compatibility`} pairings={relationshipsFamilyLegacy.compatibilityAnalysis.expression} />
-                                <CompatibilityList title={`Soul Urge ${cosmicIdentity.coreNumbers.soulUrge.number} Compatibility`} pairings={relationshipsFamilyLegacy.compatibilityAnalysis.soulUrge} />
-                            </div>
+              <div data-section-key={pillar.key} className="report-section-wrapper">
+                  <ReportSection 
+                      title={`Section ${index + 5}: ${pillar.title}`} 
+                      icon={pillar.icon}
+                      className={`${pillarStyles.default} report-section`}
+                      tooltipText={pillar.tooltip}
+                  >
+                     { pillar.key === 'relationshipsFamilyLegacy' 
+                       ? <MarkdownRenderer content={isUnlocked ? relationshipsFamilyLegacy.content : relationshipsFamilyLegacy.teaser} />
+                       : renderPillarContent(pillar.key as keyof Omit<WorldClassReport, 'relationshipsFamilyLegacy'>)
+                     }
+                     {pillar.key === 'wealthBusinessCareer' && isUnlocked && (
+                        <AnimateOnScroll>
+                         <>
+                         <hr className="border-lunar-grey/10 my-6" />
+                         <BrandAnalyzer userData={userData} report={report} />
                         </>
-                    </AnimateOnScroll>
-                 )}
-                  {pillar.key === 'spiritualAlignment' && isUnlocked && spiritualAlignment.mantrasAndAffirmations?.length > 0 && (
-                    <AnimateOnScroll>
-                    <>
-                      <hr className="border-lunar-grey/10 my-8" />
-                      <h4 className="text-xl font-bold text-cosmic-gold font-display mb-4">Personalized Mantras & Affirmations</h4>
-                      <div className="space-y-4">
-                        {spiritualAlignment.mantrasAndAffirmations.map((mantra, i) => (
-                          <blockquote key={i} className="border-l-4 border-cosmic-gold pl-4 py-2 bg-deep-void/20">
-                            <p className="text-lg italic text-starlight">"{mantra}"</p>
-                          </blockquote>
-                        ))}
-                      </div>
-                    </>
-                    </AnimateOnScroll>
-                  )}
-              </ReportSection>
+                        </AnimateOnScroll>
+                     )}
+                     {pillar.key === 'relationshipsFamilyLegacy' && isUnlocked && relationshipsFamilyLegacy.compatibilityAnalysis && (
+                        <AnimateOnScroll>
+                            <>
+                                <hr className="border-lunar-grey/10 my-8" />
+                                <h4 className="text-xl font-bold text-cosmic-gold font-display mb-4">Core Number Compatibility</h4>
+                                <div className="space-y-6">
+                                    <CompatibilityList 
+                                      title={<span><DefinitionTooltip definition="Your core life's mission and the lessons you are here to learn. This number has the strongest influence on your relationship compatibility.">Life Path {cosmicIdentity.coreNumbers.lifePath.number}</DefinitionTooltip> Compatibility</span>} 
+                                      pairings={relationshipsFamilyLegacy.compatibilityAnalysis.lifePath} 
+                                    />
+                                    <CompatibilityList 
+                                      title={`Expression ${cosmicIdentity.coreNumbers.expression.number} Compatibility`} 
+                                      pairings={relationshipsFamilyLegacy.compatibilityAnalysis.expression} 
+                                    />
+                                    <CompatibilityList 
+                                      title={`Soul Urge ${cosmicIdentity.coreNumbers.soulUrge.number} Compatibility`} 
+                                      pairings={relationshipsFamilyLegacy.compatibilityAnalysis.soulUrge} 
+                                    />
+                                </div>
+                            </>
+                        </AnimateOnScroll>
+                     )}
+                      {pillar.key === 'spiritualAlignment' && isUnlocked && spiritualAlignment.mantrasAndAffirmations?.length > 0 && (
+                        <AnimateOnScroll>
+                        <>
+                          <hr className="border-lunar-grey/10 my-8" />
+                          <h4 className="text-xl font-bold text-cosmic-gold font-display mb-4">Personalized Mantras & Affirmations</h4>
+                          <div className="space-y-4">
+                            {spiritualAlignment.mantrasAndAffirmations.map((mantra, i) => (
+                              <blockquote key={i} className="border-l-4 border-cosmic-gold pl-4 py-2 bg-deep-void/20">
+                                <p className="text-lg italic text-starlight">"{mantra}"</p>
+                              </blockquote>
+                            ))}
+                          </div>
+                        </>
+                        </AnimateOnScroll>
+                      )}
+                  </ReportSection>
+              </div>
           </AnimateOnScroll>
         ))}
           
           <AnimateOnScroll delay={600 + pillarData.length * 100}>
-              <ReportSection 
-                  title={`Section ${5 + pillarData.length}: Future Forecast`} 
-                  icon={Icons.Forecast}
-                  className={`${pillarStyles.default} report-section`}
-                  tooltipText="Projects your energetic cycles into the future. e.g., Your Personal Year number for 2026 might be '3', indicating a year of creativity and social expansion."
-              >
-                  <div className="space-y-6">
-                      <AnimateOnScroll delay={150}>
-                          <NumberCard 
-                            title="Personal Year Number" 
-                            data={futureForecast.personalYear}
-                          />
-                      </AnimateOnScroll>
-                      <hr className="border-lunar-grey/10" />
-                      <AnimateOnScroll>
-                          <div>
-                              <h4 className="text-xl font-bold text-cosmic-gold font-display">12-Month Strategic Roadmap</h4>
-                              <MarkdownRenderer content={isUnlocked ? futureForecast.strategicRoadmap.content : futureForecast.strategicRoadmap.teaser} />
-                          </div>
-                      </AnimateOnScroll>
-                      {isUnlocked && (
-                        <AnimateOnScroll>
-                          <>
-                            <hr className="border-lunar-grey/10 my-6" />
-                            <YearlyForecast userData={userData} />
-                          </>
-                        </AnimateOnScroll>
-                      )}
-                  </div>
-            </ReportSection>
+              <div data-section-key="futureForecast" className="report-section-wrapper">
+                  <ReportSection 
+                      title={`Section ${5 + pillarData.length}: Future Forecast`} 
+                      icon={Icons.Forecast}
+                      className={`${pillarStyles.default} report-section`}
+                      tooltipText="Projects your energetic cycles into the future. e.g., Your Personal Year number for 2026 might be '3', indicating a year of creativity and social expansion."
+                  >
+                      <div className="space-y-6">
+                          <AnimateOnScroll delay={150}>
+                              <NumberCard 
+                                title="Personal Year Number" 
+                                data={futureForecast.personalYear}
+                              />
+                          </AnimateOnScroll>
+                          <hr className="border-lunar-grey/10" />
+                          <AnimateOnScroll>
+                              <div>
+                                  <h4 className="text-xl font-bold text-cosmic-gold font-display">12-Month Strategic Roadmap</h4>
+                                  <MarkdownRenderer content={isUnlocked ? futureForecast.strategicRoadmap.content : futureForecast.strategicRoadmap.teaser} />
+                              </div>
+                          </AnimateOnScroll>
+                          {isUnlocked && (
+                            <AnimateOnScroll>
+                              <>
+                                <hr className="border-lunar-grey/10 my-6" />
+                                <YearlyForecast userData={userData} />
+                              </>
+                            </AnimateOnScroll>
+                          )}
+                      </div>
+                </ReportSection>
+              </div>
         </AnimateOnScroll>
 
         <AnimateOnScroll delay={600 + (pillarData.length + 1) * 100}>
-            <ReportSection
-                title={`Section ${5 + pillarData.length + 1}: About Vidhira`}
-                icon={Icons.About}
-                className={`${pillarStyles.default} report-section`}
-                tooltipText="Learn more about the philosophy and technology behind the Vidhira system."
-            >
-                <MarkdownRenderer content={`**Vidhira: Your AI Destiny Intelligence System**
+            <div data-section-key="about" className="report-section-wrapper">
+                <ReportSection
+                    title={`Section ${5 + pillarData.length + 1}: About Vidhira`}
+                    icon={Icons.About}
+                    className={`${pillarStyles.default} report-section`}
+                    tooltipText="Learn more about the philosophy and technology behind the Vidhira system."
+                >
+                    <MarkdownRenderer content={`**Vidhira: Your AI Destiny Intelligence System**
 
 Vidhira is a next-generation numerology platform that fuses the ancient, time-tested wisdom of Chaldean Numerology with the power of advanced Artificial Intelligence. Our mission is to provide you with a 'spiritual operating manual'—a dynamic, interactive life dashboard that decodes the complex vibrational patterns of your life into clear, actionable intelligence.
 
 Powered by Google's Gemini AI models, Vidhira goes beyond static reports. It offers a deeply personalized experience, analyzing your core numbers to provide profound insights into your personality, purpose, and potential. Whether you're an entrepreneur seeking strategic alignment, a professional navigating your career path, or a seeker on a journey of self-discovery, Vidhira is designed to be your trusted companion for making conscious, soul-aligned decisions.`} />
-            </ReportSection>
+                </ReportSection>
+            </div>
         </AnimateOnScroll>
         
         <AnimateOnScroll delay={200}>
@@ -377,17 +373,23 @@ Powered by Google's Gemini AI models, Vidhira goes beyond static reports. It off
               </button>
               {isUnlocked && (
                  <button
-                    onClick={handleDownloadPdf}
-                    disabled={isGeneratingPdf}
-                    className="bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)] disabled:bg-lunar-grey disabled:opacity-75 disabled:cursor-wait disabled:scale-100"
+                    onClick={() => setIsPdfModalOpen(true)}
+                    className="bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
                   >
-                    {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF'}
+                    Download PDF
                   </button>
               )}
             </div>
         </AnimateOnScroll>
       </div>
       <ChatWidget report={report} userData={userData} />
+      {isUnlocked && (
+        <PdfOptionsModal
+            isOpen={isPdfModalOpen}
+            onClose={() => setIsPdfModalOpen(false)}
+            userName={userData.fullName}
+        />
+       )}
     </>
   );
 };

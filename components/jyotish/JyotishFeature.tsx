@@ -1,16 +1,19 @@
 
+
 import React, { useState } from 'react';
 import { generateJyotishReport } from '../../services/geminiService';
-import type { UserData } from '../../types';
+import type { UserData, JyotishReportData } from '../../types';
 import MarkdownRenderer from '../common/MarkdownRenderer';
 import { trackEvent } from '../../services/analyticsService';
+import PlanetaryChart from './PlanetaryChart';
+import RasiChart from './RasiChart';
 
 interface JyotishFeatureProps {
     userData: UserData;
 }
 
 const JyotishFeature: React.FC<JyotishFeatureProps> = ({ userData }) => {
-    const [report, setReport] = useState<string | null>(null);
+    const [report, setReport] = useState<JyotishReportData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -68,8 +71,12 @@ const JyotishFeature: React.FC<JyotishFeatureProps> = ({ userData }) => {
             )}
 
             {report && (
-                <div className="mt-4 animate-fade-in">
-                     <MarkdownRenderer content={report} />
+                <div className="mt-4 animate-fade-in space-y-8">
+                     <RasiChart placements={report.planetaryPlacements} ascendant={report.ascendantSign} />
+                     <hr className="border-lunar-grey/10" />
+                     <PlanetaryChart data={report.planetaryPlacements} />
+                     <hr className="border-lunar-grey/10" />
+                     <MarkdownRenderer content={report.markdownReport} />
                 </div>
             )}
         </div>

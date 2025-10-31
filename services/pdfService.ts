@@ -4,11 +4,18 @@ declare global {
   const jspdf: any;
 }
 
+export interface PdfExportOptions {
+  sections: string[];
+  theme: 'dark' | 'light';
+}
+
 /**
- * Exports the main report content as a multi-page PDF.
+ * Exports the main report content as a multi-page PDF with customizations.
  * @param userName The user's full name for the filename.
+ * @param options The customization options for the PDF.
  */
-export const exportReportAsPDF = async (userName: string): Promise<void> => {
+export const exportReportAsPDF = async (userName: string, options: PdfExportOptions): Promise<void> => {
+  const { sections, theme } = options;
   const reportElement = document.getElementById('report-container');
 
   if (!reportElement) {
@@ -16,20 +23,33 @@ export const exportReportAsPDF = async (userName: string): Promise<void> => {
     throw new Error('Could not find the report content to export.');
   }
 
+  // --- Pre-computation DOM modifications ---
+  const allSectionElements = Array.from(reportElement.querySelectorAll('.report-section'));
+  const sectionsToHide: HTMLElement[] = [];
+
+  allSectionElements.forEach(sectionEl => {
+    const sectionKey = (sectionEl as HTMLElement).dataset.sectionKey;
+    if (!sectionKey || !sections.includes(sectionKey)) {
+      sectionsToHide.push(sectionEl as HTMLElement);
+      (sectionEl as HTMLElement).style.display = 'none';
+    }
+  });
+
+  if (theme === 'light') {
+    document.body.classList.add('pdf-light-theme');
+  }
+  // --- End of DOM modifications ---
+
   try {
-    // Use html2canvas to capture the report element
     const canvas = await html2canvas(reportElement, {
-      scale: 2, // Use a higher scale for better resolution
+      scale: 2,
       useCORS: true,
-      backgroundColor: '#0D1117', // Match the app's background color
-      // Ensure the whole element is captured, not just the visible part
+      backgroundColor: theme === 'light' ? '#ffffff' : '#0D1117',
       windowWidth: reportElement.scrollWidth,
       windowHeight: reportElement.scrollHeight,
     });
 
     const imgData = canvas.toDataURL('image/png');
-
-    // Initialize jsPDF for an A4 document
     const pdf = new jspdf.jsPDF({
       orientation: 'p',
       unit: 'mm',
@@ -41,31 +61,36 @@ export const exportReportAsPDF = async (userName: string): Promise<void> => {
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
     
-    // Calculate the image height in the PDF to maintain aspect ratio
     const ratio = canvasWidth / pdfWidth;
     const imgHeight = canvasHeight / ratio;
 
     let heightLeft = imgHeight;
     let position = 0;
 
-    // Add the first page
     pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
     heightLeft -= pdfHeight;
 
-    // Add new pages if the content is longer than one page
     while (heightLeft > 0) {
-      position -= pdfHeight; // Move the "viewport" down on the single large image
+      position -= pdfHeight;
       pdf.addPage();
       pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
       heightLeft -= pdfHeight;
     }
 
-    // Sanitize user name for the file name
     const fileName = `Vidhira_Report_${userName.replace(/\s+/g, '_')}.pdf`;
     pdf.save(fileName);
 
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw new Error('An unexpected error occurred while creating the PDF file.');
+  } finally {
+    // --- IMPORTANT: Cleanup DOM modifications ---
+    sectionsToHide.forEach(el => {
+      el.style.display = ''; // Revert to default display style
+    });
+    if (theme === 'light') {
+      document.body.classList.remove('pdf-light-theme');
+    }
+    // --- End of cleanup ---
   }
 };

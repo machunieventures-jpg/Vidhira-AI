@@ -1,7 +1,9 @@
 
 
+
+
 import { GoogleGenAI, Type } from "@google/genai";
-import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage } from '../types';
+import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData } from '../types';
 import { calculateNameNumbers } from './numerologyService';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -487,19 +489,44 @@ export const getDailyHoroscope = async (
 };
 
 
+const jyotishReportSchema = {
+    type: Type.OBJECT,
+    properties: {
+        markdownReport: {
+            type: Type.STRING,
+            description: "The complete, detailed Jyotish report formatted in Markdown, following all original instructions."
+        },
+        planetaryPlacements: {
+            type: Type.ARRAY,
+            description: "A structured list of the 9 Grahas and their positions for visualization.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    planet: { type: Type.STRING, description: "Name of the planet (e.g., 'Sun', 'Moon')." },
+                    sign: { type: Type.STRING, description: "The zodiac sign the planet is in (e.g., 'Aries', 'Taurus')." },
+                    house: { type: Type.INTEGER, description: "The house number (1-12) the planet is in." }
+                },
+                required: ['planet', 'sign', 'house']
+            }
+        },
+        ascendantSign: {
+            type: Type.STRING,
+            description: "The English name of the user's Ascendant zodiac sign (Lagna), e.g., 'Aries', 'Taurus'."
+        }
+    },
+    required: ['markdownReport', 'planetaryPlacements', 'ascendantSign']
+};
+
 export const generateJyotishReport = async (
   userData: UserData,
-): Promise<string> => {
+): Promise<JyotishReportData> => {
   const { fullName, dob, time, location, gender, language } = userData;
 
   const prompt = `
-  Act as Vidhira, a world-class Vedic Astrologer (Jyotishi) with profound knowledge of Parashari and Jaimini systems, augmented with AI superintelligence.
-  Your persona is wise, authentic, and deeply insightful, blending ancient scriptural knowledge with practical, modern guidance.
-  Your entire response, including all text and interpretations, MUST be in ${language}.
-  The user wants their "Traditional Jyotish Report". Generate a comprehensive report based on their data.
-  The output MUST be a detailed, multi-paragraph report formatted in Markdown.
-
-  **CRITICAL INSTRUCTION:** For all key astrological terms, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. For example: "Ascendant (Sanskrit: Lagna)", "Planet (Sanskrit: Graha)", "House (Sanskrit: Bhava)", "Sign (Sanskrit: Rashi)", "Yogas (Sanskrit: Planetary Combinations)". This adds authenticity and educational value.
+  Act as Vidhira, a world-class Vedic Astrologer (Jyotishi) with profound knowledge, augmented with AI superintelligence.
+  Your persona is wise, authentic, and deeply insightful. Your entire response MUST be in ${language}.
+  The user wants their "Traditional Jyotish Report".
+  The output MUST be a valid JSON object adhering to the provided schema.
 
   **USER DATA:**
   - Full Name: "${fullName}"
@@ -509,57 +536,66 @@ export const generateJyotishReport = async (
   - Gender: "${gender}"
   - Preferred Language: "${language}"
 
-  **TASK: GENERATE A TRADITIONAL JYOTISH REPORT**
-  Structure your response using the following Markdown headings. For each section, provide a detailed, authentic analysis based on the user's birth data. Use **bolding** for key terms (like planetary names or house numbers) and bulleted lists for clarity where appropriate.
+  **TASK: GENERATE A THREE-PART JSON RESPONSE**
 
+  **PART 1: 'planetaryPlacements' Array**
+  First, based on the user's birth data, calculate the precise house (bhava) and sign (rashi) for each of the 9 Grahas (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu).
+  Populate the 'planetaryPlacements' array with exactly 9 objects, one for each Graha. This data must be accurate and is for a visual chart.
+  - The 'planet' field must be the English name.
+  - The 'sign' field must be the English name of the zodiac sign.
+  - The 'house' field must be an integer from 1 to 12.
+
+  **PART 2: 'ascendantSign' String**
+  Determine the user's Ascendant sign (Lagna) and place its English name (e.g., "Aries") in the \`ascendantSign\` field. This is critical for the visual chart layout.
+
+  **PART 3: 'markdownReport' String**
+  Third, generate the complete, detailed "Traditional Jyotish Report" as a single Markdown string and place it in the 'markdownReport' field.
+  - **Structure:** Use the specified Markdown headings (e.g., '### 1. Janma Lagna...').
+  - **Terminology:** For ALL key astrological terms within this markdown string, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. Examples: "Ascendant (Sanskrit: Lagna)", "Planet (Sanskrit: Graha)". This is non-negotiable.
+  - **Content:** Provide a detailed, authentic analysis for each section as originally requested. Use **bolding** for key terms and bulleted lists for clarity.
+
+  **MARKDOWN REPORT STRUCTURE:**
   ### 1. Janma Lagna (Ascendant) & Basic Chart Structure
-  - Determine the Lagna (Sanskrit: Lagna) sign and its ruling planet based on the birth data.
-  - Describe the user's core physical and behavioral tendencies influenced by the Lagna and its lord.
-  - Briefly describe the structure of their Rasi (Sanskrit: Rasi) (D1) chart.
+  (Determine Lagna sign, ruling planet, describe physical/behavioral tendencies.)
 
   ### 2. Graha (Planetary) Placement Overview
-  - For each of the 9 Grahas (Sanskrit: Graha) (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu), describe its placement by house (Sanskrit: Bhava) and sign (Sanskrit: Rashi).
-  - Explain the significance of each placement.
-  - Identify the functional benefics and malefics for this specific Lagna and explain their roles.
+  (For each of the 9 Grahas, describe its placement by house and sign, its significance, and identify functional benefics/malefics for the Lagna.)
 
   ### 3. Moon Chart (Chandra Lagna)
-  - Analyze the chart from the perspective of the Moon's position (Sanskrit: Chandra Lagna).
-  - Describe the user's emotional nature, mental patterns, and key relationships as seen from the Chandra Lagna.
+  (Analyze the chart from the Moon's position, describing emotional nature, mind, etc.)
 
   ### 4. Navamsha (D9) & Varga Analysis
-  - Provide a summary of the Navamsha (Sanskrit: Navamsha) (D9) chart.
-  - Discuss what the D9 reveals about the user's marriage, dharma, inner self, and the true strength of the planets.
-  - Briefly mention any significant planetary positions in other important Varga charts if possible, like Dashamsha (D10) for career.
+  (Summarize the D9 chart's implications for marriage, dharma, and planetary strength.)
 
   ### 5. Yogas & Raj Yogas
-  - Identify and explain any major Yogas (Sanskrit: Yoga) (planetary combinations) present in the chart.
-  - Specifically highlight any Raj Yogas (Sanskrit: Raja Yoga) (combinations for power and success), Dhana Yogas (Sanskrit: Dhana Yoga) (wealth combinations), or other significant yogas like Gaja Kesari Yoga. Explain their practical implications.
+  (Identify and explain major Yogas like Raj Yogas, Dhana Yogas, etc.)
 
   ### 6. Doshas & Balancing Remedies
-  - Check for major Doshas (Sanskrit: Dosha) like Manglik Dosha (Sanskrit: Kuja Dosha), Kaal Sarp Dosha, or Pitra Dosha.
-  - If a Dosha is present, explain its potential effects calmly and constructively.
-  - **Crucially, provide simple, practical, and empowering remedies.** Suggest gemstone recommendations (with correct finger and metal), specific mantras, charitable acts, or lifestyle adjustments to balance these energies.
+  (Check for major Doshas like Manglik Dosha. Explain effects constructively and provide simple, practical remedies like gemstones, mantras, or lifestyle adjustments.)
 
   ### 7. Dasha System (Vimshottari Focus)
-  - Calculate and state the current Mahadasha (Sanskrit: Mahadasha) (major period) and Antardasha (Sanskrit: Antardasha) (sub-period) the user is running.
-  - Analyze the themes, opportunities, and challenges of this current period based on the Dasha lords' placement and nature in their chart.
-  - Provide a brief forecast focusing on the period from 2025 to 2032, highlighting key upcoming Dasha changes.
+  (State the current Mahadasha/Antardasha. Analyze its themes and provide a brief forecast for 2025-2032.)
 
   ### 8. Transit (Gochar) Overview
-  - Analyze the impact of the major transits (Sanskrit: Gochara) of Saturn (Sanskrit: Shani), Jupiter (Sanskrit: Guru), and Rahu-Ketu for the years 2025-2027 relative to the user's natal chart.
-  - Explain how these transits will activate certain houses and influence specific areas of their life.
+  (Analyze the impact of Saturn, Jupiter, and Rahu-Ketu transits for 2025-2027.)
 
   ### 9. Summary & Final Guidance
-  - Conclude with a summary of the key planetary strengths and weaknesses in the chart.
-  - Offer holistic spiritual, karmic, and practical lifestyle advice to help the user navigate their path and maximize their potential.
+  (Conclude with key strengths/weaknesses and offer holistic advice.)
   `;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: jyotishReportSchema,
+      },
     });
-    return response.text;
+    const responseText = response.text;
+    const reportData = JSON.parse(responseText);
+    
+    return reportData;
   } catch (error) {
     console.error("Error generating Jyotish report:", error);
     throw new Error("Failed to generate the Jyotish report. The celestial connection is currently unclear. Please try again later.");

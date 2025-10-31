@@ -36,12 +36,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
             if (processedLine.trim().startsWith('### ')) {
                 flushList();
-                elements.push(<h3 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(4) }} className="text-xl font-bold text-cosmic-gold font-display mt-6 mb-3" />);
+                elements.push(<h3 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(4) }} className="text-xl font-semibold text-cosmic-gold font-display mt-6 mb-3" />);
                 return;
             }
             if (processedLine.trim().startsWith('## ')) {
                 flushList();
-                elements.push(<h2 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(3) }} className="text-2xl font-bold text-starlight font-display mt-8 mb-4" />);
+                elements.push(<h2 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(3) }} className="text-2xl font-bold text-starlight font-display mt-8 mb-4 border-b border-lunar-grey/20 pb-2" />);
                 return;
             }
             if (processedLine.trim().startsWith('* ') || processedLine.trim().startsWith('- ')) {
