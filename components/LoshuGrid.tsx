@@ -232,14 +232,18 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
                     <>
                     <p className="text-lunar-grey mt-1 text-sm">Energies that are strongly present, representing core strengths.</p>
                     <div className="flex flex-wrap gap-3 mt-3">
-                        {overloadedNumbers.map(num => (
-                            <div 
-                                key={num} 
-                                className="w-10 h-10 flex items-center justify-center bg-lunar-grey/10 border border-lunar-grey/50 rounded-full text-lunar-grey font-bold"
-                                >
-                                {num}
-                            </div>
-                        ))}
+                        {overloadedNumbers.map(num => {
+                            const isOverloadedActive = activeNumber?.num === num && !activeNumber?.isMissing;
+                            return (
+                                <div 
+                                    key={num} 
+                                    className={`w-10 h-10 flex items-center justify-center bg-lunar-grey/10 border border-lunar-grey/50 rounded-full text-lunar-grey font-bold cursor-pointer hover:bg-lunar-grey/20 transform transition-all duration-300 hover:scale-110 ${isOverloadedActive ? 'animate-scale-pulse' : ''}`}
+                                    onClick={(e) => handleNumberClick(num, false, e)}
+                                    >
+                                    {num}
+                                </div>
+                            )
+                        })}
                     </div>
                     </>
                 ) : (

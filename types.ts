@@ -1,5 +1,6 @@
 
 
+
 export interface UserData {
   fullName: string;
   dob: string;
@@ -77,6 +78,14 @@ export interface KundaliSnapshot {
     summary: string;
 }
 
+// Methodology
+export interface MethodologyPillar {
+    ayanamsa: string;
+    houseSystem: string;
+    numerologyMethod: string;
+    disclaimer: string;
+}
+
 // Main Report Structure
 export interface WorldClassReport {
   kundaliSnapshot: KundaliSnapshot;
@@ -106,6 +115,7 @@ export interface WorldClassReport {
     personalYear: CoreNumberInfo;
     strategicRoadmap: PillarContent;
   };
+  methodology: MethodologyPillar;
 }
 
 

@@ -79,6 +79,8 @@ const Icons: { [key: string]: React.ReactNode } = {
     Intellect: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     Forecast: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>,
     About: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    Methodology: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.5h3.041a3.375 3.375 0 0 0 3.375-3.375v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m-1.125 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M18.75 6.375h.008v.008h-.008v-.008Z" /></svg>,
+    NextSteps: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.418.635 6 1.742m6-15.292c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 0 18 18c2.305 0 4.418.635 6 1.742V4.262c-.938-.332-1.948-.512-3-.512Z" /></svg>,
 };
 
 const pillarStyles: { [key: string]: string } = {
@@ -109,12 +111,12 @@ const KundaliSignCard: React.FC<{ title: React.ReactNode, sign: string, icon: Re
 
 
 const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, onEdit, isUnlocked, isUnlocking, onUnlock }) => {
-  const { kundaliSnapshot, cosmicIdentity, loshuAnalysis, futureForecast, relationshipsFamilyLegacy, spiritualAlignment } = report;
+  const { kundaliSnapshot, cosmicIdentity, loshuAnalysis, futureForecast, relationshipsFamilyLegacy, spiritualAlignment, methodology } = report;
   const mulank = calculateMulank(userData.dob);
   const lifePathNumber = cosmicIdentity.coreNumbers.lifePath.number;
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
-  const renderPillarContent = (pillarKey: keyof Omit<WorldClassReport, 'relationshipsFamilyLegacy'>) => {
+  const renderPillarContent = (pillarKey: keyof Omit<WorldClassReport, 'relationshipsFamilyLegacy' | 'methodology'>) => {
     const pillar = (report as any)[pillarKey];
     if (!pillar) return null;
     const content = pillar.content || pillar;
@@ -253,7 +255,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, onEdit
                   >
                      { pillar.key === 'relationshipsFamilyLegacy' 
                        ? <MarkdownRenderer content={isUnlocked ? relationshipsFamilyLegacy.content : relationshipsFamilyLegacy.teaser} />
-                       : renderPillarContent(pillar.key as keyof Omit<WorldClassReport, 'relationshipsFamilyLegacy'>)
+                       : renderPillarContent(pillar.key as keyof Omit<WorldClassReport, 'relationshipsFamilyLegacy' | 'methodology'>)
                      }
                      {pillar.key === 'wealthBusinessCareer' && isUnlocked && (
                         <AnimateOnScroll>
@@ -341,18 +343,41 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, onEdit
         </AnimateOnScroll>
 
         <AnimateOnScroll delay={600 + (pillarData.length + 1) * 100}>
-            <div data-section-key="about" className="report-section-wrapper">
+            <div data-section-key="methodology" className="report-section-wrapper">
                 <ReportSection
-                    title={`Section ${5 + pillarData.length + 1}: About Vidhira`}
-                    icon={Icons.About}
+                    title={`Section ${5 + pillarData.length + 1}: Methodology & Transparency`}
+                    icon={Icons.Methodology}
                     className={`${pillarStyles.default} report-section`}
-                    tooltipText="Learn more about the philosophy and technology behind the Vidhira system."
+                    tooltipText="The technical parameters used to generate your report."
                 >
-                    <MarkdownRenderer content={`**Vidhira: Your AI Destiny Intelligence System**
+                  <div className="text-sm text-lunar-grey space-y-3">
+                    <p><strong className="text-starlight/90">Ayanamsa:</strong> {methodology.ayanamsa}</p>
+                    <p><strong className="text-starlight/90">House System:</strong> {methodology.houseSystem}</p>
+                    <p><strong className="text-starlight/90">Numerology System:</strong> {methodology.numerologyMethod}</p>
+                    <div className="pt-2">
+                        <p className="text-xs italic text-lunar-grey/70">{methodology.disclaimer}</p>
+                    </div>
+                  </div>
+                </ReportSection>
+            </div>
+        </AnimateOnScroll>
 
-Vidhira is a next-generation numerology platform that fuses the ancient, time-tested wisdom of Chaldean Numerology with the power of advanced Artificial Intelligence. Our mission is to provide you with a 'spiritual operating manual'—a dynamic, interactive life dashboard that decodes the complex vibrational patterns of your life into clear, actionable intelligence.
-
-Powered by Google's Gemini AI models, Vidhira goes beyond static reports. It offers a deeply personalized experience, analyzing your core numbers to provide profound insights into your personality, purpose, and potential. Whether you're an entrepreneur seeking strategic alignment, a professional navigating your career path, or a seeker on a journey of self-discovery, Vidhira is designed to be your trusted companion for making conscious, soul-aligned decisions.`} />
+         <AnimateOnScroll delay={600 + (pillarData.length + 2) * 100}>
+            <div data-section-key="nextSteps" className="report-section-wrapper">
+                <ReportSection
+                    title={`Section ${5 + pillarData.length + 2}: Your Journey Continues`}
+                    icon={Icons.NextSteps}
+                    className={`${pillarStyles.default} report-section`}
+                >
+                  <div className="text-center">
+                    <p className="text-lunar-grey mb-6 max-w-md mx-auto">Your report is a living map, not a final destination. Use these insights as a compass to navigate your life with greater awareness and purpose.</p>
+                     <button
+                        className="bg-cosmic-gold text-deep-void font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_20px_var(--lucky-color-glow)]"
+                      >
+                        Book a 1:1 Vidhira Session ($99)
+                      </button>
+                      <p className="text-xs text-lunar-grey/50 mt-4">For a deeper, personalized consultation with a Vidhira expert.</p>
+                  </div>
                 </ReportSection>
             </div>
         </AnimateOnScroll>

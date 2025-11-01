@@ -1,9 +1,5 @@
-
-
-
-
 import { GoogleGenAI, Type } from "@google/genai";
-import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData } from '../types';
+import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData, MethodologyPillar } from '../types';
 import { calculateNameNumbers } from './numerologyService';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -154,11 +150,22 @@ const responseSchema = {
                 strategicRoadmap: pillarContentSchema,
             },
             required: ['personalYear', 'strategicRoadmap']
+        },
+        methodology: {
+            type: Type.OBJECT,
+            description: "Details on the technical methods and disclaimers for transparency.",
+            properties: {
+                ayanamsa: { type: Type.STRING, description: "The Ayanamsa used for Vedic calculations. Should be 'Lahiri'." },
+                houseSystem: { type: Type.STRING, description: "The house system used. Should be 'Placidus'." },
+                numerologyMethod: { type: Type.STRING, description: "The numerology system used. Should be 'Chaldean'." },
+                disclaimer: { type: Type.STRING, description: "A standard ethical disclaimer about the report's purpose." }
+            },
+            required: ['ayanamsa', 'houseSystem', 'numerologyMethod', 'disclaimer']
         }
     },
     required: [
         'kundaliSnapshot', 'cosmicIdentity', 'loshuAnalysis', 'wealthBusinessCareer', 'healthEnergyWellness', 'relationshipsFamilyLegacy',
-        'psychologyShadowWork', 'dailyNavigator', 'spiritualAlignment', 'intellectEducation', 'futureForecast'
+        'psychologyShadowWork', 'dailyNavigator', 'spiritualAlignment', 'intellectEducation', 'futureForecast', 'methodology'
     ]
 };
 
@@ -211,7 +218,14 @@ export const generateWorldClassReport = async (
   3.  **Sun Sign:** The user's sun sign.
   4.  **Summary:** Provide a concise, 2-3 sentence summary synthesizing these three key placements.
 
-  **TASK 2: 10-PILLAR NUMEROLOGY REPORT**
+  **TASK 2: METHODOLOGY & TRANSPARENCY**
+  Populate the 'methodology' object. This is for technical transparency.
+  1.  **ayanamsa:** Set this to "Lahiri".
+  2.  **houseSystem:** Set this to "Placidus".
+  3.  **numerologyMethod:** Set this to "Chaldean".
+  4.  **disclaimer:** Set this to "This Vidhira report is a digitally generated analysis for spiritual insight and personal development. It is not a substitute for professional advice in legal, medical, or financial matters. Major life decisions should be made in consultation with qualified experts. The guidance provided is intended to be empowering and supportive of your journey."
+
+  **TASK 3: 10-PILLAR NUMEROLOGY REPORT**
   Now, generate the complete 10-pillar numerology report. For each core number's 'interpretation' field, provide a deep, multi-paragraph interpretation using Markdown. Use **bolding** for key traits, _italics_ for emphasis, and bulleted lists. For all markdown pillars, provide rich, detailed content with clear headings.
 
   **SPECIFIC INSTRUCTIONS FOR 'relationshipsFamilyLegacy' PILLAR:**
@@ -252,10 +266,10 @@ export const getLoshuNumberInterpretation = async (
   dob: string,
   language: string
 ): Promise<string> => {
-  const presence = isMissing ? 'missing from their Loshu grid' : 'present in their Loshu grid';
+  const presence = isMissing ? 'missing from their Loshu grid' : 'present or overloaded in their Loshu grid';
   const instruction = isMissing
-    ? 'Explain the challenge this missing number represents and offer a practical, empowering suggestion (e.g., an activity, mindset shift, or focus area) to cultivate and balance this energy. Keep it concise.'
-    : 'Explain the positive influence and inherent strength this number provides to their personality and life path. Keep it concise.';
+    ? `Explain the challenge this missing number represents and provide a specific, practical remedy. The remedy could be a simple daily practice, a mantra, a suggested gemstone, or a focused activity to help the user cultivate this number's energy. Be concise and actionable.`
+    : `Explain the positive influence and inherent strength this number provides. Crucially, add a sentence about what it means when this number is "overloaded" (appears multiple times), describing how its energy is amplified—highlighting both the intensified strengths and potential challenges or extremes to be aware of. Be concise.`;
 
   const prompt = `Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence. Your persona is inspiring, precise, and deeply personalized.
   The response MUST be in ${language}.
@@ -264,8 +278,8 @@ export const getLoshuNumberInterpretation = async (
 
   The number in question is ${number}, which is ${presence}.
 
-  Provide a brief, insightful interpretation (2-3 sentences max). ${instruction}
-  Focus on actionable advice. Do not use markdown.`;
+  Provide a brief, insightful interpretation (2-4 sentences max). ${instruction}
+  Focus on actionable advice or deep insight. Do not use markdown.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -552,35 +566,37 @@ export const generateJyotishReport = async (
   Third, generate the complete, detailed "Traditional Jyotish Report" as a single Markdown string and place it in the 'markdownReport' field.
   - **Structure:** Use the specified Markdown headings (e.g., '### 1. Janma Lagna...').
   - **Terminology:** For ALL key astrological terms within this markdown string, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. Examples: "Ascendant (Sanskrit: Lagna)", "Planet (Sanskrit: Graha)". This is non-negotiable.
-  - **Content:** Provide a detailed, authentic analysis for each section as originally requested. Use **bolding** for key terms and bulleted lists for clarity.
+  - **Content:** Provide a detailed, authentic analysis for each section. Use **bolding** for key terms and bulleted lists for clarity.
 
-  **MARKDOWN REPORT STRUCTURE:**
-  ### 1. Janma Lagna (Ascendant) & Basic Chart Structure
-  (Determine Lagna sign, ruling planet, describe physical/behavioral tendencies.)
+  **MARKDOWN REPORT STRUCTURE (MUST BE FOLLOWED EXACTLY):**
+
+  ### 1. Janma Lagna (Ascendant) & Core Analysis
+  (Determine Lagna sign, its ruling planet. Describe physical/behavioral tendencies based on this.)
 
   ### 2. Graha (Planetary) Placement Overview
-  (For each of the 9 Grahas, describe its placement by house and sign, its significance, and identify functional benefics/malefics for the Lagna.)
+  (For each of the 9 Grahas, describe its placement by house and sign, its significance, and identify functional benefics/malefics for this specific Lagna.)
 
-  ### 3. Moon Chart (Chandra Lagna)
-  (Analyze the chart from the Moon's position, describing emotional nature, mind, etc.)
+  ### 3. Key Yogas (Planetary Combinations)
+  (Identify and explain 2-3 of the most significant Yogas, positive or negative (e.g., Raj Yogas, Dhana Yogas, Kemadruma Yoga). Explain their practical impact on the user's life - e.g., wealth, career, status.)
 
-  ### 4. Navamsha (D9) & Varga Analysis
-  (Summarize the D9 chart's implications for marriage, dharma, and planetary strength.)
+  ### 4. Major Doshas (Astrological Challenges)
+  (Check for major Doshas like Manglik Dosha, Kaal Sarp Dosha, or Pitri Dosha. If present, explain the effects constructively and without fear-mongering. If none are significant, state that clearly.)
 
-  ### 5. Yogas & Raj Yogas
-  (Identify and explain major Yogas like Raj Yogas, Dhana Yogas, etc.)
+  ### 5. Vimshottari Dasha Analysis
+  (State the current Mahadasha/Antardasha. Analyze its core themes and provide a brief, actionable forecast for the next 1-2 years based on this Dasha period.)
 
-  ### 6. Doshas & Balancing Remedies
-  (Check for major Doshas like Manglik Dosha. Explain effects constructively and provide simple, practical remedies like gemstones, mantras, or lifestyle adjustments.)
+  ### 6. Gochar (Transit) Overview for 2025-2027
+  (Analyze the impact of the major transits of Saturn (Shani), Jupiter (Guru), and Rahu-Ketu for the specified period based on the user's Moon Sign (Rashi).)
 
-  ### 7. Dasha System (Vimshottari Focus)
-  (State the current Mahadasha/Antardasha. Analyze its themes and provide a brief forecast for 2025-2032.)
+  ### 7. Personalized Remedies & Actionable Guidance
+  (Based on the entire analysis, provide a bulleted list of 3-4 simple, practical, and personalized remedies. These can include:
+  - **Gemstone:** Suggest one primary gemstone.
+  - **Mantra:** A specific mantra for a key planet.
+  - **Lifestyle:** A practical lifestyle or behavioral adjustment.
+  - **Spiritual:** A simple daily practice or ritual.)
 
-  ### 8. Transit (Gochar) Overview
-  (Analyze the impact of Saturn, Jupiter, and Rahu-Ketu transits for 2025-2027.)
-
-  ### 9. Summary & Final Guidance
-  (Conclude with key strengths/weaknesses and offer holistic advice.)
+  ### 8. Summary & Final Guidance
+  (Conclude with key strengths/weaknesses and offer holistic, empowering advice.)
   `;
 
   try {

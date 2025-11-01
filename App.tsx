@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/common/Header';
 import OnboardingForm from './components/OnboardingForm';
@@ -49,7 +48,7 @@ const App: React.FC = () => {
 
   // Helper function to convert hex to rgba
   const hexToRgba = (hex: string, alpha: number): string => {
-    if (!/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) return `rgba(255, 215, 0, ${alpha})`; // Return default if invalid hex
+    if (!/^#([A-Fa-f09]{3}){1,2}$/.test(hex)) return `rgba(226, 179, 101, ${alpha})`; // Return default if invalid hex
     let c = hex.substring(1).split('');
     if (c.length === 3) {
         c = [c[0], c[0], c[1], c[1], c[2], c[2]];
@@ -65,13 +64,13 @@ const App: React.FC = () => {
     if (report?.spiritualAlignment?.luckyColor) {
       const luckyColor = report.spiritualAlignment.luckyColor;
       document.documentElement.style.setProperty('--lucky-color', luckyColor);
-      document.documentElement.style.setProperty('--lucky-color-glow', hexToRgba(luckyColor, 0.5));
+      document.documentElement.style.setProperty('--lucky-color-glow', hexToRgba(luckyColor, 0.4));
       document.documentElement.style.setProperty('--lucky-color-glow-faint', hexToRgba(luckyColor, 0.03));
     } else {
         // Reset to default if no report
-        document.documentElement.style.setProperty('--lucky-color', '#FFD700');
-        document.documentElement.style.setProperty('--lucky-color-glow', 'rgba(255, 215, 0, 0.5)');
-        document.documentElement.style.setProperty('--lucky-color-glow-faint', 'rgba(255, 215, 0, 0.03)');
+        document.documentElement.style.setProperty('--lucky-color', '#E2B365');
+        document.documentElement.style.setProperty('--lucky-color-glow', 'rgba(226, 179, 101, 0.4)');
+        document.documentElement.style.setProperty('--lucky-color-glow-faint', 'rgba(226, 179, 101, 0.03)');
     }
   }, [report]);
 
@@ -260,14 +259,17 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-deep-void text-starlight">
+    <div id="root" className="min-h-screen bg-deep-void/70 text-starlight backdrop-blur-lg">
       <div className="min-h-screen flex flex-col p-4 selection:bg-cosmic-gold/30">
         <Header />
         <main className="w-full flex-grow flex justify-center py-10">
           {renderContent()}
         </main>
-        <footer className="text-center text-xs text-starlight/40 py-4 no-print">
+        <footer className="text-center text-xs text-starlight/40 py-4 no-print space-y-2">
           <p>Vidhira 🔮 &copy; {new Date().getFullYear()}. For Purpose of life.</p>
+           <p className="max-w-3xl mx-auto">
+              Disclaimer: This Vidhira report is a digitally generated analysis for spiritual insight and personal development. It is not a substitute for professional advice in legal, medical, or financial matters. Major life decisions should be made in consultation with qualified experts.
+           </p>
         </footer>
       </div>
        <PaymentModal
