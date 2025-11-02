@@ -9,7 +9,7 @@ const getCompoundNumber = (num: number): number => {
     return sum;
 }
 
-const reduceNumber = (num: number): number => {
+export const reduceNumber = (num: number): number => {
   if (num === 11 || num === 22 || num === 33) return num;
   let sum = num;
   while (sum > 9) {

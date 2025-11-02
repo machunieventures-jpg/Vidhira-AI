@@ -1,6 +1,4 @@
-
-
-
+// --- User & Core Data ---
 export interface UserData {
   fullName: string;
   dob: string;
@@ -9,123 +7,9 @@ export interface UserData {
   gender: string;
   language: string;
   phoneNumber: string;
+  email: string;
 }
 
-export interface PillarContent {
-  teaser: string;
-  content: string;
-}
-
-// Section 2: Personal Core Numbers
-export interface CoreNumberInfo {
-  number: number;
-  compound?: number;
-  interpretation: string;
-}
-
-export interface PersonalCoreNumbersPillar {
-  teaser: string;
-  content: {
-    expression: CoreNumberInfo;
-    soulUrge: CoreNumberInfo;
-    personality: CoreNumberInfo;
-    lifePath: CoreNumberInfo;
-    hiddenSubconscious: CoreNumberInfo;
-    compoundNumbersAnalysis: string;
-  };
-}
-
-// Section 4: Loshu Grid
-export interface LoshuAnalysisPillar {
-    grid: (string | null)[][];
-    missingNumbers: number[];
-    overloadedNumbers: number[];
-    elementalPlanes: {
-      mental: PillarContent;
-      emotional: PillarContent;
-      practical: PillarContent;
-    },
-    balanceSummary: PillarContent;
-    compensationStrategy: PillarContent;
-}
-
-
-// Section 8: Spiritual Alignment
-export interface SpiritualAlignmentPillar {
-  teaser: string;
-  content: string;
-  luckyColor: string;
-  mantrasAndAffirmations: string[];
-}
-
-// Compatibility Analysis
-export interface CompatibilityPairing {
-    compatibleNumber: number;
-    interpretation: string;
-}
-
-export interface CompatibilityAnalysis {
-    lifePath: CompatibilityPairing[];
-    expression: CompatibilityPairing[];
-    soulUrge: CompatibilityPairing[];
-}
-
-// Kundali Snapshot
-export interface KundaliSnapshot {
-    ascendant: string;
-    moonSign: string;
-    sunSign: string;
-    summary: string;
-}
-
-// Methodology
-export interface MethodologyPillar {
-    ayanamsa: string;
-    houseSystem: string;
-    numerologyMethod: string;
-    disclaimer: string;
-}
-
-// Main Report Structure
-export interface WorldClassReport {
-  kundaliSnapshot: KundaliSnapshot;
-  cosmicIdentity: {
-    coreNumbers: {
-        lifePath: CoreNumberInfo;
-        expression: CoreNumberInfo;
-        soulUrge: CoreNumberInfo;
-        personality: CoreNumberInfo;
-        maturity: CoreNumberInfo;
-    };
-    soulSynopsis: PillarContent;
-    famousParallels: PillarContent;
-    planetaryRulerships: PillarContent;
-  };
-  loshuAnalysis: LoshuAnalysisPillar;
-  wealthBusinessCareer: PillarContent;
-  healthEnergyWellness: PillarContent;
-  relationshipsFamilyLegacy: PillarContent & {
-    compatibilityAnalysis: CompatibilityAnalysis;
-  };
-  psychologyShadowWork: PillarContent;
-  dailyNavigator: PillarContent;
-  spiritualAlignment: SpiritualAlignmentPillar;
-  intellectEducation: PillarContent;
-  futureForecast: {
-    personalYear: CoreNumberInfo;
-    strategicRoadmap: PillarContent;
-  };
-  methodology: MethodologyPillar;
-}
-
-
-// Chat Companion
-export interface ChatMessage {
-  sender: 'user' | 'ai';
-  text: string;
-}
-
-// Core calculation types
 export interface CoreNumbers {
   lifePath: number;
   expression: number;
@@ -143,7 +27,89 @@ export interface CompoundNumbers {
   maturity: number;
 }
 
-// Jyotish Report Types
+export interface CoreNumberInfo {
+  number: number;
+  compound?: number;
+  interpretation: string;
+}
+
+export interface ChatMessage {
+  sender: 'user' | 'ai';
+  text: string;
+}
+
+// --- Report Pillars & Sub-components ---
+
+export interface PillarContent {
+  teaser: string;
+  content: string;
+}
+
+export interface KundaliSnapshot {
+  ascendant: string;
+  moonSign: string;
+  sunSign: string;
+  summary: string;
+}
+
+export interface CosmicIdentityPillar {
+  coreNumbers: {
+    lifePath: CoreNumberInfo;
+    expression: CoreNumberInfo;
+    soulUrge: CoreNumberInfo;
+    personality: CoreNumberInfo;
+    maturity: CoreNumberInfo;
+  };
+  soulSynopsis: PillarContent;
+  famousParallels: PillarContent;
+  planetaryRulerships: PillarContent;
+}
+
+export interface LoshuAnalysisPillar {
+  grid: (string | null)[][];
+  missingNumbers: number[];
+  overloadedNumbers: number[];
+  elementalPlanes: {
+    mental: PillarContent;
+    emotional: PillarContent;
+    practical: PillarContent;
+  };
+  balanceSummary: PillarContent;
+  compensationStrategy: PillarContent;
+}
+
+export interface CompatibilityPairing {
+  compatibleNumber: number;
+  interpretation: string;
+}
+
+export interface RelationshipsPillar extends PillarContent {
+  compatibilityAnalysis: {
+    lifePath: CompatibilityPairing[];
+    expression: CompatibilityPairing[];
+    soulUrge: CompatibilityPairing[];
+  };
+}
+
+export interface SpiritualAlignmentPillar extends PillarContent {
+  luckyColor: string;
+  mantrasAndAffirmations: string[];
+}
+
+export interface FutureForecastPillar {
+  personalYear: CoreNumberInfo;
+  strategicRoadmap: PillarContent;
+}
+
+export interface MethodologyPillar {
+  ayanamsa: string;
+  houseSystem: string;
+  numerologyMethod: string;
+  disclaimer: string;
+}
+
+// --- Jyotish (Vedic Astrology) ---
+
 export interface PlanetaryPlacement {
   planet: string;
   sign: string;
@@ -153,5 +119,78 @@ export interface PlanetaryPlacement {
 export interface JyotishReportData {
   markdownReport: string;
   planetaryPlacements: PlanetaryPlacement[];
-  ascendantSign: string; // The user's ascendant sign (e.g., "Aries")
+  ascendantSign: string;
+}
+
+// --- Brand Analyzer V2 ---
+
+export interface BrandColorPalette {
+    primary: string;
+    secondary: string;
+    accent: string;
+    explanation: string;
+}
+
+export interface BrandNameSuggestion {
+    name: string;
+    available: boolean;
+}
+
+export interface FortuneCompanyComparison {
+    companyName: string;
+    companyVibration: number;
+    synergyAnalysis: string;
+}
+
+export interface BrandAnalysisV2 {
+    brandExpressionNumber: number;
+    vibrationalAlignmentScore: number;
+    detailedAnalysis: string;
+    brandArchetype: string;
+    expressionNumberExplanation: string;
+    colorPalette: BrandColorPalette;
+    socialMediaHandles: BrandNameSuggestion[];
+    domainSuggestions: BrandNameSuggestion[];
+    fortuneCompanyComparison: FortuneCompanyComparison[];
+    contentStrategy: string;
+    nameSuggestions: string[];
+}
+
+export interface PhoneNumberAnalysis {
+    vibrationNumber: number;
+    analysis: string;
+    isFavorable: boolean;
+}
+
+export interface CompetitorBrandAnalysis {
+    competitorName: string;
+    competitorVibration: number;
+    comparisonAnalysis: string;
+}
+
+
+// --- Main Report Structure ---
+
+export interface WorldClassReport {
+  kundaliSnapshot: KundaliSnapshot;
+  cosmicIdentity: CosmicIdentityPillar;
+  loshuAnalysis: LoshuAnalysisPillar;
+  wealthBusinessCareer: PillarContent;
+  healthEnergyWellness: PillarContent;
+  relationshipsFamilyLegacy: RelationshipsPillar;
+  psychologyShadowWork: PillarContent;
+  dailyNavigator: PillarContent;
+  spiritualAlignment: SpiritualAlignmentPillar;
+  intellectEducation: PillarContent;
+  futureForecast: FutureForecastPillar;
+  methodology: MethodologyPillar;
+}
+
+// --- Task Manager ---
+// Fix: Add missing Task interface.
+export interface Task {
+  id: string;
+  text: string;
+  dueDate: string;
+  completed: boolean;
 }

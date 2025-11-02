@@ -20,7 +20,8 @@ const ALL_SECTIONS = [
     { key: 'spiritualAlignment', name: 'Spiritual Alignment' },
     { key: 'intellectEducation', name: 'Intellect & Education' },
     { key: 'futureForecast', name: 'Future Forecast' },
-    { key: 'about', name: 'About Vidhira' },
+    { key: 'methodology', name: 'Methodology' },
+    { key: 'nextSteps', name: 'Next Steps' },
 ];
 
 // Local storage keys
@@ -92,21 +93,21 @@ const PdfOptionsModal: React.FC<PdfOptionsModalProps> = ({ isOpen, onClose, user
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print" onClick={onClose}>
             <div
-                className="bg-void-tint w-full max-w-lg rounded-2xl shadow-2xl border border-lunar-grey/20 p-6 md:p-8 text-starlight animate-modal-fade-in"
+                className="card-base w-full max-w-lg p-6 md:p-8 text-stone-brown dark:text-manuscript-parchment animate-fade-in"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-2xl font-bold font-display">Customize PDF Report</h3>
-                    <button onClick={onClose} className="text-starlight/70 hover:text-starlight text-3xl leading-none">&times;</button>
+                    <button onClick={onClose} className="text-stone-brown/70 dark:text-manuscript-parchment/70 hover:text-stone-brown dark:hover:text-manuscript-parchment text-3xl leading-none">&times;</button>
                 </div>
                 
                 <div className="space-y-6">
                     {/* Section Selection */}
                     <div>
-                        <h4 className="text-lg font-semibold text-cosmic-gold mb-3">Include Sections</h4>
+                        <h4 className="text-lg font-semibold text-suryansh-gold mb-3">Include Sections</h4>
                         <div className="flex items-center gap-4 mb-3 text-sm">
-                           <button onClick={() => handleSelectAll(true)} className="text-cosmic-gold/80 hover:text-cosmic-gold">Select All</button>
-                           <button onClick={() => handleSelectAll(false)} className="text-cosmic-gold/80 hover:text-cosmic-gold">Deselect All</button>
+                           <button onClick={() => handleSelectAll(true)} className="text-suryansh-gold/80 hover:text-suryansh-gold">Select All</button>
+                           <button onClick={() => handleSelectAll(false)} className="text-suryansh-gold/80 hover:text-suryansh-gold">Deselect All</button>
                         </div>
                         <div className="max-h-60 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 pr-2">
                             {ALL_SECTIONS.map(section => (
@@ -115,9 +116,9 @@ const PdfOptionsModal: React.FC<PdfOptionsModalProps> = ({ isOpen, onClose, user
                                         type="checkbox"
                                         checked={selectedSections.includes(section.key)}
                                         onChange={() => handleSectionToggle(section.key)}
-                                        className="h-4 w-4 rounded bg-deep-void border-lunar-grey/50 text-cosmic-gold focus:ring-cosmic-gold"
+                                        className="h-4 w-4 rounded bg-manuscript-bg/50 dark:bg-stone-dark/50 border-stone-brown/30 dark:border-manuscript-parchment/30 text-suryansh-gold focus:ring-suryansh-gold"
                                     />
-                                    <span className="text-starlight/90 text-sm">{section.name}</span>
+                                    <span className="text-stone-brown dark:text-manuscript-parchment/90 text-sm">{section.name}</span>
                                 </label>
                             ))}
                         </div>
@@ -125,33 +126,33 @@ const PdfOptionsModal: React.FC<PdfOptionsModalProps> = ({ isOpen, onClose, user
 
                     {/* Theme Selection */}
                     <div>
-                        <h4 className="text-lg font-semibold text-cosmic-gold mb-3">Select Theme</h4>
+                        <h4 className="text-lg font-semibold text-suryansh-gold mb-3">Select Theme</h4>
                         <div className="flex gap-4">
                             <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="theme" value="dark" checked={theme === 'dark'} onChange={() => setTheme('dark')} className="text-cosmic-gold focus:ring-cosmic-gold" />
+                                <input type="radio" name="theme" value="dark" checked={theme === 'dark'} onChange={() => setTheme('dark')} className="text-suryansh-gold focus:ring-suryansh-gold" />
                                 <span>Dark (Default)</span>
                             </label>
                             <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="theme" value="light" checked={theme === 'light'} onChange={() => setTheme('light')} className="text-cosmic-gold focus:ring-cosmic-gold" />
+                                <input type="radio" name="theme" value="light" checked={theme === 'light'} onChange={() => setTheme('light')} className="text-suryansh-gold focus:ring-suryansh-gold" />
                                 <span>Light (Print-Friendly)</span>
                             </label>
                         </div>
                     </div>
                 </div>
                 
-                {error && <p className="text-cosmic-gold/90 text-sm mt-4 text-center">{error}</p>}
+                {error && <p className="text-terracotta-red text-sm mt-4 text-center">{error}</p>}
 
                 <div className="mt-8 flex flex-col-reverse sm:flex-row gap-3">
                      <button
                         onClick={onClose}
-                        className="w-full border border-lunar-grey/50 text-lunar-grey font-bold py-3 px-4 rounded-lg hover:bg-lunar-grey/20 hover:text-starlight transition-all duration-300"
+                        className="w-full btn-neumorphic"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleGeneratePdf}
                         disabled={isGenerating}
-                        className="w-full bg-cosmic-gold text-deep-void font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)] disabled:bg-lunar-grey disabled:opacity-75 disabled:cursor-wait disabled:scale-100"
+                        className="w-full btn-neumorphic primary disabled:opacity-75 disabled:cursor-wait"
                     >
                         {isGenerating ? 'Generating PDF...' : 'Generate PDF'}
                     </button>

@@ -9,17 +9,17 @@ interface CompatibilityListProps {
 const CompatibilityList: React.FC<CompatibilityListProps> = ({ title, pairings }) => {
     return (
         <div>
-            <h5 className="text-lg font-bold text-starlight font-display mb-3">{title}</h5>
+            <h5 className="text-lg font-bold text-gray-900 dark:text-star-white font-display mb-3">{title}</h5>
             <div className="space-y-3">
                 {pairings.map(p => (
                     <div 
                         key={p.compatibleNumber} 
-                        className="group flex items-start gap-4 p-3 bg-deep-void/20 rounded-lg transition-all duration-300 hover:bg-cosmic-gold/10 hover:scale-[1.02]"
+                        className="group flex items-start gap-4 p-3 bg-gray-100/50 dark:bg-cosmic-dark/20 rounded-lg transition-all duration-300 hover:bg-suryansh-gold/10 hover:scale-[1.02]"
                     >
-                        <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center border rounded-full font-bold text-xl transition-all duration-300 bg-cosmic-gold/10 border-cosmic-gold/50 text-cosmic-gold group-hover:bg-cosmic-gold group-hover:text-deep-void group-hover:border-cosmic-gold group-hover:scale-110">
+                        <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center border rounded-full font-bold text-xl transition-all duration-300 bg-suryansh-gold/10 border-suryansh-gold/50 text-suryansh-gold group-hover:bg-suryansh-gold group-hover:text-cosmic-dark group-hover:border-suryansh-gold group-hover:scale-110">
                             {p.compatibleNumber}
                         </div>
-                        <p className="text-sm text-lunar-grey transition-colors duration-300 group-hover:text-starlight">
+                        <p className="text-sm text-gray-600 dark:text-chandra-grey transition-colors duration-300 group-hover:text-gray-800 dark:group-hover:text-star-white">
                             {p.interpretation}
                         </p>
                     </div>

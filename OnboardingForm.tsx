@@ -10,13 +10,6 @@ const Mail = ({ size = 16, className = '' }) => <svg xmlns="http://www.w3.org/20
 const Phone = ({ size = 16, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
 const Sparkles = ({ size = 20, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.9 4.8-4.8 1.9 4.8 1.9L12 21l1.9-4.8 4.8-1.9-4.8-1.9L12 3zM5 3v4M19 17v4M3 5h4M17 19h4"/></svg>;
 const Loader = ({ size = 20, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" x2="12" y1="2" y2="6"/><line x1="12" x2="12" y1="18" y2="22"/><line x1="4.93" x2="7.76" y1="4.93" y2="7.76"/><line x1="16.24" x2="19.07" y1="16.24" y2="19.07"/><line x1="2" x2="6" y1="12" y2="12"/><line x1="18" x2="22" y1="12" y2="12"/><line x1="4.93" x2="7.76" y1="19.07" y2="16.24"/><line x1="16.24" x2="19.07" y1="7.76" y2="4.93"/></svg>;
-const VidhiraLogoMark = ({ size = 36, className = '' }) => (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-        <path d="M16 3L3 10V22L16 29L29 22V10L16 3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M16 29V16L3 10" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-    </svg>
-);
-const LockIcon = ({ size = 12, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
 
 interface OnboardingFormProps {
   onSubmit: (data: UserData) => void;
@@ -57,8 +50,8 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit, isLoading, in
       <div className="glass-card max-w-2xl w-full animate-slide-up">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <VidhiraLogoMark size={36} className="text-[--cosmic-purple] icon-glow" />
-            <h1 className="text-5xl font-bold logo-glow" style={{ fontFamily: 'Cinzel, serif' }}>
+            <Sparkles size={32} className="text-[--cosmic-purple]" />
+            <h1 className="text-5xl font-bold gradient-text" style={{ fontFamily: 'Cinzel, serif' }}>
               Vidhira
             </h1>
           </div>
@@ -136,9 +129,8 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onSubmit, isLoading, in
             )}
           </button>
 
-          <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4 flex items-center justify-center gap-1.5">
-            <LockIcon size={12} className="inline-block" />
-            Your data is encrypted and never shared.
+          <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
+            🔒 Your data is encrypted and never shared.
           </p>
         </form>
       </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface MarkdownRendererProps {
@@ -8,7 +7,6 @@ interface MarkdownRendererProps {
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     if (!content) return null;
 
-    // A simple parser to convert markdown-like syntax to JSX
     const renderContent = () => {
         const lines = content.split('\n');
         const elements = [];
@@ -29,19 +27,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
         lines.forEach((line, index) => {
             let processedLine = line
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-starlight/90">$1</strong>')
-                .replace(/\_(.*?)\_/g, '<em class="italic">$1</em>')
-                // New regex to handle and style Sanskrit terms
-                .replace(/\(Sanskrit: (.*?)\)/g, '(<span class="sanskrit" style="font-family: \'Hind\', sans-serif; font-weight: 500; color: #F0F6FC;">$1</span>)');
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-800 dark:text-gray-100">$1</strong>')
+                .replace(/\_(.*?)\_/g, '<em>$1</em>')
+                .replace(/\(Sanskrit: (.*?)\)/g, '(<span class="font-serif text-gray-600 dark:text-gray-400">$1</span>)');
 
             if (processedLine.trim().startsWith('### ')) {
                 flushList();
-                elements.push(<h3 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(4) }} className="text-xl font-semibold text-cosmic-gold font-display mt-6 mb-3" />);
+                elements.push(<h3 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(4) }} className="text-xl font-bold gradient-text mt-6 mb-3" style={{fontFamily: 'Playfair Display, serif'}}/>);
                 return;
             }
             if (processedLine.trim().startsWith('## ')) {
                 flushList();
-                elements.push(<h2 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(3) }} className="text-2xl font-bold text-starlight font-display mt-8 mb-4 border-b border-lunar-grey/20 pb-2" />);
+                elements.push(<h2 key={index} dangerouslySetInnerHTML={{ __html: processedLine.substring(3) }} className="text-2xl font-bold gradient-text mt-8 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2" style={{fontFamily: 'Playfair Display, serif'}} />);
                 return;
             }
             if (processedLine.trim().startsWith('* ') || processedLine.trim().startsWith('- ')) {
@@ -51,19 +48,16 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             
             flushList();
             if (processedLine.trim()) {
-                elements.push(<p key={index} dangerouslySetInnerHTML={{ __html: processedLine }} className="mb-2" />);
-            } else if (elements.length > 0 && elements[elements.length - 1].type === 'p') {
-                // To create some space between paragraphs
-                elements.push(<div key={`space-${index}`} className="h-2"></div>);
+                elements.push(<p key={index} dangerouslySetInnerHTML={{ __html: processedLine }} className="mb-2 leading-relaxed" />);
             }
         });
         
-        flushList(); // Flush any remaining list items
+        flushList();
 
         return elements;
     };
 
-    return <div className="text-lunar-grey space-y-2 text-justify">{renderContent()}</div>;
+    return <div className="text-gray-700 dark:text-gray-300 space-y-2">{renderContent()}</div>;
 };
 
 export default MarkdownRenderer;

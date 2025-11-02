@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 const RahuKaalCalculator: React.FC = () => {
@@ -29,8 +28,6 @@ const RahuKaalCalculator: React.FC = () => {
 
         const dayOfWeek = new Date().getDay(); // Sunday - 0, Monday - 1, ...
 
-        // Rahu Kaal segment order for each day (starting from Sunday=0)
-        // Sun: 8th, Mon: 2nd, Tue: 7th, Wed: 5th, Thu: 6th, Fri: 4th, Sat: 3rd
         const segmentMultipliers = [7, 1, 6, 4, 5, 3, 2];
         const multiplier = segmentMultipliers[dayOfWeek];
         
@@ -47,47 +44,45 @@ const RahuKaalCalculator: React.FC = () => {
 
     return (
         <div>
-            <h4 className="text-xl font-bold text-cosmic-gold font-display mb-3">Rahu Kaal Calculator</h4>
-            <p className="text-sm text-lunar-grey mb-4">
+            <h4 className="text-xl font-bold gradient-text mb-3">Rahu Kaal Calculator</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                 Calculate the inauspicious time of the day (Rahu Kaal) to avoid starting new ventures. Enter today's sunrise and sunset times for your location.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
                 <div className="w-full">
-                    <label htmlFor="sunrise" className="block text-sm font-medium text-lunar-grey mb-1">Sunrise Time</label>
+                    <label htmlFor="sunrise" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Sunrise Time</label>
                     <input
                         type="time"
                         id="sunrise"
                         value={sunrise}
                         onChange={(e) => setSunrise(e.target.value)}
-                        className="w-full bg-deep-void/50 border border-lunar-grey/50 text-starlight rounded-lg px-4 py-2 focus:ring-2 focus:ring-cosmic-gold focus:border-cosmic-gold outline-none transition-all appearance-none"
-                        style={{ colorScheme: 'dark' }}
+                        className="input-cosmic"
                     />
                 </div>
                 <div className="w-full">
-                    <label htmlFor="sunset" className="block text-sm font-medium text-lunar-grey mb-1">Sunset Time</label>
+                    <label htmlFor="sunset" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Sunset Time</label>
                     <input
                         type="time"
                         id="sunset"
                         value={sunset}
                         onChange={(e) => setSunset(e.target.value)}
-                        className="w-full bg-deep-void/50 border border-lunar-grey/50 text-starlight rounded-lg px-4 py-2 focus:ring-2 focus:ring-cosmic-gold focus:border-cosmic-gold outline-none transition-all appearance-none"
-                        style={{ colorScheme: 'dark' }}
+                        className="input-cosmic"
                     />
                 </div>
             </div>
              <button
                 onClick={calculateRahuKaal}
-                className="w-full sm:w-auto bg-cosmic-gold text-deep-void font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-cosmic-gold/20 hover:shadow-[0_0_15px_var(--lucky-color-glow)]"
+                className="w-full sm:w-auto btn-cosmic !py-2 !px-4"
             >
                 Calculate for Today
             </button>
             
-            {error && <p className="text-cosmic-gold/90 text-sm mt-3">{error}</p>}
+            {error && <p className="text-[--rose-accent] text-sm mt-3">{error}</p>}
 
             {rahuKaal && (
-                <div className="mt-6 p-4 bg-deep-void/30 border border-lunar-grey/10 rounded-lg animate-slide-up text-center">
-                    <p className="text-lunar-grey">Today's Rahu Kaal is from:</p>
-                    <p className="text-2xl font-bold font-display text-cosmic-gold mt-1">{rahuKaal}</p>
+                <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up text-center">
+                    <p className="text-gray-600 dark:text-gray-300">Today's Rahu Kaal is from:</p>
+                    <p className="text-2xl font-bold gradient-text mt-1">{rahuKaal}</p>
                 </div>
             )}
         </div>

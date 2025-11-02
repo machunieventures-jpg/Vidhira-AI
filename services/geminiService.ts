@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData, MethodologyPillar } from '../types';
-import { calculateNameNumbers } from './numerologyService';
+import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData, MethodologyPillar, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis } from '../types';
+import { calculateNameNumbers, reduceNumber } from './numerologyService';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
@@ -244,11 +244,19 @@ export const generateWorldClassReport = async (
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
+        seed: 42,
       },
     });
 
     const responseText = response.text;
-    const reportData = JSON.parse(responseText);
+    // Fix: Safely parse JSON response which might be wrapped in markdown backticks.
+    let jsonStr = responseText.trim();
+    if (jsonStr.startsWith("```json")) {
+        jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
+    } else if (jsonStr.startsWith("```")) {
+        jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
+    }
+    const reportData = JSON.parse(jsonStr);
     
     return reportData;
 
@@ -285,6 +293,9 @@ export const getLoshuNumberInterpretation = async (
     const response = await ai.models.generateContent({
       model: 'gemini-flash-lite-latest',
       contents: prompt,
+      config: {
+        seed: 42,
+      },
     });
     return response.text;
   } catch (error) {
@@ -316,6 +327,9 @@ export const getCoreIdentifierInterpretation = async (
     const response = await ai.models.generateContent({
       model: 'gemini-flash-lite-latest',
       contents: prompt,
+      config: {
+        seed: 42,
+      },
     });
     return response.text;
   } catch (error) {
@@ -324,44 +338,275 @@ export const getCoreIdentifierInterpretation = async (
   }
 };
 
+const brandAnalyzerSchema = {
+    type: Type.OBJECT,
+    properties: {
+        brandExpressionNumber: { type: Type.INTEGER, description: "The calculated Chaldean Expression number for the brand name." },
+        vibrationalAlignmentScore: { type: Type.INTEGER, description: "A percentage score (0-100) representing compatibility between the brand name and the user's core numbers." },
+        detailedAnalysis: { type: Type.STRING, description: "3-4 sentences explaining the synergy or friction between the brand and user energies." },
+        brandArchetype: { type: Type.STRING, description: "Assign a primary, nuanced brand archetype (e.g., 'The Alchemist', 'The Futurist', 'The Sage') based on the name's vibration." },
+        expressionNumberExplanation: { type: Type.STRING, description: "A concise, 1-2 sentence explanation of what a Chaldean Expression (or Name) number represents in numerology." },
+        colorPalette: {
+            type: Type.OBJECT,
+            properties: {
+                primary: { type: Type.STRING, description: "A HEX code for the primary brand color." },
+                secondary: { type: Type.STRING, description: "A HEX code for the secondary brand color." },
+                accent: { type: Type.STRING, description: "A HEX code for an accent color." },
+                explanation: { type: Type.STRING, description: "A detailed 2-3 sentence rationale linking the colors to the brand's numerological vibration and archetype." }
+            },
+            required: ["primary", "secondary", "accent", "explanation"]
+        },
+        socialMediaHandles: {
+            type: Type.ARRAY,
+            description: "A list of 3-4 creative social media handle suggestions that reflect the brand's archetype and target audience. IMPORTANT: Availability is simulated; you must randomly mark 1-2 as unavailable.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING },
+                    available: { type: Type.BOOLEAN }
+                },
+                required: ["name", "available"]
+            }
+        },
+        domainSuggestions: {
+            type: Type.ARRAY,
+            description: "A list of 3-4 creative domain name suggestions with various TLDs. IMPORTANT: Availability is simulated; you must randomly mark 1-2 as unavailable.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING },
+                    available: { type: Type.BOOLEAN }
+                },
+                required: ["name", "available"]
+            }
+        },
+        fortuneCompanyComparison: {
+            type: Type.ARRAY,
+            description: "Compare the brand's vibration to 2-3 famous Fortune 500 companies. Provide a brief analysis of the energetic similarities.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    companyName: { type: Type.STRING },
+                    companyVibration: { type: Type.INTEGER },
+                    synergyAnalysis: { type: Type.STRING, description: "A detailed 1-2 sentence explanation of why the brand's vibration is synergistic or challenging compared to the company." }
+                },
+                required: ["companyName", "companyVibration", "synergyAnalysis"]
+            }
+        },
+        contentStrategy: {
+            type: Type.STRING,
+            description: "A 2-3 sentence guide on the type of social media content the brand should create, aligned with its archetype."
+        },
+        nameSuggestions: {
+            type: Type.ARRAY,
+            description: "If alignment score is below 65, provide 2-3 alternative name suggestions that are numerically harmonious. Otherwise, return an empty array.",
+            items: { type: Type.STRING }
+        }
+    },
+    required: ["brandExpressionNumber", "vibrationalAlignmentScore", "detailedAnalysis", "brandArchetype", "expressionNumberExplanation", "colorPalette", "socialMediaHandles", "domainSuggestions", "fortuneCompanyComparison", "contentStrategy", "nameSuggestions"]
+};
+
 export const analyzeBrandName = async (
   businessName: string,
   userName: string,
   userLifePath: number,
   userExpression: number,
   language: string
-): Promise<string> => {
+): Promise<BrandAnalysisV2> => {
     const brandNumbers = calculateNameNumbers(businessName);
     const prompt = `
-    Act as Vidhira, a world-class Chaldean numerologist with AI superintelligence, focusing on business and entrepreneurship.
-    Your persona is inspiring, precise, and deeply personalized.
-    Your response MUST be in ${language} and formatted in Markdown.
+    Act as Vidhira, a "Brand Alchemist" blending world-class Chaldean numerology, marketing psychology, and design principles.
+    Your persona is inspiring, precise, and deeply insightful.
+    Your entire response MUST be in ${language} and conform strictly to the provided JSON schema.
 
     **USER & BRAND DATA:**
     - User's Name: "${userName}"
     - User's Core Numbers: Life Path ${userLifePath}, Expression ${userExpression}.
     - Business Name to Analyze: "${businessName}"
-    - Business Name's Calculated Numbers: Expression ${brandNumbers.expression} (from compound ${brandNumbers.compoundExpression}), Soul Urge ${brandNumbers.soulUrge} (from compound ${brandNumbers.compoundSoulUrge}).
+    - Business Name's Calculated Numbers (Chaldean): Expression ${brandNumbers.expression} (from compound ${brandNumbers.compoundExpression}).
 
-    **TASK:**
-    Provide a concise yet comprehensive "Brand Vibration Analysis". Your response must be in Markdown format and include the following sections with these exact headings:
+    **TASK: GENERATE A COMPREHENSIVE BRAND VIBRATION ANALYSIS**
+    You must generate a valid JSON object.
 
-    1.  **Vibrational Alignment Score:** Provide a percentage score (e.g., "88%") that represents the overall compatibility between the business name and the user's core numbers. Follow it with a single-word summary (e.g., Excellent, Good, Moderate, Challenging).
-    2.  **Detailed Analysis:** In 3-4 sentences, explain the synergy or friction. How does the business name's energy support or challenge the user's natural path and expression?
-    3.  **Actionable Insights:** Provide 2-3 bullet points of actionable advice based on this alignment. For example, suggest marketing strategies, ideal client avatars, or potential brand messaging angles that leverage the combined energies.
+    1.  **Brand Expression Number:** The calculated expression number for "${businessName}" is ${brandNumbers.expression}. You MUST set the \`brandExpressionNumber\` field in the JSON output to this value: ${brandNumbers.expression}.
+    2.  **Vibrational Alignment Score:** Calculate a score from 0-100. High compatibility (e.g., brand number complements user's Life Path) should be 80+. Moderate compatibility 60-79. Challenging but workable 40-59. Low compatibility below 40.
+    3.  **Detailed Analysis:** Explain the 'why' behind the score. How does the brand's Expression number (${brandNumbers.expression}) interact with the user's Life Path (${userLifePath}) and Expression (${userExpression})? Is it supportive, challenging, amplifying?
+    4.  **Expression Number Explanation:** Generate an \`expressionNumberExplanation\`. This must be a clear, 1-2 sentence definition of what the Chaldean Expression number (also known as the Name Number) signifies, explaining that it's derived from all the letters in the name and represents the brand's potential and public persona.
+    5.  **Brand Archetype:** Assign a primary brand archetype. Go beyond the standard 12 (e.g., Creator, Sage) and consider more nuanced or modern archetypes like 'The Alchemist', 'The Futurist', 'The Weaver', or 'The Connector' if they fit the brand's vibration better.
+    6.  **Color Palette:** Suggest a primary, secondary, and accent color (HEX codes). For 'explanation', provide a detailed 2-3 sentence rationale. This must explicitly connect the color choices to both the brand name's numerological vibration (e.g., '1' ruled by the Sun) and the psychological power of the chosen brand archetype.
+    7.  **Social Media & Domain Suggestions:** Generate 3-4 creative social media handles and 3-4 domain names. These handles should reflect the brand's archetype and target audience, not just be variations of the business name. **SIMULATE AVAILABILITY:** You MUST randomly mark 1 or 2 suggestions in EACH list as 'available: false' to make the simulation realistic.
+    8.  **Fortune Company Comparison:** Calculate the Chaldean Expression number for 2-3 famous companies (e.g., Apple=1, Google=3, Amazon=3, Microsoft=8). Find companies whose number matches or complements the business's number (${brandNumbers.expression}). For 'synergyAnalysis', provide a detailed 1-2 sentence explanation. This must detail *why* the user's brand vibration is either synergistic (if numbers are compatible) or challenging (if numbers are conflicting) compared to the Fortune 500 company. For example: "Synergistic with Google (3): Your brand's vibration of 3 also resonates with innovation and organizing information, suggesting a potential for large-scale impact and data-driven growth." or "Challenging compared to Apple (1): Your brand's collaborative '6' vibration may conflict with Apple's individualistic '1' leadership energy, requiring a different approach to market dominance."
+    9.  **Content Strategy:** Generate a 'contentStrategy'. This should be a 2-3 sentence guide on the *type* of content the brand should create. For example, for a 'Sage' archetype, suggest 'educational content, deep-dive articles, and case studies'. For a 'Jester', suggest 'humorous memes, engaging quizzes, and user-generated content challenges'.
+    10. **Name Suggestions:** Generate 'nameSuggestions'. If the vibrationalAlignmentScore is below 65, you MUST provide 2-3 alternative name suggestions. These alternatives must be "numerically harmonious," meaning you must internally calculate their Chaldean Expression numbers and ensure they are highly compatible with the user's Life Path (${userLifePath}) and Expression (${userExpression}), aiming for a significantly improved alignment score. If the score is 65 or above, return an empty array.
     `;
 
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
             contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: brandAnalyzerSchema,
+                seed: 42,
+            },
         });
-        return response.text;
+        const responseText = response.text;
+        // Fix: Safely parse JSON response which might be wrapped in markdown backticks.
+        let jsonStr = responseText.trim();
+        if (jsonStr.startsWith("```json")) {
+            jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
+        } else if (jsonStr.startsWith("```")) {
+            jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
+        }
+        return JSON.parse(jsonStr);
     } catch (error) {
         console.error(`Error analyzing brand name "${businessName}":`, error);
-        return `### Analysis Error\nFailed to analyze the vibrational alignment for "${businessName}". The cosmic frequencies may be disturbed. Please try again shortly.`;
+        throw new Error(`Failed to analyze the vibrational alignment for "${businessName}". The cosmic frequencies may be disturbed. Please try again shortly.`);
     }
 };
+
+const phoneNumberAnalysisSchema = {
+    type: Type.OBJECT,
+    properties: {
+        vibrationNumber: { type: Type.INTEGER },
+        analysis: { type: Type.STRING, description: "A detailed analysis of the phone number's vibration for business, including its strengths and weaknesses." },
+        isFavorable: { type: Type.BOOLEAN, description: "A simple true/false indicating if this number is generally favorable for business success." }
+    },
+    required: ["vibrationNumber", "analysis", "isFavorable"]
+};
+
+export const analyzePhoneNumber = async (
+  phoneNumber: string,
+  businessName: string,
+  language: string
+): Promise<PhoneNumberAnalysis> => {
+    const digits = phoneNumber.replace(/\D/g, '');
+    const sum = digits.split('').reduce((acc, digit) => acc + parseInt(digit, 10), 0);
+    const vibrationNumber = reduceNumber(sum);
+    
+    const prompt = `
+    Act as Vidhira, a "Brand Alchemist" specializing in Chaldean numerology for businesses.
+    Your entire response MUST be in ${language} and conform strictly to the provided JSON schema.
+
+    **TASK: ANALYZE A BUSINESS PHONE NUMBER**
+    Analyze the provided phone number based on its total Chaldean numerological vibration.
+
+    - Business Name: "${businessName}"
+    - Phone Number: "${phoneNumber}"
+    - Calculated Vibration Number (Sum of all digits, reduced): ${vibrationNumber}
+
+    **Analysis Instructions:**
+    1.  **Vibration Number:** The final reduced number is ${vibrationNumber}. Populate the 'vibrationNumber' field with this.
+    2.  **Analysis:** Provide a 2-4 sentence analysis in the 'analysis' field. Explain what the energy of ${vibrationNumber} means for a business line. For example:
+        - A '5' might be excellent for communication, sales, and marketing businesses.
+        - An '8' is powerful for finance, authority, and large-scale operations but might be too intense for a small creative studio.
+        - A '4' might be good for construction or logistics but could feel restrictive for a consultancy.
+    3.  **isFavorable:** Based on your analysis, determine if this number is generally favorable for business success. A number like 8, 1, 3, 5, or 6 is usually good. A number like 4, 7 or 9 might be more challenging. Set the 'isFavorable' boolean field accordingly.
+    `;
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: phoneNumberAnalysisSchema,
+                seed: 42,
+            },
+        });
+        const responseText = response.text;
+        let jsonStr = responseText.trim();
+        if (jsonStr.startsWith("```json")) {
+            jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
+        } else if (jsonStr.startsWith("```")) {
+            jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
+        }
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error(`Error analyzing phone number "${phoneNumber}":`, error);
+        throw new Error(`Failed to analyze the vibrational alignment for the phone number. The cosmic frequencies may be disturbed.`);
+    }
+};
+
+const competitorAnalysisSchema = {
+    type: Type.ARRAY,
+    description: "An array of competitor analysis objects.",
+    items: {
+        type: Type.OBJECT,
+        properties: {
+            competitorName: { type: Type.STRING },
+            competitorVibration: { type: Type.INTEGER },
+            comparisonAnalysis: { type: Type.STRING, description: "A 1-2 sentence analysis comparing the user's brand to this competitor, highlighting synergy or challenges." }
+        },
+        required: ["competitorName", "competitorVibration", "comparisonAnalysis"]
+    }
+};
+
+export const analyzeCompetitors = async (
+    userBrandName: string,
+    userBrandVibration: number,
+    userLifePath: number,
+    userExpression: number,
+    competitorNames: string[],
+    language: string
+): Promise<CompetitorBrandAnalysis[]> => {
+    
+    const competitorData = competitorNames.map(name => {
+        const { expression } = calculateNameNumbers(name);
+        return { name, vibration: expression };
+    });
+
+    const competitorDataString = competitorData.map(c => `- ${c.name} (Vibration: ${c.vibration})`).join('\n');
+
+    const prompt = `
+    Act as Vidhira, a "Brand Alchemist" specializing in Chaldean numerology for competitive strategy.
+    Your entire response MUST be in ${language} and conform strictly to the provided JSON schema.
+
+    **TASK: ANALYZE COMPETITOR BRANDS**
+    You will analyze a list of competitor brands against the user's brand, providing a strategic comparison based on Chaldean numerology.
+
+    **USER'S DATA:**
+    - Brand Name: "${userBrandName}"
+    - Brand Vibration (Expression Number): ${userBrandVibration}
+    - User's Core Numbers: Life Path ${userLifePath}, Expression ${userExpression}.
+
+    **COMPETITOR DATA:**
+    ${competitorDataString}
+
+    **ANALYSIS INSTRUCTIONS:**
+    For each competitor in the list, provide a concise but insightful 'comparisonAnalysis' (1-2 sentences). This analysis MUST:
+    1.  Directly compare the competitor's vibration number to the user's brand vibration number (${userBrandVibration}).
+    2.  Explain the nature of the interaction. Is it synergistic (e.g., a 3 and a 5 both value communication), challenging (e.g., a structured 4 vs. a free-spirited 5), or neutral?
+    3.  Briefly consider how this dynamic positions the user's brand in the market against that specific competitor.
+    4.  The analysis should be strategic, not just a simple definition of the numbers.
+    
+    Generate a JSON array of objects, one for each competitor.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: competitorAnalysisSchema,
+                seed: 42,
+            },
+        });
+        const responseText = response.text;
+        let jsonStr = responseText.trim();
+        if (jsonStr.startsWith("```json")) {
+            jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
+        } else if (jsonStr.startsWith("```")) {
+            jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
+        }
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error(`Error analyzing competitors:`, error);
+        throw new Error(`Failed to analyze competitors. The cosmic market intelligence network is currently unavailable.`);
+    }
+};
+
 
 export const getChatResponse = async (
     history: ChatMessage[],
@@ -378,7 +623,7 @@ export const getChatResponse = async (
 
     **Primary Directive:** Your responses MUST be deeply personalized by cross-referencing the user's latest question with BOTH their full numerology report (provided below) and the preceding conversation history. Do not provide generic answers. Your goal is to provide actionable, personalized decision support directly related to their unique data.
 
-    Keep your answers conversational, insightful, and reasonably concise. Do not use markdown.
+    **Keep your answers conversational, insightful, and CONCISE (2-4 sentences max). Do not use markdown.**
     **Crucially, end your response by proactively asking a follow-up question or suggesting another area of their report to explore, encouraging further conversation. For example: "Does that resonate with you?" or "Would you like to explore how this connects to your Wealth pillar?"**
 
     **USER'S FULL NUMEROLOGY REPORT (CONTEXT):**
@@ -451,6 +696,9 @@ export const getYearlyForecast = async (
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,
+      config: {
+        seed: 42,
+      },
     });
     return response.text;
   } catch (error) {
@@ -494,6 +742,9 @@ export const getDailyHoroscope = async (
     const response = await ai.models.generateContent({
       model: 'gemini-flash-lite-latest',
       contents: prompt,
+      config: {
+        seed: 42,
+      },
     });
     return response.text;
   } catch (error) {
@@ -606,10 +857,18 @@ export const generateJyotishReport = async (
       config: {
         responseMimeType: "application/json",
         responseSchema: jyotishReportSchema,
+        seed: 42,
       },
     });
     const responseText = response.text;
-    const reportData = JSON.parse(responseText);
+    // Fix: Safely parse JSON response which might be wrapped in markdown backticks.
+    let jsonStr = responseText.trim();
+    if (jsonStr.startsWith("```json")) {
+        jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
+    } else if (jsonStr.startsWith("```")) {
+        jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
+    }
+    const reportData = JSON.parse(jsonStr);
     
     return reportData;
   } catch (error) {

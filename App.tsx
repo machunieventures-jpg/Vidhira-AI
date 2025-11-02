@@ -1,284 +1,218 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import Header from './components/common/Header';
+import React, { useState, useEffect, useCallback } from 'react';
+import type { UserData, WorldClassReport, LoshuAnalysisPillar, CoreNumbers, CompoundNumbers } from './types';
 import OnboardingForm from './components/OnboardingForm';
 import Dashboard from './components/Dashboard';
-import LoadingSpinner from './components/common/LoadingSpinner';
 import PaymentModal from './components/common/PaymentModal';
-import type { UserData, WorldClassReport } from './types';
+import BlueprintSummary from './components/BlueprintSummary';
 import { calculateInitialNumbers, generateLoshuGrid, calculateMulank } from './services/numerologyService';
 import { generateWorldClassReport } from './services/geminiService';
 import { trackEvent } from './services/analyticsService';
 
-type UnlockState = 'locked' | 'unlocking' | 'success' | 'unlocked';
+type AppView = 'onboarding' | 'summary' | 'dashboard' | 'loading' | 'error';
+
+const Check = ({ size = 20, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>;
+
+const LoadingMandala: React.FC = () => (
+    <div className="flex flex-col items-center justify-center space-y-4 text-center">
+        <div className="loading-mandala"></div>
+        <h2 className="text-2xl font-bold gradient-text" style={{fontFamily: 'Cinzel, serif'}}>Charting Your Cosmos</h2>
+        <p className="text-[--cosmic-blue] dark:text-[--stardust] max-w-sm">Vidhira is decoding your unique vibrational signature. This alignment of cosmic energies may take a moment.</p>
+    </div>
+);
 
 const App: React.FC = () => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [report, setReport] = useState<WorldClassReport | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [unlockState, setUnlockState] = useState<UnlockState>('locked');
-  const [isEditing, setIsEditing] = useState(false);
-  const [preloadingMessage, setPreloadingMessage] = useState<string | null>(null);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [report, setReport] = useState<WorldClassReport | null>(null);
+    const [currentView, setCurrentView] = useState<AppView>('onboarding');
+    const [error, setError] = useState<string | null>(null);
+    const [isPremium, setIsPremium] = useState<boolean>(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
+    const [toastMessage, setToastMessage] = useState<string>('');
 
-
-  // Load data from localStorage on initial component mount
-  useEffect(() => {
-    try {
-      const savedReport = localStorage.getItem('vidhiraReport');
-      const savedUserData = localStorage.getItem('vidhiraUserData');
-      const savedUnlockState = localStorage.getItem('vidhiraUnlockState');
-
-      if (savedReport && savedUserData && savedUnlockState) {
-        const reportData: WorldClassReport = JSON.parse(savedReport);
-        const userData: UserData = JSON.parse(savedUserData);
-        
-        setReport(reportData);
-        setUserData(userData);
-        setUnlockState(savedUnlockState as UnlockState);
-      }
-    } catch (error) {
-      console.error("Failed to load data from localStorage:", error);
-      // If parsing fails, clear localStorage to prevent a broken state
-      localStorage.removeItem('vidhiraReport');
-      localStorage.removeItem('vidhiraUserData');
-      localStorage.removeItem('vidhiraUnlockState');
-    }
-  }, []); // Empty dependency array ensures this runs only once on mount
-
-  // Helper function to convert hex to rgba
-  const hexToRgba = (hex: string, alpha: number): string => {
-    if (!/^#([A-Fa-f09]{3}){1,2}$/.test(hex)) return `rgba(226, 179, 101, ${alpha})`; // Return default if invalid hex
-    let c = hex.substring(1).split('');
-    if (c.length === 3) {
-        c = [c[0], c[0], c[1], c[1], c[2], c[2]];
-    }
-    const i = parseInt(c.join(''), 16);
-    const r = (i >> 16) & 255;
-    const g = (i >> 8) & 255;
-    const b = i & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
-
-  useEffect(() => {
-    if (report?.spiritualAlignment?.luckyColor) {
-      const luckyColor = report.spiritualAlignment.luckyColor;
-      document.documentElement.style.setProperty('--lucky-color', luckyColor);
-      document.documentElement.style.setProperty('--lucky-color-glow', hexToRgba(luckyColor, 0.4));
-      document.documentElement.style.setProperty('--lucky-color-glow-faint', hexToRgba(luckyColor, 0.03));
-    } else {
-        // Reset to default if no report
-        document.documentElement.style.setProperty('--lucky-color', '#E2B365');
-        document.documentElement.style.setProperty('--lucky-color-glow', 'rgba(226, 179, 101, 0.4)');
-        document.documentElement.style.setProperty('--lucky-color-glow-faint', 'rgba(226, 179, 101, 0.03)');
-    }
-  }, [report]);
-
-  const handleFormSubmit = useCallback(async (data: UserData) => {
-    const wasEditing = isEditing;
-    // Reset all states
-    setUserData(data);
-    setError(null);
-    setReport(null);
-    setUnlockState('locked');
-    setIsEditing(false);
-    setIsLoading(false);
-
-    // 1. Show the pre-loading message
-    const messages = [
-        'Generating your cosmic blueprint...',
-        'Analyzing your unique vibrational signature...'
-    ];
-    setPreloadingMessage(messages[Math.floor(Math.random() * messages.length)]);
-    
-    // 2. Wait for a moment so the user can read it
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // 3. Switch to the main loading spinner
-    setPreloadingMessage(null);
-    setIsLoading(true);
-
-    try {
-      // 1. Calculate all numerological data first
-      const { core, compound } = calculateInitialNumbers(data);
-      const mulank = calculateMulank(data.dob);
-      const destinyNumber = core.lifePath;
-      
-      // 2. Generate the accurate Loshu grid, including birth and destiny numbers
-      const { grid, missing, overloaded } = generateLoshuGrid(data.dob, mulank, destinyNumber);
-      
-      // 3. Prepare data for the AI prompt
-      const loshuForAI = { missingNumbers: missing, overloadedNumbers: overloaded };
-
-      // 4. Get the AI-generated part of the report
-      const aiReportPart = await generateWorldClassReport(data, core, compound, loshuForAI);
-      
-      // 5. Assemble the final, complete report
-      const fullReport: WorldClassReport = {
-        ...aiReportPart,
-        loshuAnalysis: {
-            ...aiReportPart.loshuAnalysis,
-            grid: grid,
-            missingNumbers: missing,
-            overloadedNumbers: overloaded,
+    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+        if (typeof window !== 'undefined') {
+            const savedTheme = localStorage.getItem('vidhiraTheme');
+            if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
         }
-      };
+        return 'dark';
+    });
 
-      setReport(fullReport);
-      
-      // Save to localStorage
-      localStorage.setItem('vidhiraReport', JSON.stringify(fullReport));
-      localStorage.setItem('vidhiraUserData', JSON.stringify(data));
-      localStorage.setItem('vidhiraUnlockState', 'locked');
+    useEffect(() => {
+        const root = window.document.documentElement;
+        root.classList.toggle('dark', theme === 'dark');
+        localStorage.setItem('vidhiraTheme', theme);
+    }, [theme]);
 
-      // Track analytics event
-      if (wasEditing) {
-        trackEvent('PROFILE_EDITED', { userName: data.fullName });
-      } else {
-        trackEvent('REPORT_GENERATED', { userName: data.fullName });
-      }
+    const toggleTheme = () => {
+        setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+    };
 
-    } catch (err) {
-      console.error(err);
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
-      
-      let userFriendlyMessage = 'An error occurred while generating your report. The cosmic energies seem unstable right now.';
+    useEffect(() => {
+        // Generate stars for background
+        const starsContainer = document.querySelector('.stars');
+        if (starsContainer && starsContainer.children.length === 0) {
+            const starCount = 100;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 3}s`;
+                starsContainer.appendChild(star);
+            }
+        }
+    }, []);
 
-      if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch failed')) {
-        userFriendlyMessage = 'A network error occurred. Please check your internet connection and try again.';
-      } else if (errorMessage.toLowerCase().includes('invalid') || errorMessage.toLowerCase().includes('malformed')) {
-        userFriendlyMessage = 'There might be an issue with the data you provided. Please double-check your name, date, and time of birth for accuracy.';
-      } else if (errorMessage.toLowerCase().includes('deadline')) {
-        userFriendlyMessage = 'The connection to our cosmic intelligence timed out. This can happen with high demand. Please try again in a moment.';
-      } else if (errorMessage.toLowerCase().includes('unstable')) { // Catches the custom error from geminiService
-        userFriendlyMessage = 'Our connection to the cosmic intelligence is currently unstable. This is usually temporary. Please wait a few moments and try again.';
-      }
+    const showNotification = (message: string) => {
+        setToastMessage(message);
+        setTimeout(() => setToastMessage(''), 3000);
+    };
 
-      setError(`${userFriendlyMessage} If the problem persists, please contact support.`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isEditing]);
-  
-  const handleReset = useCallback(() => {
-      setUserData(null);
-      setReport(null);
-      setIsLoading(false);
-      setError(null);
-      setUnlockState('locked');
-      setIsEditing(false);
-      // Clear localStorage
-      localStorage.removeItem('vidhiraReport');
-      localStorage.removeItem('vidhiraUserData');
-      localStorage.removeItem('vidhiraUnlockState');
-  }, []);
+    useEffect(() => {
+        try {
+            const savedUserData = localStorage.getItem('vidhiraUserData');
+            const savedReport = localStorage.getItem('vidhiraReport');
+            const savedUnlockStatus = localStorage.getItem('vidhiraUnlockStatus');
 
-  const handleUnlock = useCallback(() => {
-    setIsPaymentModalOpen(true);
-  }, []);
+            if (savedUserData && savedReport) {
+                setUserData(JSON.parse(savedUserData));
+                setReport(JSON.parse(savedReport));
+                const unlocked = savedUnlockStatus === 'true';
+                setIsPremium(unlocked);
+                setCurrentView(unlocked ? 'dashboard' : 'summary');
+            }
+        } catch (e) {
+            console.error("Failed to load data from localStorage", e);
+            handleReset();
+        }
+    }, []);
 
-  const handlePaymentSuccess = useCallback(() => {
-    setUnlockState('unlocking');
-    localStorage.setItem('vidhiraUnlockState', 'unlocking');
+    const handleGenerateReport = useCallback(async (data: UserData) => {
+        setCurrentView('loading');
+        setError(null);
+        setUserData(data);
+        setReport(null);
+        setIsPremium(false);
 
-    // This timeout is just for the "Unlocking..." message on the button
-    setTimeout(() => {
-        setUnlockState('success');
-        localStorage.setItem('vidhiraUnlockState', 'success');
-        trackEvent('REPORT_UNLOCKED', { userName: userData?.fullName });
-        
-        // After showing success message on screen, show the full report
-        setTimeout(() => {
-            setUnlockState('unlocked');
-            localStorage.setItem('vidhiraUnlockState', 'unlocked');
-        }, 2500);
-    }, 500);
-  }, [userData]);
+        try {
+            const { core, compound } = calculateInitialNumbers(data);
+            const mulank = calculateMulank(data.dob);
+            const { grid, missing, overloaded } = generateLoshuGrid(data.dob, mulank, core.lifePath);
+            
+            const loshuForAI: Pick<LoshuAnalysisPillar, 'missingNumbers' | 'overloadedNumbers'> = { missingNumbers: missing, overloadedNumbers: overloaded };
 
+            const aiReportData = await generateWorldClassReport(data, core, compound, loshuForAI);
 
-  const handleEdit = useCallback(() => {
-    setIsEditing(true);
-  }, []);
+            const finalReport: WorldClassReport = {
+                ...aiReportData,
+                loshuAnalysis: { ...aiReportData.loshuAnalysis, grid, missingNumbers: missing, overloadedNumbers: overloaded },
+            };
 
-  const handleCancelEdit = useCallback(() => {
-    setIsEditing(false);
-  }, []);
+            setReport(finalReport);
+            setCurrentView('summary');
+            trackEvent('REPORT_GENERATED', { lifePath: core.lifePath });
 
+            localStorage.setItem('vidhiraUserData', JSON.stringify(data));
+            localStorage.setItem('vidhiraReport', JSON.stringify(finalReport));
+            localStorage.setItem('vidhiraUnlockStatus', 'false');
+            showNotification('Your cosmic blueprint is ready! ✨');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setError(errorMessage);
+            setCurrentView('error');
+        }
+    }, []);
+    
+    const handleReset = () => {
+        setUserData(null);
+        setReport(null);
+        setError(null);
+        setIsPremium(false);
+        setCurrentView('onboarding');
+        localStorage.removeItem('vidhiraUserData');
+        localStorage.removeItem('vidhiraReport');
+        localStorage.removeItem('vidhiraUnlockStatus');
+    };
 
-  const renderContent = () => {
-    if (preloadingMessage) {
-      return (
-        <div className="flex flex-col items-center justify-center space-y-4 text-starlight text-center animate-fade-in">
-          <p className="font-display text-2xl text-cosmic-gold">{preloadingMessage}</p>
-          <p className="text-lunar-grey text-base max-w-sm">
-            Please wait a moment as we align the celestial energies to craft your personalized life report.
-          </p>
-        </div>
-      );
-    }
-    if (isLoading) {
-      return <LoadingSpinner />;
-    }
-    if (error) {
-        return (
-            <div className="text-center text-cosmic-gold/90 bg-void-tint p-6 rounded-lg max-w-lg mx-auto border border-lunar-grey/20">
-                <p className="font-bold text-lg">Error Generating Report</p>
-                <p className="text-starlight/80 mt-2">{error}</p>
-                <button onClick={handleReset} className="mt-4 bg-cosmic-gold text-deep-void font-bold py-2 px-4 rounded-lg">Try Again</button>
-            </div>
-        );
-    }
-    if (unlockState === 'success') {
-        return (
-            <div className="text-center animate-fade-in">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-cosmic-gold/10 border-2 border-cosmic-gold/30 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-cosmic-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    const handleUnlockReport = () => {
+        setIsPaymentModalOpen(true);
+    };
+
+    const handlePaymentSuccess = () => {
+        setIsPremium(true);
+        setCurrentView('dashboard');
+        trackEvent('REPORT_UNLOCKED');
+        localStorage.setItem('vidhiraUnlockStatus', 'true');
+        showNotification('Welcome to your full cosmic dashboard! 🌟');
+    };
+
+    const renderCurrentView = () => {
+        switch (currentView) {
+            case 'loading':
+                return <div className="min-h-screen flex items-center justify-center"><LoadingMandala /></div>;
+            case 'error':
+                 return (
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="glass-card text-center max-w-md">
+                            <h3 className="text-2xl font-bold text-[--rose-accent]">An Error Occurred</h3>
+                            <p className="text-gray-600 dark:text-gray-300 mt-2">{error}</p>
+                            <button onClick={handleReset} className="btn-cosmic mt-4">Start Over</button>
+                        </div>
+                    </div>
+                );
+            case 'summary':
+                if (report && userData) {
+                    return <BlueprintSummary report={report} userData={userData} onUnlock={handleUnlockReport} />;
+                }
+                handleReset(); // Should not happen, reset to be safe
+                return null;
+            case 'dashboard':
+                if (report && userData) {
+                    return <Dashboard report={report} userData={userData} onReset={handleReset} />;
+                }
+                handleReset(); // Should not happen, reset to be safe
+                return null;
+            case 'onboarding':
+            default:
+                return <OnboardingForm onSubmit={handleGenerateReport} isLoading={currentView === 'loading'} />;
+        }
+    };
+
+    return (
+        <>
+            <button
+                onClick={toggleTheme}
+                className="fixed top-6 right-6 z-50 p-2 rounded-full bg-black/5 dark:bg-white/5 text-[--cosmic-purple] dark:text-[--gold-accent] hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-300 no-print"
+                aria-label="Toggle color theme"
+            >
+                {theme === 'dark' ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                )}
+            </button>
+            <main className="min-h-screen p-4 relative">
+                {renderCurrentView()}
+            </main>
+            {toastMessage && (
+                <div className="toast fixed top-6 right-6 z-50 animate-slide-up">
+                     <div className="bg-white dark:bg-[--cosmic-blue] p-4 rounded-xl shadow-lg flex items-center gap-3 border border-gray-200 dark:border-gray-700">
+                        <Check size={20} className="text-[--sage-green]" />
+                        <span className="font-medium text-[--cosmic-blue] dark:text-[--stardust]">{toastMessage}</span>
+                    </div>
                 </div>
-                <h2 className="text-3xl font-bold font-display text-starlight">Blueprint Unlocked!</h2>
-                <p className="text-lunar-grey mt-2">Enjoy your full, personalized life report.</p>
-            </div>
-        );
-    }
-    if (isEditing && userData) {
-        return <OnboardingForm onSubmit={handleFormSubmit} initialData={userData} onCancel={handleCancelEdit} />;
-    }
-    if (report && userData) {
-      return <Dashboard 
-                report={report} 
-                userData={userData} 
-                onReset={handleReset}
-                onEdit={handleEdit}
-                isUnlocked={unlockState === 'unlocked'}
-                isUnlocking={unlockState === 'unlocking'}
-                onUnlock={handleUnlock}
-             />;
-    }
-    return <OnboardingForm onSubmit={handleFormSubmit} />;
-  };
-
-  return (
-    <div id="root" className="min-h-screen bg-deep-void/70 text-starlight backdrop-blur-lg">
-      <div className="min-h-screen flex flex-col p-4 selection:bg-cosmic-gold/30">
-        <Header />
-        <main className="w-full flex-grow flex justify-center py-10">
-          {renderContent()}
-        </main>
-        <footer className="text-center text-xs text-starlight/40 py-4 no-print space-y-2">
-          <p>Vidhira 🔮 &copy; {new Date().getFullYear()}. For Purpose of life.</p>
-           <p className="max-w-3xl mx-auto">
-              Disclaimer: This Vidhira report is a digitally generated analysis for spiritual insight and personal development. It is not a substitute for professional advice in legal, medical, or financial matters. Major life decisions should be made in consultation with qualified experts.
-           </p>
-        </footer>
-      </div>
-       <PaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
-    </div>
-  );
+            )}
+            <PaymentModal 
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                onPaymentSuccess={handlePaymentSuccess}
+            />
+        </>
+    );
 };
 
 export default App;

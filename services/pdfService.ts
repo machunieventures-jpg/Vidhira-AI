@@ -24,19 +24,32 @@ export const exportReportAsPDF = async (userName: string, options: PdfExportOpti
   }
 
   // --- Pre-computation DOM modifications ---
-  const allSectionElements = Array.from(reportElement.querySelectorAll('.report-section'));
+  const allSectionElements = Array.from(reportElement.querySelectorAll<HTMLElement>('.collapsible-section'));
   const sectionsToHide: HTMLElement[] = [];
-
+  
   allSectionElements.forEach(sectionEl => {
-    const sectionKey = (sectionEl as HTMLElement).dataset.sectionKey;
+    const sectionKey = sectionEl.dataset.sectionKey;
     if (!sectionKey || !sections.includes(sectionKey)) {
-      sectionsToHide.push(sectionEl as HTMLElement);
-      (sectionEl as HTMLElement).style.display = 'none';
+      sectionsToHide.push(sectionEl);
+      sectionEl.style.display = 'none';
     }
   });
 
+  // Temporarily expand all collapsible sections to ensure full content is captured
+  const collapsibleContents = Array.from(reportElement.querySelectorAll<HTMLElement>('.collapsible-content'));
+  const originalMaxHeightValues = collapsibleContents.map(content => content.style.maxHeight);
+  
+  collapsibleContents.forEach(content => {
+    // Override Tailwind classes with an inline style to ensure content is visible for capture
+    content.style.maxHeight = 'none';
+  });
+
+  const root = document.documentElement;
+  const originalRootClass = root.className;
   if (theme === 'light') {
-    document.body.classList.add('pdf-light-theme');
+    root.classList.remove('dark');
+  } else {
+    root.classList.add('dark');
   }
   // --- End of DOM modifications ---
 
@@ -44,7 +57,7 @@ export const exportReportAsPDF = async (userName: string, options: PdfExportOpti
     const canvas = await html2canvas(reportElement, {
       scale: 2,
       useCORS: true,
-      backgroundColor: theme === 'light' ? '#ffffff' : '#0D1117',
+      backgroundColor: theme === 'light' ? '#F7FAFC' : '#1A202C',
       windowWidth: reportElement.scrollWidth,
       windowHeight: reportElement.scrollHeight,
     });
@@ -88,9 +101,12 @@ export const exportReportAsPDF = async (userName: string, options: PdfExportOpti
     sectionsToHide.forEach(el => {
       el.style.display = ''; // Revert to default display style
     });
-    if (theme === 'light') {
-      document.body.classList.remove('pdf-light-theme');
-    }
-    // --- End of cleanup ---
+
+    // Restore original collapsible state by removing the inline style override
+    collapsibleContents.forEach((content, index) => {
+      content.style.maxHeight = originalMaxHeightValues[index];
+    });
+
+    root.className = originalRootClass; // Restore original theme class
   }
 };

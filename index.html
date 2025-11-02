@@ -8,298 +8,239 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;500&family=Hind:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- PDF Generation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoVBL5gI9kLmbG0CzdlJen4v/Jb1gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+      /* === Cosmic Design System === */
       :root {
-        --lucky-color: #E2B365; /* A more refined, bronze-gold */
-        --lucky-color-glow: rgba(226, 179, 101, 0.4);
+        --cosmic-purple: #6B46C1;
+        --cosmic-blue: #2D3748;
+        --gold-accent: #F6AD55;
+        --sage-green: #68D391;
+        --rose-accent: #FC8181;
+        --deep-space: #060818;
+        --stardust: #E2E8F0;
+        --light-bg: #F7FAFC;
+        --card-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        --glow: 0 0 30px rgba(107, 70, 193, 0.3);
       }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
       body {
-        font-family: 'Roboto', sans-serif;
-        background-color: #02040a;
-        background-image: url('https://images.unsplash.com/photo-1506443432698-ac908581509b?q=80&w=2574&auto=format&fit=crop');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        color: #E6F2FF;
+        font-family: 'Inter', sans-serif;
+        background: var(--light-bg);
+        color: var(--cosmic-blue);
+        transition: background-color 0.5s ease, color 0.5s ease;
       }
-      h1, h2, h3, h4, .font-display {
-        font-family: 'Playfair Display', serif;
+      .dark body {
+        background: var(--deep-space);
+        color: var(--stardust);
       }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+
+      .cosmic-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 20% 50%, rgba(107, 70, 193, 0.1) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 80%, rgba(246, 173, 85, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 40% 20%, rgba(104, 211, 145, 0.08) 0%, transparent 40%);
+        pointer-events: none;
+        z-index: 0;
       }
-      @keyframes number-pop {
-        0% { 
-          transform: scale(0.5) rotate(-15deg); 
-          opacity: 0; 
-        }
-        70% { 
-          transform: scale(1.1) rotate(5deg); 
-          opacity: 1; 
-        }
-        90% { 
-          transform: scale(0.98) rotate(-2deg); 
-        }
-        100% { 
-          transform: scale(1) rotate(0deg); 
-          opacity: 1; 
-        }
+      .dark .cosmic-bg {
+        background: radial-gradient(circle at 20% 50%, rgba(107, 70, 193, 0.2) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 80%, rgba(246, 173, 85, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at 40% 20%, rgba(104, 211, 145, 0.15) 0%, transparent 40%);
       }
-      @keyframes letter-reveal {
-        0% {
+
+      .stars {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .star {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: var(--cosmic-blue);
+        border-radius: 50%;
+        animation: twinkle 3s infinite;
+      }
+      .dark .star {
+         background: white;
+      }
+
+      @keyframes twinkle {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 0.8; }
+      }
+
+      @keyframes slide-up {
+        from {
           opacity: 0;
-          transform: translateY(10px) scale(0.9);
-          text-shadow: 0 0 10px var(--lucky-color-glow);
+          transform: translateY(30px);
         }
-        70% {
+        to {
           opacity: 1;
-          transform: translateY(0) scale(1.05);
-          text-shadow: 0 0 15px var(--lucky-color-glow);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-          text-shadow: none;
+          transform: translateY(0);
         }
       }
+      
+      .animate-slide-up {
+        animation: slide-up 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      }
+
       @keyframes text-glow {
         0%, 100% {
-          text-shadow: 0 0 5px var(--lucky-color-glow), 0 0 10px var(--lucky-color-glow), 0 0 15px var(--lucky-color-glow);
+          text-shadow: 0 0 10px rgba(179, 136, 255, 0.5), 0 0 20px rgba(179, 136, 255, 0.3), 0 0 40px rgba(107, 70, 193, 0.5);
         }
         50% {
-          text-shadow: 0 0 10px var(--lucky-color-glow), 0 0 20px var(--lucky-color-glow), 0 0 30px var(--lucky-color-glow), 0 0 40px var(--lucky-color);
+          text-shadow: 0 0 15px rgba(246, 173, 85, 0.8), 0 0 25px rgba(246, 173, 85, 0.6), 0 0 40px rgba(107, 70, 193, 0.7), 0 0 60px rgba(107, 70, 193, 0.5);
         }
       }
-      .animate-text-glow {
-        animation: text-glow 2.5s ease-in-out infinite;
-      }
-      .animate-letter-reveal > span {
-        opacity: 0;
-        animation: letter-reveal 0.8s ease-out forwards;
-        display: inline-block; /* Required for transform */
-      }
-       .animate-number-pop {
-        animation: number-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-      }
-      .animate-fade-in-fast {
-        animation: fadeIn 0.3s ease-out forwards;
-      }
-      
-      /* New Scroll Reveal Animation */
-      .animate-scroll-reveal {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-        transition: opacity 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-      .animate-scroll-reveal.visible {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+
+      .logo-glow {
+        animation: text-glow 3s ease-in-out infinite;
       }
 
-      @keyframes scalePulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
+      @keyframes icon-glow {
+        0%, 100% {
+          filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.7)) drop-shadow(0 0 8px rgba(107, 70, 193, 0.5));
+        }
+        50% {
+          filter: drop-shadow(0 0 6px rgba(246, 173, 85, 0.8)) drop-shadow(0 0 12px rgba(107, 70, 193, 0.7));
+        }
       }
-      .animate-scale-pulse {
-        animation: scalePulse 1.5s ease-in-out infinite;
-      }
-      
-      /* Pillar Styles */
-      @keyframes background-pan {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+      .icon-glow {
+        animation: icon-glow 3s ease-in-out infinite;
       }
 
-      .pillar-kundali {
-        background-image:
-            radial-gradient(circle at 10% 10%, rgba(173, 216, 230, 0.05) 0%, transparent 30%),
-            radial-gradient(circle at 90% 80%, rgba(75, 0, 130, 0.08) 0%, transparent 30%),
-            linear-gradient(180deg, #161B22, #0D1117);
+      .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
       }
-      .pillar-cosmic-identity {
-        background-image: radial-gradient(ellipse at top, var(--lucky-color-glow-faint), transparent 60%),
-                          radial-gradient(ellipse at bottom, rgba(139, 148, 158, 0.04), transparent 70%);
+      .dark .glass-card {
+        background: rgba(26, 32, 44, 0.5);
+        border-color: rgba(107, 70, 193, 0.3);
       }
-      .pillar-loshu {
-        background-image:
-          linear-gradient(rgba(139, 148, 158, 0.08) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(139, 148, 158, 0.08) 1px, transparent 1px);
-        background-size: 50px 50px;
-      }
-      .pillar-wealth {
-        background: linear-gradient(135deg, #161B22, var(--lucky-color-glow-faint), #161B22);
-        background-size: 200% 200%;
-        animation: background-pan 20s ease infinite;
-      }
-      .pillar-default {
-         background: linear-gradient(120deg, #161B22, rgba(139, 148, 158, 0.02), #161B22);
-      }
-      .report-section:hover {
+
+      .glass-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2), 0 0 20px var(--lucky-color-glow);
-        border-color: var(--lucky-color-glow);
+        box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+      }
+      .dark .glass-card:hover {
+        box-shadow: 0 30px 80px rgba(0,0,0,0.4);
       }
 
-      /* Loshu Grid Enhancements */
-      .highlight-birth {
-        box-shadow: 0 0 15px 2px var(--lucky-color-glow), inset 0 0 8px 0px var(--lucky-color-glow);
-        border-color: var(--lucky-color) !important;
-      }
-      .highlight-destiny {
-        --destiny-glow: rgba(0, 255, 255, 0.5);
-        box-shadow: 0 0 15px 2px var(--destiny-glow), inset 0 0 8px 0px var(--destiny-glow);
-        border-color: cyan !important;
-      }
-      .highlight-both {
-        --destiny-glow: rgba(0, 255, 255, 0.5);
-        box-shadow: 0 0 18px 3px var(--destiny-glow), 0 0 18px 3px var(--lucky-color-glow);
-        border-image: linear-gradient(45deg, var(--lucky-color), cyan) 1;
-      }
-      .floating-badge {
-        animation: number-pop 0.6s ease-out forwards;
-      }
-      .floating-badge-line {
-        stroke-dasharray: 3, 3;
-        animation: fadeIn 0.8s ease-out forwards;
+      .gradient-text {
+        background: linear-gradient(135deg, var(--cosmic-purple) 0%, var(--gold-accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
-      /* Modal Styles */
-      @keyframes modal-fade-in {
-        from { opacity: 0; transform: translateY(1rem) scale(0.98); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-      }
-      .animate-modal-fade-in {
-        animation: modal-fade-in 0.3s ease-out forwards;
+      .btn-cosmic {
+        background: var(--cosmic-purple);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 10px 30px rgba(107, 70, 193, 0.3);
       }
 
-      /* Print-specific styles for PDF Download */
+      .btn-cosmic:hover {
+        background: #553C9A;
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(107, 70, 193, 0.5);
+      }
+
+      .btn-cosmic:active {
+        transform: translateY(0);
+      }
+      .btn-cosmic:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: translateY(0);
+        box-shadow: 0 10px 30px rgba(107, 70, 193, 0.3);
+      }
+
+      .input-cosmic {
+        width: 100%;
+        padding: 14px 20px;
+        border: 2px solid rgba(107, 70, 193, 0.2);
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--cosmic-blue);
+      }
+      .dark .input-cosmic {
+         background: rgba(26, 32, 44, 0.7);
+         border-color: rgba(107, 70, 193, 0.4);
+         color: var(--stardust);
+      }
+      .input-cosmic::placeholder {
+         color: #A0AEC0;
+      }
+       .dark .input-cosmic::placeholder {
+         color: #718096;
+       }
+
+      .input-cosmic:focus {
+        outline: none;
+        border-color: var(--cosmic-purple);
+        box-shadow: 0 0 0 4px rgba(107, 70, 193, 0.1);
+      }
+
+      .loading-mandala {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(107, 70, 193, 0.2);
+        border-top-color: var(--cosmic-purple);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
       @media print {
-        header, footer, .no-print {
+        .no-print {
           display: none !important;
         }
-        .report-section {
-          break-inside: avoid;
-          page-break-inside: avoid;
-        }
-        main {
-          padding-top: 0;
-          padding-bottom: 0;
-        }
-        @page {
-          margin: 0.5in;
-        }
-      }
-      
-      /* Interactivity Enhancements */
-      .expandable-content {
-        transition: max-height 0.7s ease-in-out;
-        overflow: hidden;
-      }
-
-      /* PDF Light Theme Styles (applied dynamically) */
-      body.pdf-light-theme {
-        --lucky-color: #D4AF37;
-        --lucky-color-glow: rgba(212, 175, 55, 0.4);
-        background-image: none !important;
-        background-color: #ffffff !important;
-        color: #111827 !important;
-      }
-      .pdf-light-theme #report-container {
-        color: #1f2937;
-      }
-      .pdf-light-theme .report-section {
-        background: #f9fafb !important;
-        border-color: #e5e7eb !important;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
-      }
-      .pdf-light-theme .text-starlight,
-      .pdf-light-theme .text-starlight\/90 {
-        color: #111827 !important;
-      }
-      .pdf-light-theme .text-lunar-grey {
-        color: #4b5563 !important;
-      }
-      .pdf-light-theme .text-cosmic-gold,
-      .pdf-light-theme .text-cosmic-gold\/90,
-      .pdf-light-theme .text-cosmic-gold\/80,
-      .pdf-light-theme .text-cosmic-gold\/70 {
-        color: #b45309 !important;
-      }
-       .pdf-light-theme .border-lunar-grey\/50,
-       .pdf-light-theme .border-lunar-grey\/20,
-       .pdf-light-theme .border-lunar-grey\/10 {
-        border-color: #e5e7eb !important;
-      }
-      .pdf-light-theme .bg-void-tint,
-      .pdf-light-theme .bg-void-tint\/30,
-      .pdf-light-theme .bg-void-tint\/50,
-      .pdf-light-theme .bg-void-tint\/60,
-      .pdf-light-theme .bg-void-tint\/80 {
-        background-color: #ffffff !important;
-      }
-       .pdf-light-theme .bg-deep-void\/20,
-       .pdf-light-theme .bg-deep-void\/30,
-       .pdf-light-theme .bg-deep-void\/50 {
-         background-color: #f9fafb !important;
-       }
-       .pdf-light-theme .pillar-kundali,
-       .pdf-light-theme .pillar-cosmic-identity,
-       .pdf-light-theme .pillar-loshu,
-       .pdf-light-theme .pillar-wealth,
-       .pdf-light-theme .pillar-default {
-          background-image: none !important;
-          background-color: #f9fafb !important;
-       }
-       .pdf-light-theme .sanskrit {
-         color: #111827 !important;
-       }
-
-      /* === Title Color Animation === */
-      .vidhira-animated-title {
-        font-family: 'Playfair Display', serif;
-        font-weight: bold;
-        animation: color-cycle 7s linear infinite;
-        margin-top: 0.5rem;
-      }
-
-      @keyframes color-cycle {
-        0%   { color: #9400D3; text-shadow: 0 0 10px #9400D3; }
-        14%  { color: #4B0082; text-shadow: 0 0 10px #4B0082; }
-        28%  { color: #0000FF; text-shadow: 0 0 10px #0000FF; }
-        42%  { color: #00FF00; text-shadow: 0 0 10px #00FF00; }
-        57%  { color: #FFFF00; text-shadow: 0 0 10px #FFFF00; }
-        71%  { color: #FF7F00; text-shadow: 0 0 10px #FF7F00; }
-        85%  { color: #FF0000; text-shadow: 0 0 10px #FF0000; }
-        100% { color: #9400D3; text-shadow: 0 0 10px #9400D3; }
       }
     </style>
     <script>
       tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'deep-void': '#0D1117',
-              'void-tint': '#161B22',
-              'starlight': '#E6F2FF',
-              'cosmic-gold': 'var(--lucky-color, #E2B365)',
-              'lunar-grey': '#8B949E',
-            },
-            maxHeight: {
-              '0': '0',
-              '120px': '120px',
-              '1000px': '1000px',
-            }
-          },
-        },
+        darkMode: 'class',
       }
     </script>
   <script type="importmap">
@@ -313,8 +254,13 @@
   }
 }
 </script>
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
   <body>
+    <div class="cosmic-bg"></div>
+    <div class="stars"></div>
     <div id="root"></div>
   </body>
 </html>

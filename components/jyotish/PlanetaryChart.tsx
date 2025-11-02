@@ -20,9 +20,9 @@ const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
     if (data.planets.length === 0) return null;
 
     return (
-      <div className="bg-void-tint/80 backdrop-blur-md p-3 rounded-lg border border-lunar-grey/50 text-sm">
-        <p className="font-bold text-cosmic-gold mb-1">{`House ${label}`}</p>
-        <ul className="text-starlight/90 space-y-1">
+      <div className="bg-manuscript-bg/90 dark:bg-manuscript-bg-dark/90 backdrop-blur-md p-3 rounded-lg border border-stone-brown/20 dark:border-manuscript-parchment/20 text-sm shadow-lg">
+        <p className="font-bold text-suryansh-gold mb-1">{`House ${label}`}</p>
+        <ul className="text-stone-brown dark:text-manuscript-parchment space-y-1">
           {data.planets.map((p: string) => <li key={p}>{p}</li>)}
         </ul>
       </div>
@@ -54,16 +54,16 @@ const PlanetaryChart: React.FC<PlanetaryChartProps> = ({ data }) => {
 
   return (
     <div>
-      <h4 className="text-xl font-bold text-cosmic-gold font-display text-center mb-2">
+      <h4 className="text-xl font-bold text-suryansh-gold font-display text-center mb-2">
         Planetary Positions by House
       </h4>
-      <p className="text-center text-sm text-lunar-grey mb-4">
+      <p className="text-center text-sm text-stone-brown/80 dark:text-manuscript-parchment/80 mb-4">
         This chart shows the distribution of planets (Grahas) across the 12 houses (Bhavas) of your Vedic chart. Hover over a house to see details.
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-          <PolarGrid stroke="#8B949E" strokeOpacity={0.2} />
-          <PolarAngleAxis dataKey="house" tick={{ fill: '#8B949E', fontSize: 14 }} />
+          <PolarGrid stroke="var(--stone-brown)" strokeOpacity={0.2} />
+          <PolarAngleAxis dataKey="house" tick={{ fill: 'var(--suryansh-gold)', opacity: 0.8, fontSize: 14 }} />
           <PolarRadiusAxis 
             angle={30} 
             domain={[0, maxPlanetsInHouse > 0 ? maxPlanetsInHouse + 1 : 1]} 
@@ -73,11 +73,11 @@ const PlanetaryChart: React.FC<PlanetaryChartProps> = ({ data }) => {
           <Radar 
             name="Placements" 
             dataKey="value" 
-            stroke="var(--lucky-color, #FFD700)" 
-            fill="var(--lucky-color, #FFD700)" 
+            stroke="var(--lucky-color)" 
+            fill="var(--lucky-color)" 
             fillOpacity={0.6} 
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--lucky-color, #FFD700)', strokeOpacity: 0.5 }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--lucky-color)', strokeOpacity: 0.5 }} />
         </RadarChart>
       </ResponsiveContainer>
     </div>
