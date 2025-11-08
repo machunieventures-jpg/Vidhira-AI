@@ -135,3 +135,37 @@ export const calculateMulank = (dob: string): number => {
     }
     return sum;
 };
+
+export const calculateKuaNumber = (dob: string, gender: string): number => {
+    const reduceToOneDigit = (n: number): number => {
+        let sum = n;
+        while (sum > 9) {
+            sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit, 10), 0);
+        }
+        return sum;
+    }
+
+    const year = parseInt(dob.split('-')[0], 10);
+    const lastTwoDigits = year % 100;
+    const sumOfLastTwo = reduceToOneDigit(String(lastTwoDigits).split('').reduce((acc, digit) => acc + parseInt(digit, 10), 0));
+    
+    let kuaNumber: number;
+
+    if (gender.toLowerCase() === 'male') {
+        kuaNumber = (year < 2000) ? 10 - sumOfLastTwo : 9 - sumOfLastTwo;
+    } else { // Female or Other
+        kuaNumber = (year < 2000) ? 5 + sumOfLastTwo : 6 + sumOfLastTwo;
+    }
+
+    kuaNumber = reduceToOneDigit(kuaNumber);
+
+    if (kuaNumber === 5) {
+        return gender.toLowerCase() === 'male' ? 2 : 8;
+    }
+    
+    if (kuaNumber === 0) {
+        return 9;
+    }
+
+    return kuaNumber;
+};

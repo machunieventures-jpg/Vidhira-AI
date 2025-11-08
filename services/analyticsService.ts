@@ -9,7 +9,9 @@ export type EventName =
   | 'DAILY_HOROSCOPE_GENERATED'
   | 'CHAT_MESSAGE_SENT'
   | 'JYOTISH_REPORT_GENERATED'
-  | 'COMPETITOR_ANALYZED';
+  | 'COMPETITOR_ANALYZED'
+  | 'LOGO_ANALYZED'
+  | 'IMAGE_EDITED';
 
 interface AnalyticsEvent {
   timestamp: string;

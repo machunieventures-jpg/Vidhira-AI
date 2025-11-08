@@ -1,11 +1,13 @@
 import React from 'react';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface InterpretationTooltipProps {
   isLoading: boolean;
   content: string;
   potentialContent?: string | null;
   position: { top: number; left: number };
-  number: number;
+  number?: number;
+  title?: string;
   onClose: () => void;
 }
 
@@ -15,6 +17,7 @@ const InterpretationTooltip: React.FC<InterpretationTooltipProps> = ({
   potentialContent,
   position,
   number,
+  title,
   onClose,
 }) => {
   const style = {
@@ -29,7 +32,7 @@ const InterpretationTooltip: React.FC<InterpretationTooltipProps> = ({
       style={style}
     >
       <div className="flex justify-between items-center mb-2">
-        <h5 className="font-bold text-lg font-display text-gray-900 dark:text-star-white">Number {number}</h5>
+        <h5 className="font-bold text-lg font-display text-gray-900 dark:text-star-white">{title || `Number ${number}`}</h5>
         <button onClick={onClose} className="text-gray-500 dark:text-star-white/50 hover:text-gray-900 dark:hover:text-star-white text-2xl leading-none">&times;</button>
       </div>
       {isLoading ? (
@@ -43,16 +46,16 @@ const InterpretationTooltip: React.FC<InterpretationTooltipProps> = ({
             <>
               <div>
                 <h6 className="text-sm font-semibold text-suryansh-gold/80">Challenge (As a Missing Number)</h6>
-                <p className="text-sm text-gray-800/90 dark:text-star-white/90">{content}</p>
+                <MarkdownRenderer content={content} />
               </div>
               <hr className="border-gray-200 dark:border-chandra-grey/20" />
               <div>
                 <h6 className="text-sm font-semibold text-gray-800 dark:text-star-white">Potential (If Cultivated)</h6>
-                <p className="text-sm text-gray-800/90 dark:text-star-white/90">{potentialContent}</p>
+                <MarkdownRenderer content={potentialContent} />
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-800/90 dark:text-star-white/90">{content}</p>
+            <MarkdownRenderer content={content} />
           )}
         </div>
       )}

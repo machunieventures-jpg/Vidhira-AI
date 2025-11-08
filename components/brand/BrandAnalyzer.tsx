@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { analyzeBrandName, analyzePhoneNumber, analyzeCompetitors } from '../../services/geminiService';
-import type { UserData, WorldClassReport, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis } from '../../types';
+import React, { useState, useRef } from 'react';
+import { analyzeBrandName, analyzePhoneNumber, analyzeCompetitors, analyzeLogo } from '../../services/geminiService';
+import type { UserData, WorldClassReport, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis, LogoAnalysis } from '../../types';
 import { trackEvent } from '../../services/analyticsService';
 
 const ScoreGauge: React.FC<{ score: number }> = ({ score }) => {
@@ -55,6 +55,16 @@ const ResultCard: React.FC<{title: string, children: React.ReactNode, icon: stri
     </div>
 );
 
+const ColorSwatch: React.FC<{ color: string }> = ({ color }) => (
+    <div className="group relative">
+        <div className="w-8 h-8 rounded-full border-2 border-white/50 dark:border-black/50" style={{backgroundColor: color}}></div>
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            {color}
+        </div>
+    </div>
+);
+
+
 interface BrandAnalyzerProps {
     userData: UserData;
     report: WorldClassReport;
@@ -75,6 +85,13 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
     const [competitorAnalysis, setCompetitorAnalysis] = useState<CompetitorBrandAnalysis[] | null>(null);
     const [isCompetitorLoading, setIsCompetitorLoading] = useState(false);
     const [competitorError, setCompetitorError] = useState<string | null>(null);
+
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [logoAnalysis, setLogoAnalysis] = useState<LogoAnalysis | null>(null);
+    const [isLogoLoading, setIsLogoLoading] = useState(false);
+    const [logoError, setLogoError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleNameSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -165,6 +182,62 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
         }
     };
 
+    const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                setLogoError("File size cannot exceed 2MB.");
+                return;
+            }
+            setLogoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLogoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            setLogoError(null);
+        }
+    };
+
+    const handleLogoSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!logoFile) {
+            setLogoError("Please select a logo file to analyze.");
+            return;
+        }
+         if (!analysisResult) {
+            setLogoError('Please analyze your own brand name first to get its vibration.');
+            return;
+        }
+        setIsLogoLoading(true);
+        setLogoError(null);
+        setLogoAnalysis(null);
+
+        try {
+            const base64Data = logoPreview?.split(',')[1];
+            if (!base64Data) {
+                throw new Error("Could not read logo file.");
+            }
+
+            const result = await analyzeLogo(
+                base64Data,
+                logoFile.type,
+                businessName,
+                analysisResult.brandExpressionNumber,
+                report.cosmicIdentity.coreNumbers.lifePath.number,
+                userData.language
+            );
+            setLogoAnalysis(result);
+            trackEvent('LOGO_ANALYZED', { brandName: businessName });
+
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setLogoError(`Failed to analyze logo. ${errorMessage}`);
+        } finally {
+            setIsLogoLoading(false);
+        }
+    };
+
 
     return (
         <div className="space-y-8">
@@ -216,11 +289,13 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                             </ResultCard>
 
                            <ResultCard title="Color Palette" icon="🎨">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full border-2 border-white/50 dark:border-black/50" style={{backgroundColor: analysisResult.colorPalette.primary}}></div>
-                                    <div className="w-8 h-8 rounded-full border-2 border-white/50 dark:border-black/50" style={{backgroundColor: analysisResult.colorPalette.secondary}}></div>
-                                    <div className="w-8 h-8 rounded-full border-2 border-white/50 dark:border-black/50" style={{backgroundColor: analysisResult.colorPalette.accent}}></div>
-                                    <p className="flex-1 text-xs">{analysisResult.colorPalette.explanation}</p>
+                                <div className="flex items-start gap-3">
+                                    <div className="flex gap-2">
+                                      <ColorSwatch color={analysisResult.colorPalette.primary} />
+                                      <ColorSwatch color={analysisResult.colorPalette.secondary} />
+                                      <ColorSwatch color={analysisResult.colorPalette.accent} />
+                                    </div>
+                                    <p className="flex-1 text-sm leading-relaxed">{analysisResult.colorPalette.explanation}</p>
                                 </div>
                            </ResultCard>
 
@@ -285,6 +360,65 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                     </div>
                 )}
             </div>
+
+            {analysisResult && (
+                 <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
+                    <h4 className="text-xl font-bold gradient-text mb-3">Logo Vibration Analysis</h4>
+                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        Upload your logo to analyze its visual energy and get an AI-generated, vibrationally-aligned redesign concept.
+                    </p>
+                    <form onSubmit={handleLogoSubmit} className="flex flex-col sm:flex-row items-center gap-3">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleLogoFileChange}
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/webp"
+                        />
+                         <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex-grow input-cosmic text-left text-gray-500 truncate">
+                            {logoFile ? logoFile.name : 'Click to select logo file...'}
+                        </button>
+                        <button
+                            type="submit"
+                            className="w-full sm:w-auto btn-cosmic"
+                            disabled={isLogoLoading || !logoFile}
+                        >
+                            {isLogoLoading ? 'Analyzing...' : 'Analyze Logo'}
+                        </button>
+                    </form>
+                    {logoPreview && !isLogoLoading && (
+                        <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg inline-block">
+                            <img src={logoPreview} alt="Logo preview" className="h-20 w-auto object-contain" />
+                        </div>
+                    )}
+                    {logoError && <p className="text-[--rose-accent] text-sm mt-3">{logoError}</p>}
+                     {isLogoLoading && (
+                        <div className="mt-4 flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-300">
+                            <div className="loading-mandala !w-6 !h-6 !border-2"></div>
+                            <span>Analyzing visual energy & generating new concept...</span>
+                        </div>
+                    )}
+                    {logoAnalysis && (
+                         <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up space-y-6">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <ResultCard title="Generated Logo Concept" icon="✨">
+                                    <img src={logoAnalysis.generatedLogoUrl} alt="AI Generated Logo" className="w-full rounded-lg shadow-md" />
+                                </ResultCard>
+                                <div className="space-y-4">
+                                     <ResultCard title="Logo Vibration Analysis" icon="🔬">
+                                        <p><strong className="text-gray-700 dark:text-gray-200">Vibration Number: {logoAnalysis.logoVibrationNumber}</strong></p>
+                                        <p>{logoAnalysis.synergyAnalysis}</p>
+                                    </ResultCard>
+                                    <ResultCard title="Design Suggestions" icon="🎨">
+                                        <p><strong className="text-gray-700 dark:text-gray-200">Logo Type:</strong> {logoAnalysis.logoTypeSuggestion}</p>
+                                        <p><strong className="text-gray-700 dark:text-gray-200">Font Families:</strong> {logoAnalysis.fontSuggestions.join(', ')}</p>
+                                    </ResultCard>
+                                </div>
+                            </div>
+                         </div>
+                    )}
+                </div>
+            )}
 
             {analysisResult && (
                  <div className="pt-8 border-t border-gray-200 dark:border-gray-700">

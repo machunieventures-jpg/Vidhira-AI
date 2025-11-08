@@ -31,6 +31,7 @@ export interface CoreNumberInfo {
   number: number;
   compound?: number;
   interpretation: string;
+  planetaryRuler?: string;
 }
 
 export interface ChatMessage {
@@ -69,10 +70,15 @@ export interface LoshuAnalysisPillar {
   grid: (string | null)[][];
   missingNumbers: number[];
   overloadedNumbers: number[];
-  elementalPlanes: {
+  planes: {
     mental: PillarContent;
     emotional: PillarContent;
     practical: PillarContent;
+    thought: PillarContent;
+    will: PillarContent;
+    action: PillarContent;
+    determination: PillarContent;
+    spiritual: PillarContent;
   };
   balanceSummary: PillarContent;
   compensationStrategy: PillarContent;
@@ -116,10 +122,17 @@ export interface PlanetaryPlacement {
   house: number;
 }
 
+export interface PlanetaryStrength {
+  planet: string;
+  score: number; // A score from 0-100
+  summary: string;
+}
+
 export interface JyotishReportData {
   markdownReport: string;
   planetaryPlacements: PlanetaryPlacement[];
   ascendantSign: string;
+  grahaBala: PlanetaryStrength[];
 }
 
 // --- Brand Analyzer V2 ---
@@ -166,6 +179,14 @@ export interface CompetitorBrandAnalysis {
     competitorName: string;
     competitorVibration: number;
     comparisonAnalysis: string;
+}
+
+export interface LogoAnalysis {
+  logoVibrationNumber: number;
+  synergyAnalysis: string;
+  logoTypeSuggestion: string;
+  fontSuggestions: string[];
+  generatedLogoUrl: string;
 }
 
 

@@ -44,6 +44,11 @@ const NumberCard: React.FC<NumberCardProps> = ({ title, data, className, style }
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100" style={{fontFamily: 'Playfair Display, serif'}}>{title}</h4>
+          {data.planetaryRuler && (
+            <p className="text-sm font-semibold text-[--cosmic-purple] dark:text-[--gold-accent] -mt-1 mb-2">
+              Ruler: {data.planetaryRuler}
+            </p>
+          )}
           <div className="mt-1 relative">
             <div className={`prose-sm max-w-none transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-[1000px]' : 'max-h-[7rem]'}`}>
               <MarkdownRenderer content={data.interpretation} />

@@ -7,18 +7,10 @@ import BlueprintSummary from './components/BlueprintSummary';
 import { calculateInitialNumbers, generateLoshuGrid, calculateMulank } from './services/numerologyService';
 import { generateWorldClassReport } from './services/geminiService';
 import { trackEvent } from './services/analyticsService';
+import { Check } from './components/common/Icons';
+import LoadingMandala from './components/common/LoadingMandala';
 
 type AppView = 'onboarding' | 'summary' | 'dashboard' | 'loading' | 'error';
-
-const Check = ({ size = 20, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>;
-
-const LoadingMandala: React.FC = () => (
-    <div className="flex flex-col items-center justify-center space-y-4 text-center">
-        <div className="loading-mandala"></div>
-        <h2 className="text-2xl font-bold gradient-text" style={{fontFamily: 'Cinzel, serif'}}>Charting Your Cosmos</h2>
-        <p className="text-[--cosmic-blue] dark:text-[--stardust] max-w-sm">Vidhira is decoding your unique vibrational signature. This alignment of cosmic energies may take a moment.</p>
-    </div>
-);
 
 const App: React.FC = () => {
     const [userData, setUserData] = useState<UserData | null>(null);

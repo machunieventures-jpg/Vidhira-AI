@@ -5,6 +5,7 @@ import MarkdownRenderer from '../common/MarkdownRenderer';
 import { trackEvent } from '../../services/analyticsService';
 import PlanetaryChart from './PlanetaryChart';
 import RasiChart from './RasiChart';
+import GrahaBalaChart from './GrahaBalaChart';
 
 interface JyotishFeatureProps {
     userData: UserData;
@@ -35,20 +36,20 @@ const JyotishFeature: React.FC<JyotishFeatureProps> = ({ userData }) => {
     return (
         <div>
             {isLoading && (
-                <div className="flex flex-col items-center justify-center space-y-4 text-stone-brown dark:text-manuscript-parchment py-8">
-                    <div className="w-12 h-12 border-4 border-stone-brown/20 dark:border-manuscript-parchment/20 border-t-suryansh-gold rounded-full animate-spin"></div>
-                    <p className="font-display text-lg text-suryansh-gold">Casting your Vedic Chart...</p>
-                    <p className="text-stone-brown/80 dark:text-manuscript-parchment/80 text-sm max-w-sm text-center">
+                <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                    <div className="loading-mandala"></div>
+                    <p className="text-xl font-bold gradient-text">Casting your Vedic Chart...</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm max-w-sm text-center">
                         This is a complex calculation aligning planetary positions from your moment of birth. Please be patient.
                     </p>
                 </div>
             )}
 
             {error && (
-                 <div className="text-center text-terracotta-red bg-terracotta-red/10 p-4 rounded-lg">
+                 <div className="text-center bg-[--rose-accent]/10 text-[--rose-accent] p-4 rounded-lg">
                     <p className="font-bold">Error</p>
-                    <p className="text-stone-brown/80 dark:text-manuscript-parchment/80 mt-1 text-sm">{error}</p>
-                    <button onClick={handleGenerate} className="mt-3 btn-neumorphic">
+                    <p className="mt-1 text-sm">{error}</p>
+                    <button onClick={handleGenerate} className="mt-3 btn-cosmic !py-2 !px-4">
                         Try Again
                     </button>
                 </div>
@@ -56,12 +57,12 @@ const JyotishFeature: React.FC<JyotishFeatureProps> = ({ userData }) => {
             
             {!isLoading && !report && !error && (
                  <div className="text-center p-4">
-                    <p className="text-stone-brown/80 dark:text-manuscript-parchment/80 mb-4">
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
                         Go beyond numerology with a traditional Vedic Astrology (Jyotish) report. This deep dive analyzes your planetary placements for insights into your karma, destiny, and life's major periods.
                     </p>
                     <button
                         onClick={handleGenerate}
-                        className="btn-neumorphic primary"
+                        className="btn-cosmic"
                     >
                         Generate Traditional Jyotish Report
                     </button>
@@ -69,11 +70,13 @@ const JyotishFeature: React.FC<JyotishFeatureProps> = ({ userData }) => {
             )}
 
             {report && (
-                <div className="mt-4 animate-fade-in space-y-8">
+                <div className="mt-4 animate-slide-up space-y-8">
                      <RasiChart placements={report.planetaryPlacements} ascendant={report.ascendantSign} />
-                     <hr className="border-stone-brown/10 dark:border-manuscript-parchment/10" />
+                     <hr className="border-gray-200 dark:border-gray-700" />
+                     <GrahaBalaChart data={report.grahaBala} />
+                     <hr className="border-gray-200 dark:border-gray-700" />
                      <PlanetaryChart data={report.planetaryPlacements} />
-                     <hr className="border-stone-brown/10 dark:border-manuscript-parchment/10" />
+                     <hr className="border-gray-200 dark:border-gray-700" />
                      <MarkdownRenderer content={report.markdownReport} />
                 </div>
             )}

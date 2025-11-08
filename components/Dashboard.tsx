@@ -6,27 +6,29 @@ import MarkdownRenderer from './common/MarkdownRenderer';
 import BrandAnalyzer from './brand/BrandAnalyzer';
 import ChatWidget from './chat/ChatWidget';
 import YearlyForecast from './forecast/YearlyForecast';
-import { calculateMulank } from '../services/numerologyService';
+import { calculateMulank, calculateKuaNumber } from '../services/numerologyService';
 import JyotishFeature from './jyotish/JyotishFeature';
 import PdfOptionsModal from './common/PdfOptionsModal';
 import CompatibilityList from './common/CompatibilityList';
 import CollapsibleSection from './CollapsibleSection';
 import { getDailyHoroscope } from '../services/geminiService';
 import { trackEvent } from '../services/analyticsService';
-
-// Icons
-const Download = ({ size = 20, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
-const User = ({ size = 20, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
+import { Download, User, Volume2, StopCircle, Loader } from './common/Icons';
+import ImageEditor from './ImageEditor';
+import BirthDestinyCombination from './BirthDestinyCombination';
 
 const Icons: { [key: string]: React.ReactNode } = {
     Kundali: <span className="text-3xl">✨</span>,
     Jyotish: <span className="text-3xl">🌌</span>,
     CosmicIdentity: <span className="text-3xl">👤</span>,
+    BirthDestinyCombination: <span className="text-3xl">🔗</span>,
     LoshuGrid: <span className="text-3xl">🔢</span>,
     Wealth: <span className="text-3xl">💰</span>,
     Health: <span className="text-3xl">🌿</span>,
     Relationships: <span className="text-3xl">❤️</span>,
     Psychology: <span className="text-3xl">🧠</span>,
+    ImageEditor: <span className="text-3xl">🖼️</span>,
     Navigator: <span className="text-3xl">🧭</span>,
     Spiritual: <span className="text-3xl">🙏</span>,
     Intellect: <span className="text-3xl">💡</span>,
@@ -39,11 +41,13 @@ const pillarData = [
     { key: 'kundaliSnapshot', title: 'Kundali Snapshot' },
     { key: 'jyotish', title: 'Jyotish Deep Dive' },
     { key: 'cosmicIdentity', title: 'Cosmic Identity' },
+    { key: 'birthDestinyCombination', title: 'Birth & Destiny Analysis' },
     { key: 'loshuAnalysis', title: 'Loshu Grid' },
     { key: 'wealthBusinessCareer', title: 'Wealth & Career' },
     { key: 'healthEnergyWellness', title: 'Health & Wellness' },
     { key: 'relationshipsFamilyLegacy', title: 'Relationships & Family' },
     { key: 'psychologyShadowWork', title: 'Psychology & Shadow Work' },
+    { key: 'imageEditor', title: 'Cosmic Image Editor' },
     { key: 'dailyNavigator', title: 'Daily Navigator' },
     { key: 'spiritualAlignment', title: 'Spiritual Alignment' },
     { key: 'intellectEducation', title: 'Intellect & Education' },
@@ -76,6 +80,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
   const [dailyHoroscope, setDailyHoroscope] = useState<string | null>(null);
   const [isHoroscopeLoading, setIsHoroscopeLoading] = useState(false);
   const [horoscopeError, setHoroscopeError] = useState<string | null>(null);
+  const audioPlayer = useAudioPlayer();
 
   const handleFetchDailyHoroscope = async () => {
     setIsHoroscopeLoading(true);
@@ -97,7 +102,23 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
   const renderPillarContent = (pillarKey: string) => {
     switch (pillarKey) {
         case 'kundaliSnapshot':
-            return <MarkdownRenderer content={report.kundaliSnapshot.summary} />;
+            return (
+                 <>
+                    <MarkdownRenderer content={report.kundaliSnapshot.summary} />
+                    <div className="mt-4">
+                        <button 
+                            className="btn-cosmic !py-2 !px-4"
+                            onClick={() => audioPlayer.isPlaying ? audioPlayer.stop() : audioPlayer.play(report.kundaliSnapshot.summary)}
+                            disabled={audioPlayer.isLoading}
+                        >
+                            {audioPlayer.isLoading ? <><Loader size={20}/> Synthesizing...</> :
+                             audioPlayer.isPlaying ? <><StopCircle size={20} /> Stop Reading</> :
+                             <><Volume2 size={20} /> Read Aloud</>}
+                        </button>
+                        {audioPlayer.error && <p className="text-sm text-[--rose-accent] mt-2">{audioPlayer.error}</p>}
+                    </div>
+                </>
+            );
         case 'jyotish':
             return <JyotishFeature userData={userData} />;
         case 'cosmicIdentity':
@@ -107,20 +128,28 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
                         <NumberCard 
                           key={key}
                           title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} 
-                          data={value} 
+                          data={value as CoreNumberInfo} 
                           className="bg-purple-50/50 dark:bg-purple-900/20"
                         />
                     ))}
                 </div>
             );
+        case 'birthDestinyCombination':
+            const birthNum = calculateMulank(userData.dob);
+            const destinyNum = cosmicIdentity.coreNumbers.lifePath.number;
+            return <BirthDestinyCombination birthNumber={birthNum} destinyNumber={destinyNum} userData={userData} />;
         case 'loshuAnalysis':
-            return <LoshuGrid grid={loshuAnalysis.grid} missingNumbers={loshuAnalysis.missingNumbers} overloadedNumbers={loshuAnalysis.overloadedNumbers} userData={userData} birthNumber={calculateMulank(userData.dob)} destinyNumber={cosmicIdentity.coreNumbers.lifePath.number} elementalPlanes={loshuAnalysis.elementalPlanes} isUnlocked={true} />;
+            const mulank = calculateMulank(userData.dob);
+            const kuaNumber = calculateKuaNumber(userData.dob, userData.gender);
+            return <LoshuGrid grid={loshuAnalysis.grid} missingNumbers={loshuAnalysis.missingNumbers} overloadedNumbers={loshuAnalysis.overloadedNumbers} userData={userData} birthNumber={mulank} destinyNumber={cosmicIdentity.coreNumbers.lifePath.number} kuaNumber={kuaNumber} planes={loshuAnalysis.planes} isUnlocked={true} />;
         case 'relationshipsFamilyLegacy':
             return (
                 <>
                     <MarkdownRenderer content={relationshipsFamilyLegacy.content} />
                     <hr className="my-6 border-gray-200 dark:border-gray-700"/>
                     <CompatibilityList title="Life Path Compatibility" pairings={relationshipsFamilyLegacy.compatibilityAnalysis.lifePath} />
+                    <hr className="my-6 border-gray-200 dark:border-gray-700"/>
+                    <CompatibilityList title="Expression Number Compatibility" pairings={relationshipsFamilyLegacy.compatibilityAnalysis.expression} />
                 </>
             );
         case 'wealthBusinessCareer':
@@ -131,6 +160,8 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
                     <BrandAnalyzer userData={userData} report={report} />
                  </>
             );
+        case 'imageEditor':
+            return <ImageEditor />;
         case 'futureForecast':
              return (
                 <>
@@ -195,7 +226,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
           {/* Core Numbers */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
              {Object.entries(cosmicIdentity.coreNumbers).slice(0, 4).map(([key, value]) => (
-                <CoreNumberCard key={key} label={key} value={(value as CoreNumberInfo).number} />
+                    <CoreNumberCard key={key} label={key} value={(value as CoreNumberInfo).number} />
              ))}
           </div>
 
@@ -208,6 +239,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
                 icon={Icons[pillar.key.charAt(0).toUpperCase() + pillar.key.slice(1).replace(/([A-Z])/g, '')] || Icons.Kundali}
                 data-section-key={pillar.key}
                 animationDelay={idx * 100}
+                tooltipText={pillar.key === 'methodology' ? report.methodology.disclaimer : undefined}
               >
                 {renderPillarContent(pillar.key)}
               </CollapsibleSection>

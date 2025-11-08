@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import InfoTooltip from './common/InfoTooltip';
+import { ChevronDown } from './common/Icons';
 
 interface CollapsibleSectionProps {
   title: React.ReactNode;
@@ -6,11 +8,10 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
   'data-section-key': string;
   animationDelay?: number;
+  tooltipText?: string;
 }
 
-const ChevronDown = ({ size = 24, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"/></svg>;
-
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, children, 'data-section-key': dataSectionKey, animationDelay = 0 }) => {
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, children, 'data-section-key': dataSectionKey, animationDelay = 0, tooltipText }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleOpen = () => {
@@ -33,7 +34,10 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleOpen() }}
       >
         <div className="mr-4">{icon}</div>
-        <h3 className="flex-1 text-xl font-bold text-gray-800 dark:text-gray-100">{title}</h3>
+        <div className="flex-1 flex items-center">
+          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">{title}</h3>
+          {tooltipText && <InfoTooltip text={tooltipText} />}
+        </div>
         <ChevronDown className={`ml-4 text-purple-400 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </header>
       <div

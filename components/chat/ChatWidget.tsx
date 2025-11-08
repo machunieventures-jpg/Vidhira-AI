@@ -4,9 +4,7 @@ import { getChatResponse } from '../../services/geminiService';
 import ChatMessageBubble from './ChatMessage';
 import TypingIndicator from './TypingIndicator';
 import { trackEvent } from '../../services/analyticsService';
-
-const MessageCircle = ({ size = 28, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
-const Send = ({ size = 20, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
+import { MessageCircle, Send } from '../common/Icons';
 
 
 interface ChatWidgetProps {

@@ -1,9 +1,6 @@
 import React from 'react';
 import type { WorldClassReport, UserData } from '../types';
-
-// Icons
-const Crown = ({ size = 24, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>;
-const Lock = ({ size = 16, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+import { Crown, Lock } from './common/Icons';
 
 
 interface BlueprintSummaryProps {
@@ -45,7 +42,6 @@ const BlueprintSummary: React.FC<BlueprintSummaryProps> = ({ report, userData, o
                     <div className="flex flex-wrap justify-center gap-6 mb-8">
                         <NumberBadge label="Life Path" number={cosmicIdentity.coreNumbers.lifePath.number} />
                         <NumberBadge label="Expression" number={cosmicIdentity.coreNumbers.expression.number} />
-                        <NumberBadge label="Soul Urge" number={cosmicIdentity.coreNumbers.soulUrge.number} />
                         <NumberBadge label="Personality" number={cosmicIdentity.coreNumbers.personality.number} />
                     </div>
 
