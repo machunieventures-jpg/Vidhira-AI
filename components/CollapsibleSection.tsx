@@ -13,6 +13,7 @@ interface CollapsibleSectionProps {
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, children, 'data-section-key': dataSectionKey, animationDelay = 0, tooltipText }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const tooltipId = `tooltip-${dataSectionKey}`;
 
   const toggleOpen = () => {
     setIsOpen(!isOpen);
@@ -33,14 +34,15 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, ch
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleOpen() }}
       >
-        <div className="mr-4">{icon}</div>
+        <div className="mr-4" aria-hidden="true">{icon}</div>
         <div className="flex-1 flex items-center">
           <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">{title}</h3>
-          {tooltipText && <InfoTooltip text={tooltipText} />}
+          {tooltipText && <InfoTooltip text={tooltipText} id={tooltipId} />}
         </div>
-        <ChevronDown className={`ml-4 text-purple-400 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`ml-4 text-purple-400 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </header>
       <div
+        id={`section-content-${dataSectionKey}`}
         className={`collapsible-content transition-[max-height,padding] duration-500 ease-in-out overflow-hidden ${isOpen ? 'max-h-[5000px]' : 'max-h-0'}`}
       >
         <div className="px-4 md:px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-6">

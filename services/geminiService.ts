@@ -1,185 +1,89 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { UserData, CoreNumbers, CompoundNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData, MethodologyPillar, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis, LogoAnalysis } from '../types';
+import type { UserData, CoreNumbers, CompoundNumbers, KarmicDebtNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData, MethodologyPillar, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis, LogoAnalysis, CalendarDayInsight } from '../types';
 import { calculateNameNumbers, reduceNumber } from './numerologyService';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
-const coreNumberSchema = {
-    type: Type.OBJECT,
-    properties: {
-        number: { type: Type.INTEGER },
-        compound: { type: Type.INTEGER },
-        interpretation: { type: Type.STRING },
-        planetaryRuler: { type: Type.STRING, description: "The ruling planet for this number based on Chaldean numerology (e.g., 'Sun', 'Moon')." }
-    },
-    required: ['number', 'interpretation', 'planetaryRuler']
-};
-
-const pillarContentSchema = {
-    type: Type.OBJECT,
-    properties: {
-        teaser: { type: Type.STRING, description: "A 1-2 sentence compelling teaser for this pillar." },
-        content: { type: Type.STRING, description: "The full, in-depth markdown analysis for this pillar." }
-    },
-    required: ['teaser', 'content']
-};
-
-const responseSchema = {
-    type: Type.OBJECT,
-    properties: {
-        kundaliSnapshot: {
-            type: Type.OBJECT,
-            description: "A summary of key Vedic Astrology (Kundali) placements based on birth date, time, and location.",
-            properties: {
-                ascendant: { type: Type.STRING, description: "The user's Ascendant sign (Lagna)." },
-                moonSign: { type: Type.STRING, description: "The user's Moon sign (Rashi)." },
-                sunSign: { type: Type.STRING, description: "The user's Sun sign." },
-                summary: { type: Type.STRING, description: "A 2-3 sentence summary of the user's core personality based on these three placements." }
-            },
-            required: ['ascendant', 'moonSign', 'sunSign', 'summary']
-        },
-        cosmicIdentity: {
-            type: Type.OBJECT,
-            properties: {
-                coreNumbers: {
-                    type: Type.OBJECT,
-                    properties: {
-                        lifePath: coreNumberSchema,
-                        expression: coreNumberSchema,
-                        soulUrge: coreNumberSchema,
-                        personality: coreNumberSchema,
-                        maturity: coreNumberSchema,
-                    },
-                    required: ['lifePath', 'expression', 'soulUrge', 'personality', 'maturity']
-                },
-                soulSynopsis: pillarContentSchema,
-                famousParallels: pillarContentSchema,
-                planetaryRulerships: pillarContentSchema,
-            },
-            required: ['coreNumbers', 'soulSynopsis', 'famousParallels', 'planetaryRulerships']
-        },
-        loshuAnalysis: {
-             type: Type.OBJECT,
-             properties: {
-                planes: {
-                    type: Type.OBJECT,
-                    properties: {
-                        mental: pillarContentSchema,
-                        emotional: pillarContentSchema,
-                        practical: pillarContentSchema,
-                        thought: pillarContentSchema,
-                        will: pillarContentSchema,
-                        action: pillarContentSchema,
-                        determination: pillarContentSchema,
-                        spiritual: pillarContentSchema,
-                    },
-                    required: ['mental', 'emotional', 'practical', 'thought', 'will', 'action', 'determination', 'spiritual']
-                },
-                balanceSummary: pillarContentSchema,
-                compensationStrategy: pillarContentSchema
-             },
-             required: ['planes', 'balanceSummary', 'compensationStrategy']
-        },
-        wealthBusinessCareer: pillarContentSchema,
-        healthEnergyWellness: pillarContentSchema,
-        relationshipsFamilyLegacy: {
-            type: Type.OBJECT,
-            properties: {
-                teaser: { type: Type.STRING },
-                content: { type: Type.STRING },
-                compatibilityAnalysis: {
-                    type: Type.OBJECT,
-                    description: "Analyzes compatibility of user's core numbers with numbers 1-9.",
-                    properties: {
-                        lifePath: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    compatibleNumber: { type: Type.INTEGER },
-                                    interpretation: { type: Type.STRING, description: "Brief interpretation of the compatible pairing." }
-                                },
-                                required: ['compatibleNumber', 'interpretation']
-                            }
-                        },
-                        expression: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    compatibleNumber: { type: Type.INTEGER },
-                                    interpretation: { type: Type.STRING, description: "Brief interpretation of the compatible pairing." }
-                                },
-                                required: ['compatibleNumber', 'interpretation']
-                            }
-                        },
-                        soulUrge: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    compatibleNumber: { type: Type.INTEGER },
-                                    interpretation: { type: Type.STRING, description: "Brief interpretation of the compatible pairing." }
-                                },
-                                required: ['compatibleNumber', 'interpretation']
-                            }
-                        }
-                    },
-                    required: ['lifePath', 'expression', 'soulUrge']
-                }
-            },
-            required: ['teaser', 'content', 'compatibilityAnalysis']
-        },
-        psychologyShadowWork: pillarContentSchema,
-        dailyNavigator: pillarContentSchema,
-        spiritualAlignment: {
-            type: Type.OBJECT,
-            properties: {
-                 teaser: { type: Type.STRING, description: "A 1-2 sentence compelling teaser for this pillar." },
-                 content: { type: Type.STRING, description: "Pillar 8. In-depth analysis formatted in Markdown. Cover Mantras, Crystals, Colors, and Lucky Dates." },
-                 luckyColor: { type: Type.STRING, description: "Based on the user's core numbers, determine their single most powerful lucky color. Provide this as a standard HEX color code string (e.g., '#3A0CA3'). This color should feel empowering and aligned with their core energy." },
-                 mantrasAndAffirmations: {
-                    type: Type.ARRAY,
-                    description: "An array of 2-3 short, personalized, empowering mantras or affirmations based on the user's core numerology.",
-                    items: {
-                        type: Type.STRING
-                    }
-                 }
-            },
-            required: ['teaser', 'content', 'luckyColor', 'mantrasAndAffirmations']
-        },
-        intellectEducation: pillarContentSchema,
-        futureForecast: {
-            type: Type.OBJECT,
-            properties: {
-                personalYear: coreNumberSchema,
-                strategicRoadmap: pillarContentSchema,
-            },
-            required: ['personalYear', 'strategicRoadmap']
-        },
-        methodology: {
-            type: Type.OBJECT,
-            description: "Details on the technical methods and disclaimers for transparency.",
-            properties: {
-                ayanamsa: { type: Type.STRING, description: "The Ayanamsa used for Vedic calculations. Should be 'Lahiri'." },
-                houseSystem: { type: Type.STRING, description: "The house system used. Should be 'Placidus'." },
-                numerologyMethod: { type: Type.STRING, description: "The numerology system used. Should be 'Chaldean'." },
-                disclaimer: { type: Type.STRING, description: "A standard ethical disclaimer about the report's purpose." }
-            },
-            required: ['ayanamsa', 'houseSystem', 'numerologyMethod', 'disclaimer']
+/**
+ * Robustly extracts a JSON object or array from a string,
+ * handling markdown code blocks and extraneous text.
+ * @param text The text response from the AI model.
+ * @returns The parsed JSON object or array.
+ * @throws An error if JSON is not found or is invalid.
+ */
+function extractJson(text: string): any {
+    let content = text.trim();
+    
+    // 1. Handle markdown code blocks first
+    const match = content.match(/```(json)?\s*([\s\S]*?)\s*```/);
+    if (match && match[2]) {
+        content = match[2].trim();
+        try {
+            return JSON.parse(content);
+        } catch (error) {
+            console.error("Failed to parse JSON from markdown block:", content);
+            throw new Error(`Model returned invalid JSON inside a markdown block. ${error}`);
         }
-    },
-    required: [
-        'kundaliSnapshot', 'cosmicIdentity', 'loshuAnalysis', 'wealthBusinessCareer', 'healthEnergyWellness', 'relationshipsFamilyLegacy',
-        'psychologyShadowWork', 'dailyNavigator', 'spiritualAlignment', 'intellectEducation', 'futureForecast', 'methodology'
-    ]
-};
+    }
+    
+    // 2. If no markdown, find the start of the JSON
+    const jsonStart = content.search(/[[{]/);
+    if (jsonStart === -1) {
+        console.error("No JSON object or array found in the response string:", content);
+        throw new Error("Model response did not contain a valid JSON object or array.");
+    }
+    
+    // 3. Find the matching closing bracket using a simple depth counter
+    const openChar = content[jsonStart];
+    const closeChar = openChar === '{' ? '}' : ']';
+    let depth = 1;
+    let inString = false;
+    let jsonEnd = -1;
 
+    for (let i = jsonStart + 1; i < content.length; i++) {
+        const char = content[i];
+        
+        // This is a simplified check for strings. It doesn't handle escaped quotes perfectly
+        // but is generally sufficient for extracting a JSON blob from surrounding text.
+        if (char === '"' && content[i - 1] !== '\\') {
+            inString = !inString;
+        }
+
+        if (inString) {
+            continue;
+        }
+
+        if (char === openChar) {
+            depth++;
+        } else if (char === closeChar) {
+            depth--;
+            if (depth === 0) {
+                jsonEnd = i;
+                break; // Found the end
+            }
+        }
+    }
+
+    if (jsonEnd === -1) {
+        console.error("Malformed JSON response, could not find closing bracket for:", content);
+        throw new Error("Malformed JSON response: could not find a matching closing bracket.");
+    }
+
+    const jsonString = content.substring(jsonStart, jsonEnd + 1);
+
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Failed to parse extracted JSON string:", jsonString);
+        throw new Error(`Model returned invalid JSON. ${error}`);
+    }
+}
 
 export const generateWorldClassReport = async (
     userData: UserData,
     coreNumbers: CoreNumbers,
     compoundNumbers: CompoundNumbers,
+    karmicDebtNumbers: KarmicDebtNumbers,
     loshu: Pick<LoshuAnalysisPillar, 'missingNumbers' | 'overloadedNumbers'>
 ): Promise<Omit<WorldClassReport, 'loshuAnalysis'> & { loshuAnalysis: Omit<LoshuAnalysisPillar, 'grid' | 'missingNumbers' | 'overloadedNumbers'> }> => {
   const { fullName, dob, time, location, gender, language, phoneNumber } = userData;
@@ -194,12 +98,14 @@ export const generateWorldClassReport = async (
   **CRITICAL INSTRUCTIONS:**
   1.  **Strictly Chaldean:** Your entire numerological analysis MUST be based exclusively on the Chaldean system. This is a critical requirement for accuracy. Do not blend concepts, interpretations, or planetary associations from Pythagorean or any other numerology system. Every piece of numerological insight must be pure Chaldean.
   2.  **Terminology:** For key numerological and astrological terms, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. For example: "Life Path Number (Sanskrit: Jeevan Pathank)", "Expression Number (Sanskrit: Namank)", "Ascendant (Sanskrit: Lagna)". This is crucial for authenticity and proper rendering.
-  3.  **Specificity:** Generic advice is not acceptable. For the 'wealthBusinessCareer' and 'intellectEducation' pillars, you must provide highly specific and actionable recommendations.
+  3.  **Karmic Debt:** If a core number has an associated Karmic Debt Number (13, 14, 16, 19), you MUST populate the 'karmicDebt' field with that number. Within the main 'interpretation' for that number, you MUST include a specific, in-depth interpretation of that karmic lesson. Explain the nature of the debt, the challenges it presents, and the path to overcoming it with practical advice. This is a critical part of the analysis.
+  4.  **AI Reflection Coach:** For EVERY pillar or sub-pillar with a 'content' field, you MUST also generate a thought-provoking, personalized 'journalPrompt'. This prompt must be a single question designed to help the user reflect on that pillar's insights and apply them to their life. This is a mandatory field.
+  5.  **Specificity:** Generic advice is not acceptable. For the 'wealthBusinessCareer' and 'intellectEducation' pillars, you must provide highly specific and actionable recommendations.
       *   **For Career:** Instead of "good in business", suggest specific industries (e.g., "fintech, sustainable agriculture, AI-driven marketing") and roles (e.g., "product manager, data scientist, strategic consultant"). Be bold and precise.
       *   **For Education:** Instead of "suited for higher learning", recommend specific degree programs or certifications (e.g., "a Master's in Computer Science with a specialization in Machine Learning", "a certification in Digital Marketing from Google or HubSpot", "a degree in Psychology focusing on cognitive-behavioral therapy"). Base these on the user's core numbers for maximum relevance.
-  4.  **Teasers & Content:** For every pillar or sub-pillar with a 'teaser' and 'content' field, you MUST provide both. The 'teaser' must be a short, 1-2 sentence summary. The 'content' must be the full, detailed analysis.
-  5.  **Planetary Rulers:** For each core number, you MUST also determine its ruling planet based on the Chaldean system (1-Sun, 2-Moon, 3-Jupiter, 4-Rahu, 5-Mercury, 6-Venus, 7-Ketu, 8-Saturn, 9-Mars) and populate the 'planetaryRuler' field.
-  6.  **Full Loshu Analysis**: For the 'loshuAnalysis.planes' object, you MUST provide a full analysis for ALL EIGHT planes of the Loshu grid: Mental, Emotional, Practical (rows), Thought, Will, Action (columns), and Determination, Spiritual (diagonals). For each plane, determine if it is complete or incomplete and provide a corresponding insightful interpretation.
+  6.  **Teasers & Content:** For every pillar or sub-pillar with a 'teaser' and 'content' field, you MUST provide both. The 'teaser' must be a short, 1-2 sentence summary. The 'content' must be the full, detailed analysis.
+  7.  **Planetary Rulers:** For each core number, you MUST also determine its ruling planet based on the Chaldean system (1-Sun, 2-Moon, 3-Jupiter, 4-Rahu, 5-Mercury, 6-Venus, 7-Ketu, 8-Saturn, 9-Mars) and populate the 'planetaryRuler' field.
+  8.  **Full Loshu Analysis**: For the 'loshuAnalysis.planes' object, you MUST provide a full analysis for ALL EIGHT planes of the Loshu grid: Mental, Emotional, Practical (rows), Thought, Will, Action (columns), and Determination, Spiritual (diagonals). For each plane, determine if it is complete or incomplete and provide a corresponding insightful interpretation.
 
   **USER DATA:**
   - Full Name: "${fullName}"
@@ -211,11 +117,11 @@ export const generateWorldClassReport = async (
   - Preferred Language: "${language}"
 
   **CALCULATED NUMEROLOGY DATA (Chaldean Method):**
-  - Life Path Number: ${coreNumbers.lifePath} (from compound ${compoundNumbers.lifePath})
-  - Expression Number: ${coreNumbers.expression} (from compound ${compoundNumbers.expression})
-  - Soul Urge Number: ${coreNumbers.soulUrge} (from compound ${compoundNumbers.soulUrge})
-  - Personality Number: ${coreNumbers.personality} (from compound ${compoundNumbers.personality})
-  - Maturity Number: ${coreNumbers.maturity} (from compound ${compoundNumbers.maturity})
+  - Life Path Number: ${coreNumbers.lifePath} (from compound ${compoundNumbers.lifePath}) ${karmicDebtNumbers.lifePath ? `-> KARMIC DEBT: ${karmicDebtNumbers.lifePath}` : ''}
+  - Expression Number: ${coreNumbers.expression} (from compound ${compoundNumbers.expression}) ${karmicDebtNumbers.expression ? `-> KARMIC DEBT: ${karmicDebtNumbers.expression}` : ''}
+  - Soul Urge Number: ${coreNumbers.soulUrge} (from compound ${compoundNumbers.soulUrge}) ${karmicDebtNumbers.soulUrge ? `-> KARMIC DEBT: ${karmicDebtNumbers.soulUrge}` : ''}
+  - Personality Number: ${coreNumbers.personality} (from compound ${compoundNumbers.personality}) ${karmicDebtNumbers.personality ? `-> KARMIC DEBT: ${karmicDebtNumbers.personality}` : ''}
+  - Maturity Number: ${coreNumbers.maturity} (from compound ${compoundNumbers.maturity}) ${karmicDebtNumbers.maturity ? `-> KARMIC DEBT: ${karmicDebtNumbers.maturity}` : ''}
   - Personal Year Number: ${coreNumbers.personalYear}
   - Loshu Grid Missing Numbers: ${loshu.missingNumbers.join(', ') || 'None'}
   - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
@@ -239,11 +145,20 @@ export const generateWorldClassReport = async (
 
   **SPECIFIC INSTRUCTIONS FOR 'relationshipsFamilyLegacy' PILLAR:**
   In addition to the main content, generate the 'compatibilityAnalysis'.
-  1.  For the user's Life Path number (${coreNumbers.lifePath}), identify its most compatible numbers (1-9) and provide a brief interpretation for each pairing.
-  2.  For the user's Expression number (${coreNumbers.expression}), do the same.
-  3.  For the user's Soul Urge number (${coreNumbers.soulUrge}), do the same.
+  1.  For the user's Life Path number (${coreNumbers.lifePath}), identify its most compatible numbers (1-9). For each pairing, provide a detailed, 3-4 sentence interpretation explaining the synergistic dynamics, potential strengths, and areas of harmony.
+  2.  For the user's Expression number (${coreNumbers.expression}), do the same, providing a detailed 3-4 sentence interpretation for each compatible pairing.
+  3.  For the user's Soul Urge number (${coreNumbers.soulUrge}), do the same, providing a detailed 3-4 sentence interpretation for each compatible pairing.
+  4.  **Friendly/Enemy Analysis:** Generate the 'friendlyAndEnemyNumbers' content. This analysis is critical.
+      -   The 'teaser' should be a 1-sentence summary about the importance of number harmony.
+      -   The 'content' must be a Markdown-formatted section. First, provide a short paragraph explaining the concept of friendly, neutral, and inimical numbers based on the user's primary Destiny Number (${coreNumbers.lifePath}).
+      -   Then, create a well-structured Markdown table with three columns: "Friendly Numbers", "Neutral Numbers", "Enemy Numbers".
+      -   For each column, list the corresponding numbers (1-9) and provide a concise, insightful explanation for *why* they have that relationship with the user's Destiny Number.
+      -   Conclude the 'content' with a paragraph of actionable advice on how to leverage these relationships in personal and professional life.
+      -   The 'journalPrompt' should ask a reflective question about their experiences with people who might embody these different number energies.
   
   For 'spiritualAlignment', determine their primary lucky color and provide its hex code. Also, generate 2-3 personalized, empowering mantras in the 'mantrasAndAffirmations' array.
+  
+  You must return a single JSON object. Do not include any text before or after the JSON.
   `;
 
   try {
@@ -251,23 +166,11 @@ export const generateWorldClassReport = async (
       model: 'gemini-2.5-pro',
       contents: prompt,
       config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
         seed: 42,
       },
     });
 
-    const responseText = response.text;
-    // Fix: Safely parse JSON response which might be wrapped in markdown backticks.
-    let jsonStr = responseText.trim();
-    if (jsonStr.startsWith("```json")) {
-        jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
-    } else if (jsonStr.startsWith("```")) {
-        jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
-    }
-    const reportData = JSON.parse(jsonStr);
-    
-    return reportData;
+    return extractJson(response.text);
 
   } catch (error) {
     console.error("Error generating world-class report:", error);
@@ -355,74 +258,6 @@ export const getCoreIdentifierInterpretation = async (
   }
 };
 
-const brandAnalyzerSchema = {
-    type: Type.OBJECT,
-    properties: {
-        brandExpressionNumber: { type: Type.INTEGER, description: "The calculated Chaldean Expression number for the brand name." },
-        vibrationalAlignmentScore: { type: Type.INTEGER, description: "A percentage score (0-100) representing compatibility between the brand name and the user's core numbers." },
-        detailedAnalysis: { type: Type.STRING, description: "3-4 sentences explaining the synergy or friction between the brand and user energies." },
-        brandArchetype: { type: Type.STRING, description: "Assign a primary, nuanced brand archetype (e.g., 'The Alchemist', 'The Futurist', 'The Sage') based on the name's vibration." },
-        expressionNumberExplanation: { type: Type.STRING, description: "A concise, 1-2 sentence explanation of what a Chaldean Expression (or Name) number represents in numerology." },
-        colorPalette: {
-            type: Type.OBJECT,
-            properties: {
-                primary: { type: Type.STRING, description: "A valid 6-digit HEX code for the primary brand color (e.g., '#FFFFFF')." },
-                secondary: { type: Type.STRING, description: "A valid 6-digit HEX code for the secondary brand color." },
-                accent: { type: Type.STRING, description: "A valid 6-digit HEX code for an accent color." },
-                explanation: { type: Type.STRING, description: "A detailed 2-3 sentence rationale linking the colors to the brand's numerological vibration and archetype, including actionable advice on how to use the primary, secondary, and accent colors in marketing materials, website design, and social media." }
-            },
-            required: ["primary", "secondary", "accent", "explanation"]
-        },
-        socialMediaHandles: {
-            type: Type.ARRAY,
-            description: "A list of 3-4 creative social media handle suggestions that reflect the brand's archetype and target audience. IMPORTANT: Availability is simulated; you must randomly mark 1-2 as unavailable.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    name: { type: Type.STRING },
-                    available: { type: Type.BOOLEAN }
-                },
-                required: ["name", "available"]
-            }
-        },
-        domainSuggestions: {
-            type: Type.ARRAY,
-            description: "A list of 3-4 creative domain name suggestions with various TLDs. IMPORTANT: Availability is simulated; you must randomly mark 1-2 as unavailable.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    name: { type: Type.STRING },
-                    available: { type: Type.BOOLEAN }
-                },
-                required: ["name", "available"]
-            }
-        },
-        fortuneCompanyComparison: {
-            type: Type.ARRAY,
-            description: "Compare the brand's vibration to 2-3 famous Fortune 500 companies. Provide a brief analysis of the energetic similarities.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    companyName: { type: Type.STRING },
-                    companyVibration: { type: Type.INTEGER },
-                    synergyAnalysis: { type: Type.STRING, description: "A detailed 1-2 sentence explanation of why the brand's vibration is synergistic or challenging compared to the company." }
-                },
-                required: ["companyName", "companyVibration", "synergyAnalysis"]
-            }
-        },
-        contentStrategy: {
-            type: Type.STRING,
-            description: "A detailed guide on the type of social media content the brand should create, aligned with its archetype. It should include 2-3 actionable content ideas or themes, like user testimonials or short video content."
-        },
-        nameSuggestions: {
-            type: Type.ARRAY,
-            description: "If alignment score is below 65, provide 2-3 alternative name suggestions that are numerically harmonious. Otherwise, return an empty array.",
-            items: { type: Type.STRING }
-        }
-    },
-    required: ["brandExpressionNumber", "vibrationalAlignmentScore", "detailedAnalysis", "brandArchetype", "expressionNumberExplanation", "colorPalette", "socialMediaHandles", "domainSuggestions", "fortuneCompanyComparison", "contentStrategy", "nameSuggestions"]
-};
-
 export const analyzeBrandName = async (
   businessName: string,
   userName: string,
@@ -455,6 +290,8 @@ export const analyzeBrandName = async (
     8.  **Fortune Company Comparison:** Calculate the Chaldean Expression number for 2-3 famous companies (e.g., Apple=1, Google=3, Amazon=3, Microsoft=8). Find companies whose number matches or complements the business's number (${brandNumbers.expression}). For 'synergyAnalysis', provide a detailed 1-2 sentence explanation. This must detail *why* the user's brand vibration is either synergistic (if numbers are compatible) or challenging (if numbers are conflicting) compared to the Fortune 500 company. For example: "Synergistic with Google (3): Your brand's vibration of 3 also resonates with innovation and organizing information, suggesting a potential for large-scale impact and data-driven growth." or "Challenging compared to Apple (1): Your brand's collaborative '6' vibration may conflict with Apple's individualistic '1' leadership energy, requiring a different approach to market dominance."
     9.  **Content Strategy:** Generate a 'contentStrategy'. This should be a detailed guide on the *type* of content the brand should create, aligned with its archetype. Provide a general theme and then list 2-3 more specific, actionable content ideas. For instance, you could suggest "Share user testimonials highlighting transformative experiences" or "Create short, visually engaging video content showcasing the brand's core values". For a 'Sage' archetype, you might suggest 'Focus on educational content, deep-dive articles, and case studies. Also, share user testimonials highlighting their learning journey.' For a 'Jester', you could suggest 'Create humorous memes, engaging quizzes, and user-generated content challenges. Also, produce short, funny video skits that reflect the brand's personality.'
     10. **Name Suggestions:** If, and ONLY IF, the \`vibrationalAlignmentScore\` is below 65, you MUST provide 2-3 alternative brand name suggestions. These suggestions are critical. Each one must be "numerically harmonious". To achieve this, you MUST: a) Internally calculate the Chaldean Expression number for each suggested name. b) Ensure this number is highly compatible with the user's Life Path (${userLifePath}) and Expression (${userExpression}). The goal is to suggest names that would yield a significantly higher alignment score if re-analyzed. If the score is 65 or above, you MUST return an empty array \`[]\`.
+    
+    You must return a single JSON object. Do not include any text before or after the JSON.
     `;
 
     try {
@@ -462,34 +299,14 @@ export const analyzeBrandName = async (
             model: 'gemini-2.5-pro',
             contents: prompt,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: brandAnalyzerSchema,
                 seed: 42,
             },
         });
-        const responseText = response.text;
-        // Fix: Safely parse JSON response which might be wrapped in markdown backticks.
-        let jsonStr = responseText.trim();
-        if (jsonStr.startsWith("```json")) {
-            jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
-        } else if (jsonStr.startsWith("```")) {
-            jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
-        }
-        return JSON.parse(jsonStr);
+        return extractJson(response.text);
     } catch (error) {
         console.error(`Error analyzing brand name "${businessName}":`, error);
         throw new Error(`Failed to analyze the vibrational alignment for "${businessName}". The cosmic frequencies may be disturbed. Please try again shortly.`);
     }
-};
-
-const phoneNumberAnalysisSchema = {
-    type: Type.OBJECT,
-    properties: {
-        vibrationNumber: { type: Type.INTEGER },
-        analysis: { type: Type.STRING, description: "A detailed analysis of the phone number's vibration for business, including its strengths and weaknesses." },
-        isFavorable: { type: Type.BOOLEAN, description: "A simple true/false indicating if this number is generally favorable for business success." }
-    },
-    required: ["vibrationNumber", "analysis", "isFavorable"]
 };
 
 export const analyzePhoneNumber = async (
@@ -520,6 +337,8 @@ export const analyzePhoneNumber = async (
         - An '8' is powerful for finance, authority, and large-scale operations but might be too intense for a small creative studio.
         - A '4' might be good for construction or logistics but could feel restrictive for a consultancy.
     4.  **isFavorable:** Based on your analysis, determine if this number is generally favorable for business success. A number like 8, 1, 3, 5, or 6 is usually good. A number like 4, 7 or 9 might be more challenging. Set the 'isFavorable' boolean field accordingly.
+    
+    You must return a single JSON object. Do not include any text before or after the JSON.
     `;
     
     try {
@@ -527,36 +346,13 @@ export const analyzePhoneNumber = async (
             model: 'gemini-2.5-pro',
             contents: prompt,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: phoneNumberAnalysisSchema,
                 seed: 42,
             },
         });
-        const responseText = response.text;
-        let jsonStr = responseText.trim();
-        if (jsonStr.startsWith("```json")) {
-            jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
-        } else if (jsonStr.startsWith("```")) {
-            jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
-        }
-        return JSON.parse(jsonStr);
+        return extractJson(response.text);
     } catch (error) {
         console.error(`Error analyzing phone number "${phoneNumber}":`, error);
         throw new Error(`Failed to analyze the vibrational alignment for the phone number. The cosmic frequencies may be disturbed.`);
-    }
-};
-
-const competitorAnalysisSchema = {
-    type: Type.ARRAY,
-    description: "An array of competitor analysis objects.",
-    items: {
-        type: Type.OBJECT,
-        properties: {
-            competitorName: { type: Type.STRING },
-            competitorVibration: { type: Type.INTEGER },
-            comparisonAnalysis: { type: Type.STRING, description: "A 1-2 sentence analysis comparing the user's brand to this competitor, highlighting synergy or challenges." }
-        },
-        required: ["competitorName", "competitorVibration", "comparisonAnalysis"]
     }
 };
 
@@ -598,7 +394,7 @@ export const analyzeCompetitors = async (
     3.  Briefly consider how this dynamic positions the user's brand in the market against that specific competitor.
     4.  The analysis should be strategic, not just a simple definition of the numbers.
     
-    Generate a JSON array of objects, one for each competitor.
+    Generate a JSON array of objects, one for each competitor. Do not include any text before or after the JSON.
     `;
 
     try {
@@ -606,35 +402,58 @@ export const analyzeCompetitors = async (
             model: 'gemini-2.5-pro',
             contents: prompt,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: competitorAnalysisSchema,
                 seed: 42,
             },
         });
-        const responseText = response.text;
-        let jsonStr = responseText.trim();
-        if (jsonStr.startsWith("```json")) {
-            jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
-        } else if (jsonStr.startsWith("```")) {
-            jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
-        }
-        return JSON.parse(jsonStr);
+        return extractJson(response.text);
     } catch (error) {
         console.error(`Error analyzing competitors:`, error);
         throw new Error(`Failed to analyze competitors. The cosmic market intelligence network is currently unavailable.`);
     }
 };
 
-const logoAnalysisSchema = {
-    type: Type.OBJECT,
-    properties: {
-        logoVibrationNumber: { type: Type.INTEGER, description: "A calculated numerological vibration (1-9) based on the logo's dominant colors and shapes." },
-        synergyAnalysis: { type: Type.STRING, description: "A 2-3 sentence analysis explaining how the logo's vibration synergizes or conflicts with the brand name vibration and user's core numbers." },
-        logoTypeSuggestion: { type: Type.STRING, description: "Suggest a more aligned logo type (e.g., 'Minimalist Emblem', 'Dynamic Wordmark')." },
-        fontSuggestions: { type: Type.ARRAY, description: "Suggest 2-3 font families (e.g., 'Geometric Sans-serif', 'Elegant Serif') that would better match the brand's energy.", items: { type: Type.STRING } },
-    },
-    required: ['logoVibrationNumber', 'synergyAnalysis', 'logoTypeSuggestion', 'fontSuggestions']
-}
+export const suggestAndAnalyzeCompetitors = async (
+    userBrandName: string,
+    userBrandVibration: number,
+    userLifePath: number,
+    userExpression: number,
+    language: string
+): Promise<CompetitorBrandAnalysis[]> => {
+    const prompt = `
+    Act as Arvind Sud, a master numerologist specializing in competitive strategy.
+    Your entire response MUST be in ${language} and conform strictly to the provided JSON schema. The analysis must be strictly based on Chaldean numerology principles.
+
+    **TASK: SUGGEST AND ANALYZE COMPETITOR BRANDS**
+    You will suggest 3-5 major competitors for a brand named "${userBrandName}" which operates in the numerology, astrology, or personal development app space. Then, you will provide a strategic comparison for each.
+
+    **USER'S DATA:**
+    - Brand Name: "${userBrandName}"
+    - Brand Vibration (Expression Number): ${userBrandVibration}
+    - User's Core Numbers: Life Path ${userLifePath}, Expression ${userExpression}.
+
+    **ANALYSIS INSTRUCTIONS:**
+    For each of the 3-5 competitors you suggest:
+    1.  Provide the \`competitorName\`. Good examples include apps like 'The Pattern', 'Co-Star', 'Sanctuary', 'Numerology.com'.
+    2.  Internally, calculate the Chaldean Expression number for the competitor's name. You MUST use the Chaldean system (A,I,J,Q,Y=1; B,K,R=2; etc.). Populate the \`competitorVibration\` field with this calculated number.
+    3.  Provide a concise but insightful 'comparisonAnalysis' (1-2 sentences). This analysis MUST directly compare the competitor's vibration to the user's brand vibration (${userBrandVibration}) and also consider the user's core numbers (${userLifePath}, ${userExpression}). Explain the strategic implications, such as market positioning, synergistic energies, or potential challenges.
+    
+    Generate a JSON array of objects, one for each suggested competitor. Do not include any text before or after the JSON.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                seed: 42,
+            },
+        });
+        return extractJson(response.text);
+    } catch (error) {
+        console.error(`Error suggesting and analyzing competitors:`, error);
+        throw new Error(`Failed to generate competitor suggestions. The cosmic market intelligence network is currently unavailable.`);
+    }
+};
 
 export const analyzeLogo = async (
     logoBase64: string,
@@ -664,6 +483,8 @@ export const analyzeLogo = async (
     2.  **Calculate Logo Vibration:** Synthesize the numerical values from the dominant color and shape into a single 'logoVibrationNumber' from 1-9.
     3.  **Synergy Analysis:** In 2-3 sentences, explain how this calculated logo vibration number harmonizes or clashes with the brand's name vibration (${brandVibration}) and the user's Life Path (${userLifePath}). Briefly mention how you arrived at the logo vibration number.
     4.  **Suggestions:** Based on the analysis, provide suggestions for a more aligned logo type (e.g., 'Minimalist Emblem', 'Dynamic Wordmark') and 2-3 suitable font families (e.g., 'Geometric Sans-serif', 'Elegant Serif').
+    
+    You must return a single JSON object. Do not include any text before or after the JSON.
     `;
 
     const analysisResponse = await ai.models.generateContent({
@@ -674,17 +495,10 @@ export const analyzeLogo = async (
                 { text: analysisPrompt }
             ]
         },
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: logoAnalysisSchema,
-        }
+        config: {}
     });
 
-    let jsonStr = analysisResponse.text.trim();
-    if (jsonStr.startsWith("```json")) {
-        jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
-    }
-    const analysisResult = JSON.parse(jsonStr);
+    const analysisResult = extractJson(analysisResponse.text);
 
     // Second, generate a new logo based on the analysis
     const imageGenerationPrompt = `
@@ -902,48 +716,6 @@ export const getDailyHoroscope = async (
   }
 };
 
-
-const jyotishReportSchema = {
-    type: Type.OBJECT,
-    properties: {
-        markdownReport: {
-            type: Type.STRING,
-            description: "The complete, detailed Jyotish report formatted in Markdown, following all original instructions."
-        },
-        planetaryPlacements: {
-            type: Type.ARRAY,
-            description: "A structured list of the 9 Grahas and their positions for visualization.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    planet: { type: Type.STRING, description: "Name of the planet (e.g., 'Sun', 'Moon')." },
-                    sign: { type: Type.STRING, description: "The zodiac sign the planet is in (e.g., 'Aries', 'Taurus')." },
-                    house: { type: Type.INTEGER, description: "The house number (1-12) the planet is in." }
-                },
-                required: ['planet', 'sign', 'house']
-            }
-        },
-        ascendantSign: {
-            type: Type.STRING,
-            description: "The English name of the user's Ascendant zodiac sign (Lagna), e.g., 'Aries', 'Taurus'."
-        },
-        grahaBala: {
-            type: Type.ARRAY,
-            description: "A scoring of each of the 9 Grahas' strength (Bala) in the chart.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    planet: { type: Type.STRING },
-                    score: { type: Type.INTEGER, description: "A score from 0 to 100 representing the planet's overall strength (shadbala aspects, placement, etc.)." },
-                    summary: { type: Type.STRING, description: "A 1-sentence summary of what this strength means for the user."}
-                },
-                required: ['planet', 'score', 'summary']
-            }
-        }
-    },
-    required: ['markdownReport', 'planetaryPlacements', 'ascendantSign', 'grahaBala']
-};
-
 export const generateJyotishReport = async (
   userData: UserData,
 ): Promise<JyotishReportData> => {
@@ -1010,6 +782,8 @@ export const generateJyotishReport = async (
   - **Mantra:** A specific mantra to a deity or planet that would be beneficial.
   - **Ritual/Practice:** A simple daily or weekly practice (e.g., offering water to the Sun, charity on a specific day).
   - **Lifestyle Advice:** A practical lifestyle adjustment aligned with their chart (e.g., "focus on disciplined savings due to a strong Saturn").)
+  
+  You must return a single JSON object. Do not include any text before or after the JSON.
   `;
 
   try {
@@ -1017,20 +791,11 @@ export const generateJyotishReport = async (
       model: 'gemini-2.5-pro',
       contents: prompt,
       config: {
-        responseMimeType: "application/json",
-        responseSchema: jyotishReportSchema,
         seed: 42,
       },
     });
     
-    const responseText = response.text;
-    let jsonStr = responseText.trim();
-    if (jsonStr.startsWith("```json")) {
-        jsonStr = jsonStr.substring(7, jsonStr.length - 3).trim();
-    } else if (jsonStr.startsWith("```")) {
-        jsonStr = jsonStr.substring(3, jsonStr.length - 3).trim();
-    }
-    return JSON.parse(jsonStr);
+    return extractJson(response.text);
 
   } catch (error) {
     console.error("Error generating Jyotish report:", error);
@@ -1038,17 +803,36 @@ export const generateJyotishReport = async (
   }
 };
 
-
-// This function is intended to be used with the new Gemini TTS model
-// We are leaving the function signature and basic structure in place for future integration.
 export const generateSpeech = async (text: string): Promise<string> => {
-    // This is a placeholder. A real implementation would call the TTS API.
-    console.log("Speech generation requested for:", text);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // In a real scenario, the API would return base64 audio data.
-    // For now, we throw an error as the feature is not fully implemented.
-    throw new Error("Text-to-speech functionality is not yet live.");
+    if (!text || text.trim().length === 0) {
+        throw new Error("Cannot generate speech from empty text.");
+    }
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-preview-tts",
+            contents: [{ parts: [{ text: text }] }],
+            config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: 'Kore' },
+                    },
+                },
+            },
+        });
+        
+        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+
+        if (!base64Audio) {
+            throw new Error("The API did not return any audio data.");
+        }
+        
+        return base64Audio;
+
+    } catch (error) {
+        console.error("Error generating speech:", error);
+        throw new Error("Failed to synthesize audio. The cosmic frequencies may be disturbed.");
+    }
 };
 
 export const getKuaNumberInterpretation = async (
@@ -1138,5 +922,58 @@ export const getBirthDestinyCombinationInterpretation = async (
   } catch (error) {
     console.error(`Error fetching interpretation for combination ${birthNumber}/${destinyNumber}:`, error);
     return `### Error\nFailed to generate the analysis for your Birth and Destiny number combination. The cosmic connection is currently unstable. Please try again.`;
+  }
+};
+
+export const getMonthlyCalendarInsights = async (
+  coreNumbers: CoreNumbers,
+  userName: string,
+  month: number, // 1-12
+  year: number,
+  language: string
+): Promise<CalendarDayInsight[]> => {
+  const monthName = new Date(year, month - 1, 1).toLocaleString(language, { month: 'long' });
+
+  const prompt = `
+  Act as Arvind Sud, a world-renowned numerologist applying the Sud Numerology Matrix.
+  Your entire response MUST be in ${language} and conform strictly to the provided JSON schema.
+
+  **USER DATA:**
+  - Name: "${userName}"
+  - Core Numbers (Chaldean):
+    - Life Path: ${coreNumbers.lifePath}
+    - Expression: ${coreNumbers.expression}
+    - Soul Urge: ${coreNumbers.soulUrge}
+    - Personality: ${coreNumbers.personality}
+    - Personal Year: ${coreNumbers.personalYear}
+
+  **TASK: GENERATE A PERSONALIZED "COSMIC CALENDAR"**
+  Generate a complete set of daily insights for **${monthName} ${year}**.
+  Your analysis must be based on an advanced synthesis of the user's core numbers, their Personal Year number, and the universal vibration of each specific day (${monthName} 1st, 2nd, etc.).
+  The output MUST be a JSON array. You MUST generate an object for EVERY day of the month. For ${monthName} ${year}, that means ${new Date(year, month, 0).getDate()} entries.
+
+  **For each day, you will determine:**
+  1.  **rating:**
+      - 'good': A day with harmonious vibrations, excellent for action, launches, and important meetings. Mark these as "Push Days".
+      - 'bad': A day with conflicting energies, best for caution, planning, and avoiding major decisions. Mark these as "Pause Days".
+      - 'medium': A mixed-energy day, good for routine tasks but not for high-stakes actions.
+  2.  **title:** A creative, short title summarizing the day's theme.
+  3.  **advice:** Highly specific and actionable advice. Do not be generic. Connect it to the user's numerology. For a "Push Day", you might say "Your Life Path 8 energy is amplified today; a bold financial move could pay off." For a "Pause Day", "The challenging vibration clashes with your Expression 5; avoid unnecessary travel and double-check all communications."
+  
+  You must return a single JSON array. Do not include any text before or after the JSON array.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: prompt,
+      config: {
+        seed: 42,
+      },
+    });
+    return extractJson(response.text);
+  } catch (error) {
+    console.error(`Error generating calendar insights for ${monthName} ${year}:`, error);
+    throw new Error(`Failed to generate the Cosmic Calendar. The celestial alignments for this month are currently unreadable.`);
   }
 };

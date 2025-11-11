@@ -27,9 +27,18 @@ export interface CompoundNumbers {
   maturity: number;
 }
 
+export interface KarmicDebtNumbers {
+  lifePath: number | null;
+  expression: number | null;
+  soulUrge: number | null;
+  personality: number | null;
+  maturity: number | null;
+}
+
 export interface CoreNumberInfo {
   number: number;
   compound?: number;
+  karmicDebt?: number;
   interpretation: string;
   planetaryRuler?: string;
 }
@@ -44,6 +53,7 @@ export interface ChatMessage {
 export interface PillarContent {
   teaser: string;
   content: string;
+  journalPrompt?: string;
 }
 
 export interface KundaliSnapshot {
@@ -95,6 +105,7 @@ export interface RelationshipsPillar extends PillarContent {
     expression: CompatibilityPairing[];
     soulUrge: CompatibilityPairing[];
   };
+  friendlyAndEnemyNumbers: PillarContent;
 }
 
 export interface SpiritualAlignmentPillar extends PillarContent {
@@ -214,4 +225,12 @@ export interface Task {
   text: string;
   dueDate: string;
   completed: boolean;
+}
+
+// --- Cosmic Calendar ---
+export interface CalendarDayInsight {
+  day: number;
+  rating: 'good' | 'medium' | 'bad';
+  title: string;
+  advice: string;
 }

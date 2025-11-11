@@ -10,18 +10,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-      /* === Cosmic Design System === */
+      /* === Cosmic Design System V2 === */
       :root {
-        --cosmic-purple: #6B46C1;
-        --cosmic-blue: #2D3748;
-        --gold-accent: #F6AD55;
-        --sage-green: #68D391;
-        --rose-accent: #FC8181;
-        --deep-space: #060818;
-        --stardust: #E2E8F0;
-        --light-bg: #F7FAFC;
-        --card-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        --glow: 0 0 30px rgba(107, 70, 193, 0.3);
+        --cosmic-purple: #3A0CA3; /* Mystic Deep Purple */
+        --cosmic-blue: #0D0D0D;   /* Cosmic Black for text */
+        --gold-accent: #4CC9F0;   /* Cyan Energy */
+        --sage-green: #4CC9F0;    /* Using Cyan for positive accents */
+        --rose-accent: #F72585;    /* Aurora Pink */
+        --deep-space: #0D0D0D;    /* Cosmic Black */
+        --stardust: #FFFFFF;      /* Clean White */
+        --light-bg: #FFFFFF;      /* Clean White */
+        --card-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        --glow: 0 0 30px rgba(58, 12, 163, 0.3);
       }
 
       * {
@@ -50,16 +50,16 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: radial-gradient(circle at 20% 50%, rgba(107, 70, 193, 0.1) 0%, transparent 40%),
-                    radial-gradient(circle at 80% 80%, rgba(246, 173, 85, 0.08) 0%, transparent 40%),
-                    radial-gradient(circle at 40% 20%, rgba(104, 211, 145, 0.08) 0%, transparent 40%);
+        background: radial-gradient(circle at 20% 50%, rgba(58, 12, 163, 0.1) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 80%, rgba(76, 201, 240, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 40% 20%, rgba(247, 37, 133, 0.08) 0%, transparent 40%);
         pointer-events: none;
         z-index: 0;
       }
       .dark .cosmic-bg {
-        background: radial-gradient(circle at 20% 50%, rgba(107, 70, 193, 0.2) 0%, transparent 40%),
-                    radial-gradient(circle at 80% 80%, rgba(246, 173, 85, 0.15) 0%, transparent 40%),
-                    radial-gradient(circle at 40% 20%, rgba(104, 211, 145, 0.15) 0%, transparent 40%);
+        background: radial-gradient(circle at 20% 50%, rgba(58, 12, 163, 0.2) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 80%, rgba(76, 201, 240, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at 40% 20%, rgba(247, 37, 133, 0.15) 0%, transparent 40%);
       }
 
       .stars {
@@ -104,12 +104,38 @@
         animation: slide-up 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       }
 
-      @keyframes text-glow {
+      @keyframes cosmic-reveal {
+        from {
+          opacity: 0;
+          transform: scale(0.5) rotate(-90deg);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) rotate(0deg);
+        }
+      }
+      .animate-cosmic-reveal {
+        animation: cosmic-reveal 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      }
+
+      @keyframes grid-glow {
         0%, 100% {
-          text-shadow: 0 0 10px rgba(179, 136, 255, 0.5), 0 0 20px rgba(179, 136, 255, 0.3), 0 0 40px rgba(107, 70, 193, 0.5);
+          box-shadow: 0 0 15px rgba(58, 12, 163, 0.2), 0 0 30px rgba(76, 201, 240, 0.1);
         }
         50% {
-          text-shadow: 0 0 15px rgba(246, 173, 85, 0.8), 0 0 25px rgba(246, 173, 85, 0.6), 0 0 40px rgba(107, 70, 193, 0.7), 0 0 60px rgba(107, 70, 193, 0.5);
+          box-shadow: 0 0 25px rgba(58, 12, 163, 0.4), 0 0 50px rgba(76, 201, 240, 0.2);
+        }
+      }
+      .grid-glow-effect {
+        animation: grid-glow 5s ease-in-out infinite;
+      }
+
+      @keyframes text-glow {
+        0%, 100% {
+          text-shadow: 0 0 10px rgba(76, 201, 240, 0.5), 0 0 20px rgba(76, 201, 240, 0.3), 0 0 40px rgba(58, 12, 163, 0.5);
+        }
+        50% {
+          text-shadow: 0 0 15px rgba(247, 37, 133, 0.8), 0 0 25px rgba(247, 37, 133, 0.6), 0 0 40px rgba(58, 12, 163, 0.7), 0 0 60px rgba(58, 12, 163, 0.5);
         }
       }
 
@@ -119,10 +145,10 @@
 
       @keyframes icon-glow {
         0%, 100% {
-          filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.7)) drop-shadow(0 0 8px rgba(107, 70, 193, 0.5));
+          filter: drop-shadow(0 0 4px rgba(76, 201, 240, 0.7)) drop-shadow(0 0 8px rgba(58, 12, 163, 0.5));
         }
         50% {
-          filter: drop-shadow(0 0 6px rgba(246, 173, 85, 0.8)) drop-shadow(0 0 12px rgba(107, 70, 193, 0.7));
+          filter: drop-shadow(0 0 6px rgba(247, 37, 133, 0.8)) drop-shadow(0 0 12px rgba(58, 12, 163, 0.7));
         }
       }
       .icon-glow {
@@ -141,7 +167,7 @@
       }
       .dark .glass-card {
         background: rgba(26, 32, 44, 0.5);
-        border-color: rgba(107, 70, 193, 0.3);
+        border-color: rgba(58, 12, 163, 0.3);
       }
 
       .glass-card:hover {
@@ -153,7 +179,7 @@
       }
 
       .gradient-text {
-        background: linear-gradient(135deg, var(--cosmic-purple) 0%, var(--gold-accent) 100%);
+        background: linear-gradient(135deg, var(--cosmic-purple) 0%, var(--rose-accent) 50%, var(--gold-accent) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -172,13 +198,13 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        box-shadow: 0 10px 30px rgba(107, 70, 193, 0.3);
+        box-shadow: 0 10px 30px rgba(58, 12, 163, 0.3);
       }
 
       .btn-cosmic:hover {
-        background: #553C9A;
+        background: #480ca8;
         transform: translateY(-2px);
-        box-shadow: 0 15px 40px rgba(107, 70, 193, 0.5);
+        box-shadow: 0 15px 40px rgba(58, 12, 163, 0.5);
       }
 
       .btn-cosmic:active {
@@ -188,13 +214,13 @@
         opacity: 0.6;
         cursor: not-allowed;
         transform: translateY(0);
-        box-shadow: 0 10px 30px rgba(107, 70, 193, 0.3);
+        box-shadow: 0 10px 30px rgba(58, 12, 163, 0.3);
       }
 
       .input-cosmic {
         width: 100%;
         padding: 14px 20px;
-        border: 2px solid rgba(107, 70, 193, 0.2);
+        border: 2px solid rgba(58, 12, 163, 0.2);
         border-radius: 12px;
         font-size: 16px;
         transition: all 0.3s ease;
@@ -203,7 +229,7 @@
       }
       .dark .input-cosmic {
          background: rgba(26, 32, 44, 0.7);
-         border-color: rgba(107, 70, 193, 0.4);
+         border-color: rgba(58, 12, 163, 0.4);
          color: var(--stardust);
       }
       .input-cosmic::placeholder {
@@ -216,13 +242,13 @@
       .input-cosmic:focus {
         outline: none;
         border-color: var(--cosmic-purple);
-        box-shadow: 0 0 0 4px rgba(107, 70, 193, 0.1);
+        box-shadow: 0 0 0 4px rgba(58, 12, 163, 0.1);
       }
 
       .loading-mandala {
         width: 60px;
         height: 60px;
-        border: 4px solid rgba(107, 70, 193, 0.2);
+        border: 4px solid rgba(58, 12, 163, 0.2);
         border-top-color: var(--cosmic-purple);
         border-radius: 50%;
         animation: spin 1s linear infinite;

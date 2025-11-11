@@ -1,4 +1,6 @@
 
+
+
 export type EventName = 
   | 'REPORT_GENERATED'
   | 'PROFILE_EDITED'
@@ -11,7 +13,10 @@ export type EventName =
   | 'JYOTISH_REPORT_GENERATED'
   | 'COMPETITOR_ANALYZED'
   | 'LOGO_ANALYZED'
-  | 'IMAGE_EDITED';
+  | 'IMAGE_EDITED'
+  | 'COMPETITOR_SUGGESTED'
+  // Fix: Add missing 'CALENDAR_VIEWED' event name.
+  | 'CALENDAR_VIEWED';
 
 interface AnalyticsEvent {
   timestamp: string;

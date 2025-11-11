@@ -54,10 +54,13 @@ export const exportReportAsPDF = async (userName: string, options: PdfExportOpti
   // --- End of DOM modifications ---
 
   try {
+    // Wait for styles to apply
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     const canvas = await html2canvas(reportElement, {
       scale: 2,
       useCORS: true,
-      backgroundColor: theme === 'light' ? '#F7FAFC' : '#1A202C',
+      backgroundColor: theme === 'light' ? '#F7FAFC' : '#060818',
       windowWidth: reportElement.scrollWidth,
       windowHeight: reportElement.scrollHeight,
     });

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { analyzeBrandName, analyzePhoneNumber, analyzeCompetitors, analyzeLogo } from '../../services/geminiService';
+import { analyzeBrandName, analyzePhoneNumber, analyzeCompetitors, analyzeLogo, suggestAndAnalyzeCompetitors } from '../../services/geminiService';
 import type { UserData, WorldClassReport, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis, LogoAnalysis } from '../../types';
 import { trackEvent } from '../../services/analyticsService';
 
@@ -86,6 +86,10 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
     const [isCompetitorLoading, setIsCompetitorLoading] = useState(false);
     const [competitorError, setCompetitorError] = useState<string | null>(null);
 
+    const [suggestedCompetitorAnalysis, setSuggestedCompetitorAnalysis] = useState<CompetitorBrandAnalysis[] | null>(null);
+    const [isSuggestLoading, setIsSuggestLoading] = useState(false);
+    const [suggestError, setSuggestError] = useState<string | null>(null);
+
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [logoAnalysis, setLogoAnalysis] = useState<LogoAnalysis | null>(null);
@@ -103,6 +107,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
         setError(null);
         setAnalysisResult(null);
         setCompetitorAnalysis(null);
+        setSuggestedCompetitorAnalysis(null);
         setCompetitors('');
 
         try {
@@ -179,6 +184,34 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
             setCompetitorError(errorMessage);
         } finally {
             setIsCompetitorLoading(false);
+        }
+    };
+
+    const handleSuggestCompetitors = async () => {
+        if (!analysisResult) {
+            setSuggestError('Please analyze your own brand name first to provide context for comparison.');
+            return;
+        }
+
+        setIsSuggestLoading(true);
+        setSuggestError(null);
+        setSuggestedCompetitorAnalysis(null);
+
+        try {
+            const result = await suggestAndAnalyzeCompetitors(
+                businessName,
+                analysisResult.brandExpressionNumber,
+                report.cosmicIdentity.coreNumbers.lifePath.number,
+                report.cosmicIdentity.coreNumbers.expression.number,
+                userData.language
+            );
+            setSuggestedCompetitorAnalysis(result);
+            trackEvent('COMPETITOR_SUGGESTED', { brandName: businessName, count: result.length });
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setSuggestError(errorMessage);
+        } finally {
+            setIsSuggestLoading(false);
         }
     };
 
@@ -424,7 +457,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                  <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
                     <h4 className="text-xl font-bold gradient-text mb-3">Competitor Vibration Analysis</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        Gain a strategic edge by analyzing your competitors' brand vibrations. Enter their names, separated by commas.
+                        Gain a strategic edge by analyzing your competitors' brand vibrations. Enter their names manually, or let AI suggest top players in the market.
                     </p>
                     <form onSubmit={handleCompetitorSubmit} className="flex flex-col sm:flex-row items-center gap-3">
                         <input
@@ -433,20 +466,41 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                             onChange={(e) => setCompetitors(e.target.value)}
                             className="w-full flex-grow input-cosmic"
                             placeholder="e.g., Brand X, Competitor Inc, Another Biz"
-                            disabled={isCompetitorLoading}
+                            disabled={isCompetitorLoading || isSuggestLoading}
                         />
                         <button
                             type="submit"
                             className="w-full sm:w-auto btn-cosmic"
-                            disabled={isCompetitorLoading}
+                            disabled={isCompetitorLoading || isSuggestLoading}
                         >
-                            {isCompetitorLoading ? 'Analyzing...' : 'Analyze Competitors'}
+                            {isCompetitorLoading ? 'Analyzing...' : 'Analyze Manually'}
                         </button>
                     </form>
 
                     {competitorError && <p className="text-[--rose-accent] text-sm mt-3">{competitorError}</p>}
 
+                    <div className="text-center my-3">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">OR</span>
+                    </div>
+
+                    <button
+                        onClick={handleSuggestCompetitors}
+                        className="btn-cosmic w-full"
+                        disabled={isSuggestLoading || isCompetitorLoading}
+                    >
+                        {isSuggestLoading ? 'Researching Market...' : 'AI: Suggest & Analyze Competitors'}
+                    </button>
+                    
+                    {suggestError && <p className="text-[--rose-accent] text-sm mt-3">{suggestError}</p>}
+
                     {isCompetitorLoading && (
+                        <div className="mt-4 flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-300">
+                            <div className="loading-mandala !w-6 !h-6 !border-2"></div>
+                            <span>Scanning Manually Entered Competitors...</span>
+                        </div>
+                    )}
+                    
+                    {isSuggestLoading && (
                         <div className="mt-4 flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-300">
                             <div className="loading-mandala !w-6 !h-6 !border-2"></div>
                             <span>Scanning the Competitive Landscape...</span>
@@ -454,15 +508,34 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                     )}
 
                     {competitorAnalysis && (
-                        <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up space-y-4">
-                            {competitorAnalysis.map((comp, i) => (
-                                <div key={i} className="p-3 bg-black/5 dark:bg-white/5 rounded-md">
-                                     <p className="font-semibold text-gray-800 dark:text-gray-100">
-                                        {comp.competitorName} (Vibration: {comp.competitorVibration})
-                                    </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{comp.comparisonAnalysis}</p>
-                                </div>
-                            ))}
+                        <div className="mt-6">
+                            <h5 className="font-bold text-gray-800 dark:text-gray-100 mb-2">Manual Analysis Results</h5>
+                            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up space-y-4">
+                                {competitorAnalysis.map((comp, i) => (
+                                    <div key={i} className="p-3 bg-black/5 dark:bg-white/5 rounded-md">
+                                        <p className="font-semibold text-gray-800 dark:text-gray-100">
+                                            {comp.competitorName} (Vibration: {comp.competitorVibration})
+                                        </p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{comp.comparisonAnalysis}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {suggestedCompetitorAnalysis && (
+                        <div className="mt-6">
+                            <h5 className="font-bold text-gray-800 dark:text-gray-100 mb-2">AI-Suggested Competitor Analysis</h5>
+                             <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up space-y-4">
+                                {suggestedCompetitorAnalysis.map((comp, i) => (
+                                    <div key={i} className="p-3 bg-black/5 dark:bg-white/5 rounded-md">
+                                        <p className="font-semibold text-gray-800 dark:text-gray-100">
+                                            {comp.competitorName} (Vibration: {comp.competitorVibration})
+                                        </p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{comp.comparisonAnalysis}</p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

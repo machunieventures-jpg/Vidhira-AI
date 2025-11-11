@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { UserData, WorldClassReport, LoshuAnalysisPillar, CoreNumbers, CompoundNumbers } from './types';
+import type { UserData, WorldClassReport, LoshuAnalysisPillar, CoreNumbers, CompoundNumbers, KarmicDebtNumbers } from './types';
 import OnboardingForm from './components/OnboardingForm';
 import Dashboard from './components/Dashboard';
 import PaymentModal from './components/common/PaymentModal';
 import BlueprintSummary from './components/BlueprintSummary';
-import { calculateInitialNumbers, generateLoshuGrid, calculateMulank } from './services/numerologyService';
+import { calculateInitialNumbers, generateLoshuGrid, calculateMulank, calculateKuaNumber } from './services/numerologyService';
 import { generateWorldClassReport } from './services/geminiService';
 import { trackEvent } from './services/analyticsService';
 import { Check } from './components/common/Icons';
@@ -87,13 +87,14 @@ const App: React.FC = () => {
         setIsPremium(false);
 
         try {
-            const { core, compound } = calculateInitialNumbers(data);
+            const { core, compound, karmicDebt } = calculateInitialNumbers(data);
             const mulank = calculateMulank(data.dob);
-            const { grid, missing, overloaded } = generateLoshuGrid(data.dob, mulank, core.lifePath);
+            const kuaNumber = calculateKuaNumber(data.dob, data.gender);
+            const { grid, missing, overloaded } = generateLoshuGrid(data.dob, mulank, core.lifePath, kuaNumber);
             
             const loshuForAI: Pick<LoshuAnalysisPillar, 'missingNumbers' | 'overloadedNumbers'> = { missingNumbers: missing, overloadedNumbers: overloaded };
 
-            const aiReportData = await generateWorldClassReport(data, core, compound, loshuForAI);
+            const aiReportData = await generateWorldClassReport(data, core, compound, karmicDebt, loshuForAI);
 
             const finalReport: WorldClassReport = {
                 ...aiReportData,
@@ -134,7 +135,6 @@ const App: React.FC = () => {
         setIsPremium(true);
         setCurrentView('dashboard');
         trackEvent('REPORT_UNLOCKED');
-        localStorage.setItem('vidhiraUnlockStatus', 'true');
         showNotification('Welcome to your full cosmic dashboard! 🌟');
     };
 

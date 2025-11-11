@@ -26,11 +26,16 @@ const NumberCard: React.FC<NumberCardProps> = ({ title, data, className, style }
 
   return (
     <div 
-      className={`p-4 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-[1.02] ${className || ''}`}
+      className={`relative p-4 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-[1.02] ${className || ''}`}
       style={style}
     >
+      {data.karmicDebt && (
+        <div className="absolute top-2 right-2 bg-[--rose-accent] text-white text-xs font-bold px-2 py-1 rounded-full shadow-md z-10">
+          Karmic Debt {data.karmicDebt}
+        </div>
+      )}
       <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-6">
-        <div className="flex-shrink-0 flex flex-col items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-[--cosmic-purple] to-[--gold-accent] text-white shadow-lg">
+        <div className="flex-shrink-0 flex flex-col items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-[--cosmic-purple] to-[--rose-accent] text-white shadow-lg">
           <span
             className={`text-4xl font-bold ${shouldAnimate ? 'animate-slide-up' : ''}`}
             style={{fontFamily: 'Cinzel, serif'}}

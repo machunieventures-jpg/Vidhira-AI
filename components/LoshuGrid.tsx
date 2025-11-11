@@ -162,7 +162,8 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
       <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
         {/* Left: Grid */}
         <div className="relative w-[256px] h-[256px] self-center md:self-start flex-shrink-0">
-            <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="absolute inset-0 rounded-lg grid-glow-effect"></div>
+            <div className="relative w-full h-full grid grid-cols-3 gap-2 p-2">
             {grid.flat().map((cellContent, index) => {
                 const row = Math.floor(index / 3);
                 const col = index % 3;
@@ -173,10 +174,10 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
                 return (
                     <div
                         key={index}
-                        className={`relative w-full h-full flex items-center justify-center font-bold rounded-md bg-white dark:bg-gray-900 shadow-inner transition-all duration-300
+                        className={`relative w-full h-full flex items-center justify-center font-bold rounded-md bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-inner transition-all duration-300 border border-white/20 dark:border-black/20
                             ${(cellContent || isKuaCell) ? 'cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/50' : ''}
-                            ${isCellActive ? 'ring-2 ring-offset-2 ring-offset-gray-100 dark:ring-offset-gray-800 ring-[--cosmic-purple]' : ''}
-                            ${isKuaCell ? 'bg-green-100 dark:bg-green-900/40' : ''}
+                            ${isCellActive ? 'ring-2 ring-offset-2 ring-offset-transparent ring-[--cosmic-purple]' : ''}
+                            ${isKuaCell ? 'bg-green-100/80 dark:bg-green-900/70' : ''}
                         `}
                         onClick={(e) => {
                             if (isKuaCell) {
@@ -186,7 +187,14 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
                             }
                         }}
                     >
-                        {cellContent ? <span className={`${cellContent.length > 2 ? 'text-xl' : 'text-3xl'} text-gray-800 dark:text-gray-200`}>{cellContent}</span> : <span className="text-gray-300 dark:text-gray-600">-</span>}
+                        {cellContent ? (
+                            <span 
+                                className={`${cellContent.length > 2 ? 'text-xl' : 'text-3xl'} text-gray-800 dark:text-gray-200 animate-cosmic-reveal`}
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                {cellContent}
+                            </span>
+                        ) : <span className="text-gray-300 dark:text-gray-600">-</span>}
                         {isKuaCell && (
                             <div 
                                 className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center bg-green-500 text-white text-xs font-bold rounded-full border-2 border-white dark:border-gray-800 shadow"
@@ -206,7 +214,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
             <div>
                 <h4 className="text-xl font-bold gradient-text">Core Identifiers</h4>
                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    <span className="w-4 h-4 rounded-md bg-green-100 dark:bg-green-900/40 border border-green-400"></span>
+                    <span className="w-4 h-4 rounded-md bg-green-100/80 dark:bg-green-900/70 border border-green-400"></span>
                     <span>- Your Kua Number's Cell</span>
                 </div>
             </div>

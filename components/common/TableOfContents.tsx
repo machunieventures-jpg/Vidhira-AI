@@ -13,9 +13,11 @@ interface TableOfContentsProps {
 
 const TableOfContents: React.FC<TableOfContentsProps> = ({ sections, activeSection, onNavigate }) => {
   return (
-    <aside className="hidden lg:block w-64 flex-shrink-0">
-      <div className="sticky top-8 card-base p-4">
-        <h3 className="font-display text-lg font-bold text-suryansh-gold mb-4">Report Navigation</h3>
+    <aside className="hidden lg:block w-64 flex-shrink-0 no-print">
+      <div className="sticky top-8 glass-card p-4">
+        <h3 className="font-bold text-lg gradient-text mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+          Report Navigation
+        </h3>
         <nav>
           <ul className="space-y-1">
             {sections.map(section => (
@@ -29,15 +31,15 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ sections, activeSecti
                   className={`
                     block text-sm p-2 rounded-md transition-all duration-200 relative
                     ${activeSection === section.key
-                      ? 'text-suryansh-gold font-semibold'
-                      : 'text-stone-brown/80 dark:text-manuscript-parchment/80 hover:bg-stone-brown/5 dark:hover:bg-manuscript-parchment/5'
+                      ? 'text-[--cosmic-purple] dark:text-[--gold-accent] font-semibold bg-purple-50 dark:bg-purple-900/20'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50'
                     }
                   `}
                 >
-                    {activeSection === section.key && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3/4 w-1 bg-suryansh-gold rounded-r-full"></span>
-                    )}
-                  {section.title}
+                  {activeSection === section.key && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3/4 w-1 bg-[--cosmic-purple] dark:bg-[--gold-accent] rounded-r-full"></span>
+                  )}
+                  <span className="ml-3">{section.title}</span>
                 </a>
               </li>
             ))}

@@ -1,5 +1,5 @@
 import { CHALDEAN_MAP, VOWELS } from '../constants';
-import type { UserData, CoreNumbers, CompoundNumbers } from '../types';
+import type { UserData, CoreNumbers, CompoundNumbers, KarmicDebtNumbers } from '../types';
 
 const getCompoundNumber = (num: number): number => {
     let sum = num;
@@ -17,6 +17,14 @@ export const reduceNumber = (num: number): number => {
     if (sum === 11 || sum === 22 || sum === 33) return sum;
   }
   return sum;
+};
+
+const getKarmicDebtNumber = (compoundNumber: number): number | null => {
+    const karmicDebtNumbers = [13, 14, 16, 19];
+    if (karmicDebtNumbers.includes(compoundNumber)) {
+        return compoundNumber;
+    }
+    return null;
 };
 
 const calculateNameSum = (name: string, characterSet: 'all' | 'vowels' | 'consonants'): number => {
@@ -47,7 +55,7 @@ const calculateLifePathSum = (dob: string): number => {
   return digits.split('').reduce((acc, digit) => acc + parseInt(digit, 10), 0);
 };
 
-export const calculateInitialNumbers = (userData: UserData): { core: CoreNumbers, compound: CompoundNumbers } => {
+export const calculateInitialNumbers = (userData: UserData): { core: CoreNumbers, compound: CompoundNumbers, karmicDebt: KarmicDebtNumbers } => {
   const { fullName, dob } = userData;
   
   const lifePathSum = calculateLifePathSum(dob);
@@ -60,6 +68,12 @@ export const calculateInitialNumbers = (userData: UserData): { core: CoreNumbers
   const currentYear = new Date().getFullYear();
   const personalYearSum = day + month + currentYear;
 
+  const compoundLifePath = getCompoundNumber(lifePathSum);
+  const compoundExpression = getCompoundNumber(expressionSum);
+  const compoundSoulUrge = getCompoundNumber(soulUrgeSum);
+  const compoundPersonality = getCompoundNumber(personalitySum);
+  const compoundMaturity = getCompoundNumber(maturitySum);
+
   return {
     core: {
       lifePath: reduceNumber(lifePathSum),
@@ -70,18 +84,25 @@ export const calculateInitialNumbers = (userData: UserData): { core: CoreNumbers
       personalYear: reduceNumber(personalYearSum),
     },
     compound: {
-      lifePath: getCompoundNumber(lifePathSum),
-      expression: getCompoundNumber(expressionSum),
-      soulUrge: getCompoundNumber(soulUrgeSum),
-      personality: getCompoundNumber(personalitySum),
-      maturity: getCompoundNumber(maturitySum),
+      lifePath: compoundLifePath,
+      expression: compoundExpression,
+      soulUrge: compoundSoulUrge,
+      personality: compoundPersonality,
+      maturity: compoundMaturity,
+    },
+    karmicDebt: {
+      lifePath: getKarmicDebtNumber(compoundLifePath),
+      expression: getKarmicDebtNumber(compoundExpression),
+      soulUrge: getKarmicDebtNumber(compoundSoulUrge),
+      personality: getKarmicDebtNumber(compoundPersonality),
+      maturity: getKarmicDebtNumber(compoundMaturity),
     }
   };
 };
 
-export const generateLoshuGrid = (dob: string, birthNumber?: number, destinyNumber?: number): { grid: (string | null)[][], missing: number[], overloaded: number[] } => {
+export const generateLoshuGrid = (dob: string, birthNumber?: number, destinyNumber?: number, kuaNumber?: number): { grid: (string | null)[][], missing: number[], overloaded: number[] } => {
     const dobDigits = dob.replace(/-/g, '').split('').map(Number);
-    const specialNumbers = [birthNumber, destinyNumber].filter((n): n is number => n !== undefined && n > 0 && n <= 9);
+    const specialNumbers = [birthNumber, destinyNumber, kuaNumber].filter((n): n is number => n !== undefined && n > 0 && n <= 9);
     const allDigits = [...dobDigits, ...specialNumbers];
 
     const gridMap: { [key: number]: number } = {
