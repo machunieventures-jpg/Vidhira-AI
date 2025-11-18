@@ -28,29 +28,29 @@ const InterpretationTooltip: React.FC<InterpretationTooltipProps> = ({
 
   return (
     <div
-      className="fixed z-50 w-64 p-4 bg-white/80 dark:bg-night-sky/80 backdrop-blur-xl rounded-lg shadow-2xl border border-suryansh-gold/50 text-gray-800 dark:text-star-white animate-fade-in-fast"
+      className="fixed z-50 w-64 p-4 glass-card animate-slide-up"
       style={style}
     >
       <div className="flex justify-between items-center mb-2">
-        <h5 className="font-bold text-lg font-display text-gray-900 dark:text-star-white">{title || `Number ${number}`}</h5>
-        <button onClick={onClose} className="text-gray-500 dark:text-star-white/50 hover:text-gray-900 dark:hover:text-star-white text-2xl leading-none">&times;</button>
+        <h5 className="font-bold text-lg text-[--cosmic-blue] dark:text-[--stardust]">{title || `Number ${number}`}</h5>
+        <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-2xl leading-none">&times;</button>
       </div>
       {isLoading ? (
         <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 border-2 border-gray-400 dark:border-chandra-grey border-t-suryansh-gold rounded-full animate-spin"></div>
-          <span className="text-sm text-gray-600 dark:text-chandra-grey">Consulting...</span>
+          <div className="w-4 h-4 border-2 border-gray-400 dark:border-gray-500 border-t-[--cosmic-purple] rounded-full animate-spin"></div>
+          <span className="text-sm text-gray-600 dark:text-gray-300">Consulting...</span>
         </div>
       ) : (
         <div className="space-y-3">
           {potentialContent ? (
             <>
               <div>
-                <h6 className="text-sm font-semibold text-suryansh-gold/80">Challenge (As a Missing Number)</h6>
+                <h6 className="text-sm font-semibold text-[--rose-accent]">Challenge (As a Missing Number)</h6>
                 <MarkdownRenderer content={content} />
               </div>
-              <hr className="border-gray-200 dark:border-chandra-grey/20" />
+              <hr className="border-gray-200 dark:border-gray-700/50" />
               <div>
-                <h6 className="text-sm font-semibold text-gray-800 dark:text-star-white">Potential (If Cultivated)</h6>
+                <h6 className="text-sm font-semibold text-[--sage-green]">Potential (If Cultivated)</h6>
                 <MarkdownRenderer content={potentialContent} />
               </div>
             </>

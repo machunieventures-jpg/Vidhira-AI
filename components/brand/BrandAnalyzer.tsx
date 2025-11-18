@@ -111,11 +111,18 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
         setCompetitors('');
 
         try {
+            const lifePath = report?.cosmicIdentity?.coreNumbers?.lifePath?.number;
+            const expression = report?.cosmicIdentity?.coreNumbers?.expression?.number;
+
+            if (typeof lifePath !== 'number' || typeof expression !== 'number') {
+                throw new Error("Core numerology data (Life Path, Expression) is missing from the report.");
+            }
+
             const result = await analyzeBrandName(
                 businessName,
                 userData.fullName,
-                report.cosmicIdentity.coreNumbers.lifePath.number,
-                report.cosmicIdentity.coreNumbers.expression.number,
+                lifePath,
+                expression,
                 userData.language
             );
             setAnalysisResult(result);
@@ -169,11 +176,18 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
         setCompetitorAnalysis(null);
 
         try {
+            const lifePath = report?.cosmicIdentity?.coreNumbers?.lifePath?.number;
+            const expression = report?.cosmicIdentity?.coreNumbers?.expression?.number;
+
+            if (typeof lifePath !== 'number' || typeof expression !== 'number') {
+                throw new Error("Core numerology data (Life Path, Expression) is missing from the report.");
+            }
+
             const result = await analyzeCompetitors(
                 businessName,
                 analysisResult.brandExpressionNumber,
-                report.cosmicIdentity.coreNumbers.lifePath.number,
-                report.cosmicIdentity.coreNumbers.expression.number,
+                lifePath,
+                expression,
                 competitorNames,
                 userData.language
             );
@@ -198,11 +212,18 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
         setSuggestedCompetitorAnalysis(null);
 
         try {
+            const lifePath = report?.cosmicIdentity?.coreNumbers?.lifePath?.number;
+            const expression = report?.cosmicIdentity?.coreNumbers?.expression?.number;
+
+            if (typeof lifePath !== 'number' || typeof expression !== 'number') {
+                throw new Error("Core numerology data (Life Path, Expression) is missing from the report.");
+            }
+
             const result = await suggestAndAnalyzeCompetitors(
                 businessName,
                 analysisResult.brandExpressionNumber,
-                report.cosmicIdentity.coreNumbers.lifePath.number,
-                report.cosmicIdentity.coreNumbers.expression.number,
+                lifePath,
+                expression,
                 userData.language
             );
             setSuggestedCompetitorAnalysis(result);
@@ -252,12 +273,17 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                 throw new Error("Could not read logo file.");
             }
 
+            const lifePath = report?.cosmicIdentity?.coreNumbers?.lifePath?.number;
+            if (typeof lifePath !== 'number') {
+                throw new Error("Core numerology data (Life Path) is missing from the report.");
+            }
+
             const result = await analyzeLogo(
                 base64Data,
                 logoFile.type,
                 businessName,
                 analysisResult.brandExpressionNumber,
-                report.cosmicIdentity.coreNumbers.lifePath.number,
+                lifePath,
                 userData.language
             );
             setLogoAnalysis(result);

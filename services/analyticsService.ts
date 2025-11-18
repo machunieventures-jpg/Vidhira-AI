@@ -1,6 +1,8 @@
 
 
 
+
+
 export type EventName = 
   | 'REPORT_GENERATED'
   | 'PROFILE_EDITED'
@@ -15,7 +17,6 @@ export type EventName =
   | 'LOGO_ANALYZED'
   | 'IMAGE_EDITED'
   | 'COMPETITOR_SUGGESTED'
-  // Fix: Add missing 'CALENDAR_VIEWED' event name.
   | 'CALENDAR_VIEWED';
 
 interface AnalyticsEvent {

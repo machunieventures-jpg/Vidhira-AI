@@ -212,10 +212,20 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
         {/* Right: Core Matrix Analysis */}
         <div className="flex-1 space-y-4">
             <div>
-                <h4 className="text-xl font-bold gradient-text">Core Identifiers</h4>
-                 <div className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    <span className="w-4 h-4 rounded-md bg-green-100/80 dark:bg-green-900/70 border border-green-400"></span>
-                    <span>- Your Kua Number's Cell</span>
+                <h4 className="text-xl font-bold gradient-text">Core Matrix Analysis</h4>
+                 <div className="flex flex-col sm:flex-row flex-wrap gap-x-4 gap-y-2 mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-md bg-green-100/80 dark:bg-green-900/70 border border-green-400"></span>
+                        <span>Kua Number</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full border-2 border-dashed border-[--rose-accent]"></span>
+                        <span>Missing Number</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-cyan-100/50 dark:bg-cyan-900/30 border border-cyan-300 dark:border-cyan-700 shadow-[0_0_8px_var(--gold-accent)]"></span>
+                        <span>Overloaded Number</span>
+                    </div>
                 </div>
             </div>
             <div>
@@ -227,7 +237,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
                         {missingNumbers.map(num => (
                             <button 
                                 key={num} 
-                                className={`w-10 h-10 flex items-center justify-center bg-purple-100/50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-full text-[--cosmic-purple] font-bold cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/50 transform transition-all duration-300 hover:scale-110 ${activeNumber?.num === num && activeNumber.isMissing ? 'ring-2 ring-[--cosmic-purple]' : ''}`}
+                                className={`w-10 h-10 flex items-center justify-center bg-transparent border-2 border-dashed border-[--rose-accent] rounded-full text-[--rose-accent] font-bold cursor-pointer hover:bg-[--rose-accent]/10 transform transition-all duration-300 hover:scale-110 ${activeNumber?.num === num && activeNumber.isMissing ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-[--deep-space] ring-[--rose-accent]' : ''}`}
                                 onClick={(e) => handleNumberClick(num, true, e)}
                                 >
                                 {num}
@@ -248,7 +258,7 @@ const LoshuGrid: React.FC<LoshuGridProps> = ({ grid, missingNumbers, overloadedN
                         {overloadedNumbers.map(num => (
                             <button 
                                 key={num} 
-                                className={`w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-800 dark:text-gray-200 font-bold cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transform transition-all duration-300 hover:scale-110 ${activeNumber?.num === num && !activeNumber.isMissing ? 'ring-2 ring-[--cosmic-purple]' : ''}`}
+                                className={`w-10 h-10 flex items-center justify-center bg-cyan-100/50 dark:bg-cyan-900/30 border border-cyan-300 dark:border-cyan-700 rounded-full text-cyan-800 dark:text-cyan-200 font-bold cursor-pointer shadow-[0_0_8px_rgba(76,201,240,0.5)] hover:shadow-[0_0_12px_rgba(76,201,240,0.8)] transform transition-all duration-300 hover:scale-110 ${activeNumber?.num === num && !activeNumber.isMissing ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-[--deep-space] ring-[--gold-accent]' : ''}`}
                                 onClick={(e) => handleNumberClick(num, false, e)}
                                 >
                                 {num}

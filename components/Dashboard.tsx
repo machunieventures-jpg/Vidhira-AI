@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { WorldClassReport, UserData, CoreNumberInfo, PillarContent } from '../types';
+import type { Theme } from '../../App';
 import NumberCard from './NumberCard';
 import LoshuGrid from './LoshuGrid';
 import MarkdownRenderer from './common/MarkdownRenderer';
@@ -14,11 +15,13 @@ import CollapsibleSection from './CollapsibleSection';
 import { getDailyHoroscope } from '../services/geminiService';
 import { trackEvent } from '../services/analyticsService';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
-import { Download, User, Volume2, StopCircle, Loader } from './common/Icons';
+import { Download, User, Volume2, StopCircle, Loader, Settings } from './common/Icons';
 import ImageEditor from './ImageEditor';
 import BirthDestinyCombination from './BirthDestinyCombination';
 import TableOfContents from './common/TableOfContents';
 import CosmicCalendar from './cosmic-calendar/CosmicCalendar';
+import UserSettingsModal from './common/UserSettingsModal';
+
 
 const Icons: { [key: string]: React.ReactNode } = {
     Kundali: <span className="text-3xl">✨</span>,
@@ -72,10 +75,13 @@ interface DashboardProps {
   report: WorldClassReport;
   userData: UserData;
   onReset: () => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  onUpdateUserData: (data: UserData) => void;
 }
 
-const CoreNumberCard: React.FC<{label: string, value: number}> = ({ label, value }) => (
-    <div className="glass-card text-center animate-slide-up">
+const CoreNumberCard: React.FC<{label: string, value: number, style?: React.CSSProperties}> = ({ label, value, style }) => (
+    <div className="glass-card text-center animate-cosmic-reveal" style={style}>
         <div className="mx-auto mb-3 text-4xl font-bold gradient-text" style={{ fontFamily: 'Cinzel, serif' }}>
             {value}
         </div>
@@ -106,9 +112,10 @@ const PillarContentRenderer: React.FC<{ pillar?: PillarContent }> = ({ pillar })
 };
 
 
-const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
+const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, theme, setTheme, onUpdateUserData }) => {
   const { cosmicIdentity, loshuAnalysis, relationshipsFamilyLegacy, futureForecast, spiritualAlignment, methodology } = report;
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [dailyHoroscope, setDailyHoroscope] = useState<string | null>(null);
   const [isHoroscopeLoading, setIsHoroscopeLoading] = useState(false);
   const [horoscopeError, setHoroscopeError] = useState<string | null>(null);
@@ -199,13 +206,13 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
             return (
                  <div className="space-y-6">
                     {Object.entries(cosmicIdentity.coreNumbers)
-                      .filter(([key, value]) => !(key === 'soulUrge' && (value as CoreNumberInfo).number === 5))
-                      .map(([key, value]) => (
+                      .map(([key, value], index) => (
                         <NumberCard 
                           key={key}
                           title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} 
                           data={value as CoreNumberInfo} 
-                          className="bg-purple-50/50 dark:bg-purple-900/20"
+                          className="bg-purple-50/50 dark:bg-purple-900/20 animate-cosmic-reveal"
+                          style={{ animationDelay: `${index * 100}ms` }}
                         />
                     ))}
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -222,14 +229,23 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
                     </div>
                 </div>
             );
-        case 'birthDestinyCombination':
+        case 'birthDestinyCombination': {
             const birthNum = calculateMulank(userData.dob);
-            const destinyNum = cosmicIdentity.coreNumbers.lifePath.number;
+            const destinyNum = cosmicIdentity?.coreNumbers?.lifePath?.number;
+            if (typeof destinyNum !== 'number') {
+                return <div className="text-center p-4 text-[--rose-accent]">Could not load component: Life Path number is missing from the report data.</div>;
+            }
             return <BirthDestinyCombination birthNumber={birthNum} destinyNumber={destinyNum} userData={userData} />;
-        case 'loshuAnalysis':
+        }
+        case 'loshuAnalysis': {
             const mulank = calculateMulank(userData.dob);
             const kuaNumber = calculateKuaNumber(userData.dob, userData.gender);
-            return <LoshuGrid grid={loshuAnalysis.grid} missingNumbers={loshuAnalysis.missingNumbers} overloadedNumbers={loshuAnalysis.overloadedNumbers} userData={userData} birthNumber={mulank} destinyNumber={cosmicIdentity.coreNumbers.lifePath.number} kuaNumber={kuaNumber} planes={loshuAnalysis.planes} isUnlocked={true} />;
+            const destinyNum = cosmicIdentity?.coreNumbers?.lifePath?.number;
+             if (typeof destinyNum !== 'number') {
+                return <div className="text-center p-4 text-[--rose-accent]">Could not load Loshu Grid: Life Path number is missing from the report data.</div>;
+            }
+            return <LoshuGrid grid={loshuAnalysis.grid} missingNumbers={loshuAnalysis.missingNumbers} overloadedNumbers={loshuAnalysis.overloadedNumbers} userData={userData} birthNumber={mulank} destinyNumber={destinyNum} kuaNumber={kuaNumber} planes={loshuAnalysis.planes} isUnlocked={true} />;
+        }
         case 'relationshipsFamilyLegacy':
             return (
                 <>
@@ -311,31 +327,44 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
           />
           <div id="report-container" className="flex-1 min-w-0">
             {/* Header */}
-            <div className="glass-card mb-8 flex flex-col sm:flex-row items-center justify-between animate-slide-up">
+            <div className="glass-card mb-8 flex flex-col sm:flex-row items-center justify-between animate-cosmic-reveal">
               <div>
                 <h1 className="text-3xl font-bold gradient-text mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
                   Welcome Back, {userData.fullName?.split(' ')[0]}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300">Your cosmic dashboard is fully activated ✨</p>
               </div>
-              <div className="flex gap-3 mt-4 sm:mt-0">
+              <div className="flex items-center gap-3 mt-4 sm:mt-0">
+                <button title="Settings" className="btn-cosmic no-print !p-0 w-10 h-10 flex items-center justify-center" onClick={() => setIsSettingsModalOpen(true)}>
+                  <Settings size={20} />
+                </button>
                 <button className="btn-cosmic no-print" onClick={() => setIsPdfModalOpen(true)}>
-                  <Download size={20} /> Export
+                  <Download size={20} /> <span className="hidden sm:inline ml-2">Export</span>
                 </button>
                 <button className="btn-cosmic no-print" onClick={onReset}>
-                  <User size={20} /> New Report
+                  <User size={20} /> <span className="hidden sm:inline ml-2">New Report</span>
                 </button>
               </div>
             </div>
 
             {/* Core Numbers */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-               {Object.entries(cosmicIdentity.coreNumbers)
+               {cosmicIdentity?.coreNumbers ? (
+                 Object.entries(cosmicIdentity.coreNumbers)
                       .slice(0, 4)
-                      .filter(([key, value]) => !(key === 'soulUrge' && (value as CoreNumberInfo).number === 5))
-                      .map(([key, value]) => (
-                          <CoreNumberCard key={key} label={key} value={(value as CoreNumberInfo).number} />
-               ))}
+                      .map(([key, value], index) => (
+                          <CoreNumberCard 
+                            key={key} 
+                            label={key} 
+                            value={(value as CoreNumberInfo).number} 
+                            style={{ animationDelay: `${100 + index * 100}ms` }}
+                          />
+               ))
+               ) : (
+                 <div className="col-span-full text-center p-4 text-[--rose-accent] bg-red-500/10 rounded-lg">
+                   Core numerology data is missing from the report. Cannot display core numbers.
+                 </div>
+               )}
             </div>
 
             {/* Report Sections */}
@@ -355,7 +384,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
             </div>
 
             {/* AI-Powered Insights Section */}
-            <div data-section-key={aiInsightsPillar.key} className="glass-card mt-8 animate-slide-up" style={{ animationDelay: `${pillarData.length * 100}ms` }}>
+            <div data-section-key={aiInsightsPillar.key} className="glass-card mt-8 animate-cosmic-reveal" style={{ animationDelay: `${pillarData.length * 100}ms` }}>
                 <h3 className="text-2xl font-bold gradient-text mb-4 flex items-center" style={{ fontFamily: 'Playfair Display, serif' }}>
                   <span className="text-2xl mr-2">🤖</span>{aiInsightsPillar.title}
                 </h3>
@@ -370,7 +399,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
 
                     <div className="mt-6 w-full">
                       {isHoroscopeLoading && (
-                          <div className="flex flex-col items-center justify-center space-y-3 text-center p-4 animate-slide-up">
+                          <div className="flex flex-col items-center justify-center space-y-3 text-center p-4 animate-cosmic-reveal">
                               <div className="loading-mandala !w-12 !h-12 !border-4"></div>
                               <p className="font-semibold text-gray-600 dark:text-gray-300">Receiving Today's Cosmic Transmission...</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">Aligning with celestial energies for your personalized insight.</p>
@@ -384,7 +413,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
                       )}
                       
                       {dailyHoroscope && !isHoroscopeLoading && (
-                          <div className="p-4 w-full bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up">
+                          <div className="p-4 w-full bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-cosmic-reveal">
                               <MarkdownRenderer content={dailyHoroscope} />
                           </div>
                       )}
@@ -401,6 +430,14 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset }) => {
         onClose={() => setIsPdfModalOpen(false)}
         userName={userData.fullName}
        />
+       <UserSettingsModal
+         isOpen={isSettingsModalOpen}
+         onClose={() => setIsSettingsModalOpen(false)}
+         userData={userData}
+         onSave={onUpdateUserData}
+         currentTheme={theme}
+         onThemeChange={setTheme}
+        />
     </>
   );
 };

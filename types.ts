@@ -1,3 +1,4 @@
+
 // --- User & Core Data ---
 export interface UserData {
   fullName: string;
@@ -41,6 +42,7 @@ export interface CoreNumberInfo {
   karmicDebt?: number;
   interpretation: string;
   planetaryRuler?: string;
+  journalPrompt?: string;
 }
 
 export interface ChatMessage {
@@ -218,19 +220,18 @@ export interface WorldClassReport {
   methodology: MethodologyPillar;
 }
 
-// --- Task Manager ---
-// Fix: Add missing Task interface.
-export interface Task {
-  id: string;
-  text: string;
-  dueDate: string;
-  completed: boolean;
-}
-
 // --- Cosmic Calendar ---
 export interface CalendarDayInsight {
   day: number;
   rating: 'good' | 'medium' | 'bad';
   title: string;
   advice: string;
+}
+
+// --- Task Manager ---
+export interface Task {
+  id: string;
+  text: string;
+  completed: boolean;
+  dueDate?: string;
 }

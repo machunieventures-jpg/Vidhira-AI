@@ -48,7 +48,7 @@ const RasiChart: React.FC<RasiChartProps> = ({ placements, ascendant }) => {
   }, [placements, ascendant]);
 
   if (!chartElements) {
-    return <div className="text-center text-stone-brown/80 dark:text-manuscript-parchment/80">Could not render chart: Invalid ascendant sign provided.</div>;
+    return <div className="text-center text-gray-600 dark:text-gray-300">Could not render chart: Invalid ascendant sign provided.</div>;
   }
   
   const { houses, zodiac, constants } = chartElements;
@@ -56,13 +56,13 @@ const RasiChart: React.FC<RasiChartProps> = ({ placements, ascendant }) => {
 
   return (
     <div>
-      <h4 className="text-xl font-bold text-suryansh-gold font-display text-center mb-2">
+      <h4 className="text-xl font-bold gradient-text font-display text-center mb-2">
         Rasi Chart (Natal Chart)
       </h4>
-      <p className="text-center text-sm text-stone-brown/80 dark:text-manuscript-parchment/80 mb-4">
+      <p className="text-center text-sm text-gray-600 dark:text-gray-300 mb-4">
         A snapshot of the heavens at your moment of birth. This chart shows which signs and planets occupy the 12 houses of your life.
       </p>
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-md mx-auto font-elegant">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-md mx-auto" style={{fontFamily: 'Inter, sans-serif'}}>
         <defs>
           <filter id="glow">
             <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
@@ -74,7 +74,7 @@ const RasiChart: React.FC<RasiChartProps> = ({ placements, ascendant }) => {
         </defs>
 
         {/* Outer Zodiac Ring */}
-        <circle cx={CENTER} cy={CENTER} r={ZODIAC_RADIUS} fill="none" stroke="var(--suryansh-gold)" strokeOpacity="0.2" />
+        <circle cx={CENTER} cy={CENTER} r={ZODIAC_RADIUS} fill="none" className="stroke-current text-[--gold-accent] opacity-20" />
 
         {/* House dividing lines */}
         {Array.from({ length: 6 }).map((_, i) => (
@@ -84,7 +84,7 @@ const RasiChart: React.FC<RasiChartProps> = ({ placements, ascendant }) => {
             y1={polarToCartesian(CENTER, CENTER, 50, i * 30).y}
             x2={polarToCartesian(CENTER, CENTER, ZODIAC_RADIUS, i * 30).x}
             y2={polarToCartesian(CENTER, CENTER, ZODIAC_RADIUS, i * 30).y}
-            className="stroke-current text-stone-brown/20 dark:text-manuscript-parchment/20"
+            className="stroke-current text-gray-300 dark:text-gray-700"
           />
         ))}
 
@@ -92,7 +92,7 @@ const RasiChart: React.FC<RasiChartProps> = ({ placements, ascendant }) => {
         {zodiac.map(({ name, glyph, angle }) => {
           const { x, y } = polarToCartesian(CENTER, CENTER, ZODIAC_RADIUS - 15, -angle + 180);
           return (
-            <text key={name} x={x} y={y} className="fill-current text-stone-brown/70 dark:text-manuscript-parchment/70" fontSize="18" textAnchor="middle" dominantBaseline="middle">
+            <text key={name} x={x} y={y} className="fill-current text-gray-500 dark:text-gray-400" fontSize="18" textAnchor="middle" dominantBaseline="middle">
               {glyph}
             </text>
           );
@@ -115,18 +115,18 @@ const RasiChart: React.FC<RasiChartProps> = ({ placements, ascendant }) => {
           return (
             <g key={`house-${houseNumber}`}>
               {/* House Number Text */}
-              <text x={housePos.x} y={housePos.y} className="fill-current text-stone-brown dark:text-manuscript-parchment" fontSize="12" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">
+              <text x={housePos.x} y={housePos.y} className="fill-current text-gray-700 dark:text-gray-200" fontSize="12" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">
                 {houseNumber}
               </text>
                {/* Ascendant Marker */}
               {houseNumber === 1 && (
-                  <text x={housePos.x} y={housePos.y + 14} fill="var(--suryansh-gold)" fontSize="10" textAnchor="middle" dominantBaseline="middle" filter="url(#glow)">
+                  <text x={housePos.x} y={housePos.y + 14} className="fill-current text-[--gold-accent]" fontSize="10" textAnchor="middle" dominantBaseline="middle" style={{filter: 'url(#glow)'}}>
                     {PLANET_GLYPHS.Ascendant}
                   </text>
               )}
               {/* Planet Glyphs */}
               {planetPositions.map(pos => (
-                 <text key={pos.name} x={pos.x} y={pos.y} className="fill-current text-stone-brown dark:text-manuscript-parchment" fontSize="16" textAnchor="middle" dominantBaseline="middle">
+                 <text key={pos.name} x={pos.x} y={pos.y} className="fill-current text-gray-800 dark:text-gray-100" fontSize="16" textAnchor="middle" dominantBaseline="middle">
                     {PLANET_GLYPHS[pos.name] || '?'}
                  </text>
               ))}

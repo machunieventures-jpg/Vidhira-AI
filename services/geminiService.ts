@@ -1,5 +1,6 @@
+
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { UserData, CoreNumbers, CompoundNumbers, KarmicDebtNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData, MethodologyPillar, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis, LogoAnalysis, CalendarDayInsight } from '../types';
+import type { UserData, CoreNumbers, CompoundNumbers, KarmicDebtNumbers, WorldClassReport, LoshuAnalysisPillar, ChatMessage, JyotishReportData, MethodologyPillar, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis, LogoAnalysis, CalendarDayInsight, CosmicIdentityPillar, RelationshipsPillar, PillarContent, SpiritualAlignmentPillar, FutureForecastPillar, KundaliSnapshot } from '../types';
 import { calculateNameNumbers, reduceNumber } from './numerologyService';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -79,103 +80,337 @@ function extractJson(text: string): any {
     }
 }
 
-export const generateWorldClassReport = async (
+// --- COMMON PROMPT HELPERS ---
+
+const ARVIND_SUD_PERSONA = (language: string) => `
+Act as Arvind Sud, a world-renowned numerologist and cosmic scientist known for his professional, accurate, and deeply insightful analysis. Your framework, the Sud Numerology Matrix, blends the timeless wisdom of Chaldean numerology with modern, actionable strategies.
+Your persona is inspiring, precise, and deeply personalized. You do not use fluffy or overly mystical language; your insights are direct, clear, and grounded in the energetic science of numbers.
+Your entire response, including all text, interpretations, and markdown content, MUST be in ${language}.
+The output MUST be a valid JSON object. Do not include any text before or after the JSON.
+
+**CRITICAL INSTRUCTIONS:**
+1.  **Strictly Chaldean:** Your entire numerological analysis MUST be based exclusively on the Chaldean system.
+2.  **Terminology:** For key terms, provide the English term followed by its Sanskrit equivalent: \`(Sanskrit: term)\`.
+3.  **Karmic Debt:** If a Karmic Debt Number is provided, you MUST interpret it within the 'interpretation' field.
+4.  **AI Reflection Coach:** For EVERY 'content' field, you MUST generate a 'journalPrompt'.
+5.  **Specificity:** For career/education, provide specific, actionable recommendations.
+6.  **Teasers & Content:** For every pillar with a 'teaser' and 'content' field, provide both.
+7.  **Planetary Rulers:** Populate the 'planetaryRuler' field based on the Chaldean system.
+`;
+
+const USER_DATA_BLOCK = (
+  userData: UserData,
+  coreNumbers: CoreNumbers,
+  compoundNumbers: CompoundNumbers,
+  karmicDebtNumbers: KarmicDebtNumbers
+) => `
+**USER DATA:**
+- Full Name: "${userData.fullName}"
+- Date of Birth: "${userData.dob}"
+- Time of Birth: "${userData.time}"
+- Location of Birth: "${userData.location}"
+- Gender: "${userData.gender}"
+- Preferred Language: "${userData.language}"
+
+**CALCULATED NUMEROLOGY DATA (Chaldean Method):**
+- Life Path Number: ${coreNumbers.lifePath} (from compound ${compoundNumbers.lifePath}) ${karmicDebtNumbers.lifePath ? `-> KARMIC DEBT: ${karmicDebtNumbers.lifePath}` : ''}
+- Expression Number: ${coreNumbers.expression} (from compound ${compoundNumbers.expression}) ${karmicDebtNumbers.expression ? `-> KARMIC DEBT: ${karmicDebtNumbers.expression}` : ''}
+- Soul Urge Number: ${coreNumbers.soulUrge} (from compound ${compoundNumbers.soulUrge}) ${karmicDebtNumbers.soulUrge ? `-> KARMIC DEBT: ${karmicDebtNumbers.soulUrge}` : ''}
+- Personality Number: ${coreNumbers.personality} (from compound ${compoundNumbers.personality}) ${karmicDebtNumbers.personality ? `-> KARMIC DEBT: ${karmicDebtNumbers.personality}` : ''}
+- Maturity Number: ${coreNumbers.maturity} (from compound ${compoundNumbers.maturity}) ${karmicDebtNumbers.maturity ? `-> KARMIC DEBT: ${karmicDebtNumbers.maturity}` : ''}
+- Personal Year Number: ${coreNumbers.personalYear}
+`;
+
+const callGemini = async (prompt: string, pillarName: string): Promise<any> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: { seed: 42 },
+        });
+        return extractJson(response.text);
+    } catch (error) {
+        console.error(`Error generating the ${pillarName} pillar:`, error);
+        throw new Error(`Failed to generate the ${pillarName} section of the report.`);
+    }
+};
+
+// --- PILLAR GENERATION FUNCTIONS ---
+
+export const generateCosmicIdentityPillar = async (
     userData: UserData,
     coreNumbers: CoreNumbers,
     compoundNumbers: CompoundNumbers,
-    karmicDebtNumbers: KarmicDebtNumbers,
+    karmicDebtNumbers: KarmicDebtNumbers
+): Promise<CosmicIdentityPillar> => {
+    const prompt = `
+        ${ARVIND_SUD_PERSONA(userData.language)}
+        ${USER_DATA_BLOCK(userData, coreNumbers, compoundNumbers, karmicDebtNumbers)}
+
+        **TASK: GENERATE THE 'COSMIC IDENTITY' PILLAR JSON**
+        Your response must be a single JSON object that strictly adheres to the provided schema.
+
+        **JSON STRUCTURE INSTRUCTIONS:**
+        1.  **Interpret Core Numbers:** Provide a deep, multi-paragraph 'interpretation' for each of the five core numbers (Life Path, Expression, Soul Urge, Personality, Maturity). The interpretation must be rich, personalized, use Markdown for formatting (bolding, lists), and MUST incorporate the Karmic Debt number if one is provided for that specific core number.
+        2.  **Populate Data:** For each core number, correctly populate its 'number', 'compound', 'planetaryRuler', and any 'karmicDebt' value from the user data provided above.
+        3.  **Generate Other Sections:** Also generate the 'soulSynopsis', 'famousParallels', and 'planetaryRulerships' sections. Each of these must be an object containing a 'teaser', detailed 'content', and a 'journalPrompt'.
+
+        Return ONLY the complete JSON object for this pillar.
+    `;
+    
+    const coreNumberInfoSchema = {
+        type: Type.OBJECT,
+        properties: {
+            number: { type: Type.NUMBER, description: "The single-digit core number." },
+            compound: { type: Type.NUMBER, description: "The two-digit number it was reduced from." },
+            karmicDebt: { type: Type.NUMBER, nullable: true, description: "The Karmic Debt number (13, 14, 16, 19), if applicable." },
+            interpretation: { type: Type.STRING, description: "A detailed, multi-paragraph interpretation of the number's meaning for the user." },
+            planetaryRuler: { type: Type.STRING, description: "The Chaldean planetary ruler of the number (e.g., Sun, Moon)." },
+            journalPrompt: { type: Type.STRING, description: "A thought-provoking reflective question for the user specifically about this number's energy in their life." },
+        },
+        required: ['number', 'compound', 'interpretation', 'planetaryRuler', 'journalPrompt'],
+    };
+
+    const pillarContentSchema = {
+        type: Type.OBJECT,
+        properties: {
+            teaser: { type: Type.STRING, description: "A short, engaging one-sentence summary of the content." },
+            content: { type: Type.STRING, description: "The full, detailed content for this section, using Markdown for formatting." },
+            journalPrompt: { type: Type.STRING, description: "A thought-provoking journal prompt related to the content." },
+        },
+        required: ['teaser', 'content', 'journalPrompt'],
+    };
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            coreNumbers: {
+                type: Type.OBJECT,
+                properties: {
+                    lifePath: coreNumberInfoSchema,
+                    expression: coreNumberInfoSchema,
+                    soulUrge: coreNumberInfoSchema,
+                    personality: coreNumberInfoSchema,
+                    maturity: coreNumberInfoSchema,
+                },
+                required: ['lifePath', 'expression', 'soulUrge', 'personality', 'maturity'],
+            },
+            soulSynopsis: pillarContentSchema,
+            famousParallels: pillarContentSchema,
+            planetaryRulerships: pillarContentSchema,
+        },
+        required: ['coreNumbers', 'soulSynopsis', 'famousParallels', 'planetaryRulerships'],
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: { 
+                seed: 42,
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            },
+        });
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error(`Error generating the Cosmic Identity pillar:`, error);
+        if (error instanceof SyntaxError) {
+             throw new Error(`Model returned invalid JSON for Cosmic Identity pillar, even with a schema constraint.`);
+        }
+        throw new Error(`Failed to generate the Cosmic Identity section of the report. The model may have had an issue processing the request.`);
+    }
+};
+
+export const generateRelationshipsPillar = async (
+    userData: UserData,
+    coreNumbers: CoreNumbers
+): Promise<RelationshipsPillar> => {
+    const prompt = `
+        ${ARVIND_SUD_PERSONA(userData.language)}
+        **USER DATA:**
+        - Life Path Number: ${coreNumbers.lifePath}
+        - Expression Number: ${coreNumbers.expression}
+        - Soul Urge Number: ${coreNumbers.soulUrge}
+        - Preferred Language: "${userData.language}"
+
+        **TASK:** Generate the 'Relationships & Family' pillar.
+        1.  Provide main 'teaser', 'content', and 'journalPrompt' for the pillar.
+        2.  Generate the 'compatibilityAnalysis':
+            - For Life Path, Expression, and Soul Urge numbers, identify compatible numbers (1-9).
+            - For each pairing, provide a detailed, 3-4 sentence 'interpretation' explaining the synergy.
+        3.  Generate the 'friendlyAndEnemyNumbers' content:
+            - Provide a 'teaser', 'content' with a Markdown table of Friendly/Neutral/Enemy numbers based on the Destiny Number (${coreNumbers.lifePath}), and a 'journalPrompt'. Explain the reasoning based on Chaldean principles.
+        Return ONLY the JSON object for this pillar.
+    `;
+    return callGemini(prompt, 'Relationships & Family');
+};
+
+export const generateLoshuAnalysisPillar = async (
+    userData: UserData,
     loshu: Pick<LoshuAnalysisPillar, 'missingNumbers' | 'overloadedNumbers'>
-): Promise<Omit<WorldClassReport, 'loshuAnalysis'> & { loshuAnalysis: Omit<LoshuAnalysisPillar, 'grid' | 'missingNumbers' | 'overloadedNumbers'> }> => {
-  const { fullName, dob, time, location, gender, language, phoneNumber } = userData;
+): Promise<Omit<LoshuAnalysisPillar, 'grid' | 'missingNumbers' | 'overloadedNumbers'>> => {
+    const prompt = `
+        ${ARVIND_SUD_PERSONA(userData.language)}
+        **USER DATA:**
+        - Loshu Grid Missing Numbers: ${loshu.missingNumbers.join(', ') || 'None'}
+        - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
+        - Preferred Language: "${userData.language}"
 
-  const prompt = `
-  Act as Arvind Sud, a world-renowned numerologist and cosmic scientist known for his professional, accurate, and deeply insightful analysis. Your framework, the Sud Numerology Matrix, blends the timeless wisdom of Chaldean numerology with modern, actionable strategies.
-  Your persona is inspiring, precise, and deeply personalized. You do not use fluffy or overly mystical language; your insights are direct, clear, and grounded in the energetic science of numbers.
-  Your entire response, including all text, interpretations, and markdown content, MUST be in ${language}.
-  The user wants their "FULL LIFE REPORT BLUEPRINT". Generate a comprehensive report based on their data.
-  The output MUST be a valid JSON object that adheres to the provided schema.
+        **TASK:** Generate the analysis for the Loshu Grid pillar.
+        Your response MUST be a JSON object with three top-level keys: "planes", "balanceSummary", and "compensationStrategy".
+        
+        1.  **"planes"**: An object containing keys for ALL EIGHT planes: "mental", "emotional", "practical", "thought", "will", "action", "determination", and "spiritual". Each of these must be an object with "teaser", "content", and "journalPrompt". For each, determine if it's complete/incomplete based on the missing numbers and provide an insightful interpretation in the 'content'.
+        2.  **"balanceSummary"**: An object with "teaser", "content", and "journalPrompt".
+        3.  **"compensationStrategy"**: An object with "teaser", "content", and "journalPrompt".
+        
+        Return ONLY the JSON object that strictly adheres to this structure.
+    `;
 
-  **CRITICAL INSTRUCTIONS:**
-  1.  **Strictly Chaldean:** Your entire numerological analysis MUST be based exclusively on the Chaldean system. This is a critical requirement for accuracy. Do not blend concepts, interpretations, or planetary associations from Pythagorean or any other numerology system. Every piece of numerological insight must be pure Chaldean.
-  2.  **Terminology:** For key numerological and astrological terms, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. For example: "Life Path Number (Sanskrit: Jeevan Pathank)", "Expression Number (Sanskrit: Namank)", "Ascendant (Sanskrit: Lagna)". This is crucial for authenticity and proper rendering.
-  3.  **Karmic Debt:** If a core number has an associated Karmic Debt Number (13, 14, 16, 19), you MUST populate the 'karmicDebt' field with that number. Within the main 'interpretation' for that number, you MUST include a specific, in-depth interpretation of that karmic lesson. Explain the nature of the debt, the challenges it presents, and the path to overcoming it with practical advice. This is a critical part of the analysis.
-  4.  **AI Reflection Coach:** For EVERY pillar or sub-pillar with a 'content' field, you MUST also generate a thought-provoking, personalized 'journalPrompt'. This prompt must be a single question designed to help the user reflect on that pillar's insights and apply them to their life. This is a mandatory field.
-  5.  **Specificity:** Generic advice is not acceptable. For the 'wealthBusinessCareer' and 'intellectEducation' pillars, you must provide highly specific and actionable recommendations.
-      *   **For Career:** Instead of "good in business", suggest specific industries (e.g., "fintech, sustainable agriculture, AI-driven marketing") and roles (e.g., "product manager, data scientist, strategic consultant"). Be bold and precise.
-      *   **For Education:** Instead of "suited for higher learning", recommend specific degree programs or certifications (e.g., "a Master's in Computer Science with a specialization in Machine Learning", "a certification in Digital Marketing from Google or HubSpot", "a degree in Psychology focusing on cognitive-behavioral therapy"). Base these on the user's core numbers for maximum relevance.
-  6.  **Teasers & Content:** For every pillar or sub-pillar with a 'teaser' and 'content' field, you MUST provide both. The 'teaser' must be a short, 1-2 sentence summary. The 'content' must be the full, detailed analysis.
-  7.  **Planetary Rulers:** For each core number, you MUST also determine its ruling planet based on the Chaldean system (1-Sun, 2-Moon, 3-Jupiter, 4-Rahu, 5-Mercury, 6-Venus, 7-Ketu, 8-Saturn, 9-Mars) and populate the 'planetaryRuler' field.
-  8.  **Full Loshu Analysis**: For the 'loshuAnalysis.planes' object, you MUST provide a full analysis for ALL EIGHT planes of the Loshu grid: Mental, Emotional, Practical (rows), Thought, Will, Action (columns), and Determination, Spiritual (diagonals). For each plane, determine if it is complete or incomplete and provide a corresponding insightful interpretation.
+    const pillarContentSchema = {
+        type: Type.OBJECT,
+        properties: {
+            teaser: { type: Type.STRING },
+            content: { type: Type.STRING },
+            journalPrompt: { type: Type.STRING },
+        },
+        required: ['teaser', 'content', 'journalPrompt'],
+    };
 
-  **USER DATA:**
-  - Full Name: "${fullName}"
-  - Date of Birth: "${dob}"
-  - Time of Birth: "${time}"
-  - Location of Birth: "${location}"
-  - Gender: "${gender}"
-  - Phone Number: "${phoneNumber}"
-  - Preferred Language: "${language}"
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            planes: {
+                type: Type.OBJECT,
+                properties: {
+                    mental: pillarContentSchema,
+                    emotional: pillarContentSchema,
+                    practical: pillarContentSchema,
+                    thought: pillarContentSchema,
+                    will: pillarContentSchema,
+                    action: pillarContentSchema,
+                    determination: pillarContentSchema,
+                    spiritual: pillarContentSchema,
+                },
+                required: ['mental', 'emotional', 'practical', 'thought', 'will', 'action', 'determination', 'spiritual'],
+            },
+            balanceSummary: pillarContentSchema,
+            compensationStrategy: pillarContentSchema,
+        },
+        required: ['planes', 'balanceSummary', 'compensationStrategy'],
+    };
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: { 
+                seed: 42,
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            },
+        });
+        // The response text is already a guaranteed JSON string when a schema is used.
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error(`Error generating the Loshu Grid Analysis pillar:`, error);
+        if (error instanceof SyntaxError) {
+             // This case should be very rare with a schema, but good to have.
+             throw new Error(`Model returned invalid JSON for Loshu Grid Analysis pillar, even with a schema constraint.`);
+        }
+        // Re-throw other errors (e.g., API errors) with context.
+        throw new Error(`Failed to generate the Loshu Grid Analysis section of the report. The model may have had an issue processing the request.`);
+    }
+};
 
-  **CALCULATED NUMEROLOGY DATA (Chaldean Method):**
-  - Life Path Number: ${coreNumbers.lifePath} (from compound ${compoundNumbers.lifePath}) ${karmicDebtNumbers.lifePath ? `-> KARMIC DEBT: ${karmicDebtNumbers.lifePath}` : ''}
-  - Expression Number: ${coreNumbers.expression} (from compound ${compoundNumbers.expression}) ${karmicDebtNumbers.expression ? `-> KARMIC DEBT: ${karmicDebtNumbers.expression}` : ''}
-  - Soul Urge Number: ${coreNumbers.soulUrge} (from compound ${compoundNumbers.soulUrge}) ${karmicDebtNumbers.soulUrge ? `-> KARMIC DEBT: ${karmicDebtNumbers.soulUrge}` : ''}
-  - Personality Number: ${coreNumbers.personality} (from compound ${compoundNumbers.personality}) ${karmicDebtNumbers.personality ? `-> KARMIC DEBT: ${karmicDebtNumbers.personality}` : ''}
-  - Maturity Number: ${coreNumbers.maturity} (from compound ${compoundNumbers.maturity}) ${karmicDebtNumbers.maturity ? `-> KARMIC DEBT: ${karmicDebtNumbers.maturity}` : ''}
-  - Personal Year Number: ${coreNumbers.personalYear}
-  - Loshu Grid Missing Numbers: ${loshu.missingNumbers.join(', ') || 'None'}
-  - Loshu Grid Overloaded Numbers: ${loshu.overloadedNumbers.join(', ') || 'None'}
+export const generateFutureForecastPillar = async (
+    userData: UserData,
+    coreNumbers: CoreNumbers,
+    compoundNumbers: CompoundNumbers
+): Promise<FutureForecastPillar> => {
+    const prompt = `
+        ${ARVIND_SUD_PERSONA(userData.language)}
+        **USER DATA:**
+        - Personal Year Number: ${coreNumbers.personalYear}
+        - Life Path Number: ${coreNumbers.lifePath}
+        - Expression Number: ${coreNumbers.expression}
+        - Preferred Language: "${userData.language}"
 
-  **TASK 1: VEDIC KUNDALI SNAPSHOT**
-  First, generate a "Vedic Kundali Snapshot". Based on the user's DOB, Time, and Location, determine the following and populate the 'kundaliSnapshot' field. Remember to use Sanskrit terms.
-  1.  **Ascendant (Sanskrit: Lagna):** The rising sign.
-  2.  **Moon Sign (Sanskrit: Rashi):** The sign where the moon was placed.
-  3.  **Sun Sign:** The user's sun sign.
-  4.  **Summary:** Provide a concise, 2-3 sentence summary synthesizing these three key placements.
+        **TASK:** Generate the 'Future Forecast' pillar.
+        1.  Generate the 'personalYear' object with 'number', 'compound', 'journalPrompt', and a deep 'interpretation'.
+        2.  Generate the 'strategicRoadmap' with 'teaser', 'content', and 'journalPrompt'.
+        Return ONLY the JSON object for this pillar.
+    `;
+    return callGemini(prompt, 'Future Forecast');
+};
 
-  **TASK 2: METHODOLOGY & TRANSPARENCY**
-  Populate the 'methodology' object. This is for technical transparency.
-  1.  **ayanamsa:** Set this to "Lahiri".
-  2.  **houseSystem:** Set this to "Placidus".
-  3.  **numerologyMethod:** Set this to "Chaldean (Sud Numerology Matrix)".
-  4.  **disclaimer:** Set this to "This Vidhira report is a digitally generated analysis for spiritual insight and personal development. It is not a substitute for professional advice in legal, medical, or financial matters. Major life decisions should be made in consultation with qualified experts. The guidance provided is intended to be empowering and supportive of your journey."
+export const generateSpiritualAlignmentPillar = async (
+    userData: UserData,
+    coreNumbers: CoreNumbers
+): Promise<SpiritualAlignmentPillar> => {
+     const prompt = `
+        ${ARVIND_SUD_PERSONA(userData.language)}
+        **USER DATA:**
+        - Core Numbers: Life Path ${coreNumbers.lifePath}, Expression ${coreNumbers.expression}
+        - Preferred Language: "${userData.language}"
 
-  **TASK 3: 10-PILLAR NUMEROLOGY REPORT**
-  Now, generate the complete 10-pillar numerology report. For each core number's 'interpretation' field, provide a deep, multi-paragraph interpretation using Markdown. Use **bolding** for key traits, _italics_ for emphasis, and bulleted lists. For all markdown pillars, provide rich, detailed content with clear headings.
+        **TASK:** Generate the 'Spiritual Alignment' pillar.
+        1.  Provide main 'teaser', 'content', and 'journalPrompt'.
+        2.  Determine a primary 'luckyColor' and provide its 6-digit hex code.
+        3.  Generate an array of 2-3 personalized 'mantrasAndAffirmations'.
+        Return ONLY the JSON object for this pillar.
+    `;
+    return callGemini(prompt, 'Spiritual Alignment');
+};
 
-  **SPECIFIC INSTRUCTIONS FOR 'relationshipsFamilyLegacy' PILLAR:**
-  In addition to the main content, generate the 'compatibilityAnalysis'.
-  1.  For the user's Life Path number (${coreNumbers.lifePath}), identify its most compatible numbers (1-9). For each pairing, provide a detailed, 3-4 sentence interpretation explaining the synergistic dynamics, potential strengths, and areas of harmony.
-  2.  For the user's Expression number (${coreNumbers.expression}), do the same, providing a detailed 3-4 sentence interpretation for each compatible pairing.
-  3.  For the user's Soul Urge number (${coreNumbers.soulUrge}), do the same, providing a detailed 3-4 sentence interpretation for each compatible pairing.
-  4.  **Friendly/Enemy Analysis:** Generate the 'friendlyAndEnemyNumbers' content. This analysis is critical.
-      -   The 'teaser' should be a 1-sentence summary about the importance of number harmony.
-      -   The 'content' must be a Markdown-formatted section. First, provide a short paragraph explaining the concept of friendly, neutral, and inimical numbers based on the user's primary Destiny Number (${coreNumbers.lifePath}).
-      -   Then, create a well-structured Markdown table with three columns: "Friendly Numbers", "Neutral Numbers", "Enemy Numbers".
-      -   For each column, list the corresponding numbers (1-9) and provide a concise, insightful explanation for *why* they have that relationship with the user's Destiny Number.
-      -   Conclude the 'content' with a paragraph of actionable advice on how to leverage these relationships in personal and professional life.
-      -   The 'journalPrompt' should ask a reflective question about their experiences with people who might embody these different number energies.
-  
-  For 'spiritualAlignment', determine their primary lucky color and provide its hex code. Also, generate 2-3 personalized, empowering mantras in the 'mantrasAndAffirmations' array.
-  
-  You must return a single JSON object. Do not include any text before or after the JSON.
-  `;
+export const generateSimplePillarContent = async (
+    pillarName: string,
+    userData: UserData,
+    coreNumbers: CoreNumbers
+): Promise<PillarContent> => {
+     const prompt = `
+        ${ARVIND_SUD_PERSONA(userData.language)}
+        **USER DATA:**
+        - Core Numbers: Life Path ${coreNumbers.lifePath}, Expression ${coreNumbers.expression}
+        - Preferred Language: "${userData.language}"
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: prompt,
-      config: {
-        seed: 42,
-      },
-    });
+        **TASK:** Generate the content for the "${pillarName}" pillar.
+        - For 'Wealth & Career' and 'Intellect & Education', you must provide highly specific and actionable recommendations for industries, roles, or degrees.
+        - The response should be a single JSON object with 'teaser', 'content', and 'journalPrompt'.
+        Return ONLY the JSON object for this pillar.
+    `;
+    return callGemini(prompt, pillarName);
+};
 
-    return extractJson(response.text);
+export const generateKundaliSnapshot = async (
+    userData: UserData
+): Promise<KundaliSnapshot> => {
+    const prompt = `
+        Act as a master Vedic Astrologer. Your response MUST be in ${userData.language}.
+        **USER DATA:**
+        - DOB: "${userData.dob}", Time: "${userData.time}", Location: "${userData.location}"
 
-  } catch (error) {
-    console.error("Error generating world-class report:", error);
-    throw new Error("Failed to generate the complete numerology report. The cosmic energies are currently unstable. Please try again.");
-  }
+        **TASK:** Generate a "Vedic Kundali Snapshot".
+        1.  Determine the Ascendant (Sanskrit: Lagna), Moon Sign (Sanskrit: Rashi), and Sun Sign.
+        2.  Provide a concise, 2-3 sentence 'summary' synthesizing these three key placements.
+        3.  Use Sanskrit terms where appropriate, e.g., (Sanskrit: Lagna).
+        Return a single JSON object with 'ascendant', 'moonSign', 'sunSign', and 'summary'.
+    `;
+    return callGemini(prompt, 'Kundali Snapshot');
+};
+
+export const generateMethodologyPillar = async (
+    language: string
+): Promise<MethodologyPillar> => {
+    const prompt = `
+        **TASK:** Generate the 'Methodology' pillar content in the language: ${language}.
+        - ayanamsa: "Lahiri"
+        - houseSystem: "Placidus"
+        - numerologyMethod: "Chaldean (Sud Numerology Matrix)"
+        - disclaimer: "This Vidhira report is a digitally generated analysis for spiritual insight and personal development. It is not a substitute for professional advice in legal, medical, or financial matters. Major life decisions should be made in consultation with qualified experts. The guidance provided is intended to be empowering and supportive of your journey."
+        Return a single JSON object with these fields.
+    `;
+    return callGemini(prompt, 'Methodology');
 };
 
 

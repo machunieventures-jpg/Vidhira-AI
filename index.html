@@ -1,3 +1,14 @@
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1"
+  }
+}
+</script>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -55,11 +66,14 @@
                     radial-gradient(circle at 40% 20%, rgba(247, 37, 133, 0.08) 0%, transparent 40%);
         pointer-events: none;
         z-index: 0;
+        background-size: 200% 200%;
+        animation: cosmic-flow 60s ease-in-out infinite;
       }
       .dark .cosmic-bg {
         background: radial-gradient(circle at 20% 50%, rgba(58, 12, 163, 0.2) 0%, transparent 40%),
                     radial-gradient(circle at 80% 80%, rgba(76, 201, 240, 0.15) 0%, transparent 40%),
                     radial-gradient(circle at 40% 20%, rgba(247, 37, 133, 0.15) 0%, transparent 40%);
+        animation-name: cosmic-flow;
       }
 
       .stars {
@@ -104,189 +118,215 @@
         animation: slide-up 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       }
 
+      @keyframes pop-in {
+        0% {
+          opacity: 0;
+          transform: scale(0.5);
+        }
+        70% {
+          opacity: 1;
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      .animate-pop-in {
+        animation: pop-in 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      }
+
+      @keyframes cosmic-flow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
       @keyframes cosmic-reveal {
         from {
           opacity: 0;
-          transform: scale(0.5) rotate(-90deg);
+          transform: perspective(1000px) rotateY(90deg) scale(0.95);
+          transform-origin: right center;
         }
         to {
           opacity: 1;
-          transform: scale(1) rotate(0deg);
+          transform: perspective(1000px) rotateY(0deg) scale(1);
+          transform-origin: right center;
         }
       }
       .animate-cosmic-reveal {
-        animation: cosmic-reveal 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        opacity: 0; /* Start hidden to prevent flash */
+        animation: cosmic-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
 
       @keyframes grid-glow {
         0%, 100% {
-          box-shadow: 0 0 15px rgba(58, 12, 163, 0.2), 0 0 30px rgba(76, 201, 240, 0.1);
+          box-shadow: 0 0 15px rgba(58, 12, 163, 0.2), 0 0 30px rgba(76, 201, 240, 0.1), 0 0 45px rgba(247, 37, 133, 0.1);
         }
         50% {
-          box-shadow: 0 0 25px rgba(58, 12, 163, 0.4), 0 0 50px rgba(76, 201, 240, 0.2);
+          box-shadow: 0 0 25px rgba(58, 12, 163, 0.3), 0 0 40px rgba(76, 201, 240, 0.2), 0 0 55px rgba(247, 37, 133, 0.2);
         }
       }
-      .grid-glow-effect {
-        animation: grid-glow 5s ease-in-out infinite;
+       .grid-glow-effect {
+        animation: grid-glow 8s ease-in-out infinite;
       }
-
-      @keyframes text-glow {
-        0%, 100% {
-          text-shadow: 0 0 10px rgba(76, 201, 240, 0.5), 0 0 20px rgba(76, 201, 240, 0.3), 0 0 40px rgba(58, 12, 163, 0.5);
-        }
-        50% {
-          text-shadow: 0 0 15px rgba(247, 37, 133, 0.8), 0 0 25px rgba(247, 37, 133, 0.6), 0 0 40px rgba(58, 12, 163, 0.7), 0 0 60px rgba(58, 12, 163, 0.5);
-        }
+      .dark .grid-glow-effect {
+         animation-name: grid-glow;
       }
 
       .logo-glow {
-        animation: text-glow 3s ease-in-out infinite;
-      }
-
-      @keyframes icon-glow {
-        0%, 100% {
-          filter: drop-shadow(0 0 4px rgba(76, 201, 240, 0.7)) drop-shadow(0 0 8px rgba(58, 12, 163, 0.5));
-        }
-        50% {
-          filter: drop-shadow(0 0 6px rgba(247, 37, 133, 0.8)) drop-shadow(0 0 12px rgba(58, 12, 163, 0.7));
-        }
+        text-shadow: 0 0 8px rgba(58, 12, 163, 0.4), 0 0 20px rgba(58, 12, 163, 0.2);
       }
       .icon-glow {
-        animation: icon-glow 3s ease-in-out infinite;
-      }
-
-      .glass-card {
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 24px;
-        padding: 32px;
-        box-shadow: var(--card-shadow);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        transition: all 0.3s ease;
-      }
-      .dark .glass-card {
-        background: rgba(26, 32, 44, 0.5);
-        border-color: rgba(58, 12, 163, 0.3);
-      }
-
-      .glass-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 30px 80px rgba(0,0,0,0.2);
-      }
-      .dark .glass-card:hover {
-        box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+        filter: drop-shadow(0 0 5px rgba(58, 12, 163, 0.5));
       }
 
       .gradient-text {
-        background: linear-gradient(135deg, var(--cosmic-purple) 0%, var(--rose-accent) 50%, var(--gold-accent) 100%);
+        background: linear-gradient(45deg, var(--cosmic-purple), var(--rose-accent));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        text-fill-color: transparent;
+      }
+      
+      .dark .gradient-text {
+         background: linear-gradient(45deg, var(--gold-accent), var(--stardust));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-fill-color: transparent;
       }
 
-      .btn-cosmic {
-        background: var(--cosmic-purple);
-        color: white;
-        border: none;
-        padding: 16px 32px;
-        border-radius: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        box-shadow: 0 10px 30px rgba(58, 12, 163, 0.3);
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 24px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: var(--card-shadow);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
-
-      .btn-cosmic:hover {
-        background: #480ca8;
-        transform: translateY(-2px);
-        box-shadow: 0 15px 40px rgba(58, 12, 163, 0.5);
+      .dark .glass-card {
+        background: rgba(13, 13, 13, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
-
-      .btn-cosmic:active {
-        transform: translateY(0);
-      }
-      .btn-cosmic:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: translateY(0);
-        box-shadow: 0 10px 30px rgba(58, 12, 163, 0.3);
-      }
-
+      
       .input-cosmic {
         width: 100%;
-        padding: 14px 20px;
-        border: 2px solid rgba(58, 12, 163, 0.2);
-        border-radius: 12px;
-        font-size: 16px;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #E2E8F0;
+        background-color: #F7FAFC;
         transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.8);
         color: var(--cosmic-blue);
       }
       .dark .input-cosmic {
-         background: rgba(26, 32, 44, 0.7);
-         border-color: rgba(58, 12, 163, 0.4);
-         color: var(--stardust);
+        background-color: #1a1a1a;
+        border-color: #4a4a4a;
+        color: var(--stardust);
       }
-      .input-cosmic::placeholder {
-         color: #A0AEC0;
-      }
-       .dark .input-cosmic::placeholder {
-         color: #718096;
-       }
-
       .input-cosmic:focus {
         outline: none;
         border-color: var(--cosmic-purple);
-        box-shadow: 0 0 0 4px rgba(58, 12, 163, 0.1);
+        box-shadow: 0 0 0 3px rgba(58, 12, 163, 0.2);
+      }
+      .dark .input-cosmic:focus {
+         border-color: var(--gold-accent);
+         box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+      }
+
+      .btn-cosmic {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(45deg, var(--cosmic-purple), var(--rose-accent));
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.2);
+      }
+      .btn-cosmic:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.2);
+      }
+       .btn-cosmic:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.2);
       }
 
       .loading-mandala {
-        width: 60px;
-        height: 60px;
-        border: 4px solid rgba(58, 12, 163, 0.2);
+        width: 64px;
+        height: 64px;
+        border: 6px solid transparent;
         border-top-color: var(--cosmic-purple);
+        border-right-color: var(--gold-accent);
         border-radius: 50%;
         animation: spin 1s linear infinite;
+        position: relative;
+      }
+      .dark .loading-mandala {
+        border-top-color: var(--gold-accent);
+        border-right-color: var(--stardust);
+      }
+      
+      .loading-mandala::before {
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        border: 4px solid transparent;
+        border-left-color: var(--rose-accent);
+        border-bottom-color: var(--rose-accent);
+        animation: spin 1.5s linear infinite reverse;
+      }
+      .dark .loading-mandala::before {
+        border-left-color: var(--rose-accent);
+        border-bottom-color: var(--rose-accent);
       }
 
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
+      @keyframes spin { to { transform: rotate(360deg); } }
 
+      /* For Print */
       @media print {
         .no-print {
           display: none !important;
         }
+        body {
+          background-color: #ffffff;
+          color: #000000;
+        }
+        .dark body {
+          background-color: #ffffff;
+          color: #000000;
+        }
+        .glass-card {
+          background: #ffffff;
+          box-shadow: none;
+          border: 1px solid #e2e8f0;
+          backdrop-filter: none;
+        }
+        .gradient-text {
+          background: none;
+          -webkit-text-fill-color: #3A0CA3;
+          text-fill-color: #3A0CA3;
+        }
+        .collapsible-content {
+          max-height: none !important;
+        }
       }
+
     </style>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-      }
-    </script>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
-    "recharts": "https://aistudiocdn.com/recharts@^2.12.7"
-  }
-}
-</script>
-    <!-- PDF Generation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-</head>
+  </head>
   <body>
+    <div id="root"></div>
     <div class="cosmic-bg"></div>
     <div class="stars"></div>
-    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

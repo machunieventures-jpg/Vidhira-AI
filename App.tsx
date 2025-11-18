@@ -5,23 +5,34 @@ import Dashboard from './components/Dashboard';
 import PaymentModal from './components/common/PaymentModal';
 import BlueprintSummary from './components/BlueprintSummary';
 import { calculateInitialNumbers, generateLoshuGrid, calculateMulank, calculateKuaNumber } from './services/numerologyService';
-import { generateWorldClassReport } from './services/geminiService';
+import {
+    generateCosmicIdentityPillar,
+    generateRelationshipsPillar,
+    generateLoshuAnalysisPillar,
+    generateFutureForecastPillar,
+    generateSpiritualAlignmentPillar,
+    generateSimplePillarContent,
+    generateKundaliSnapshot,
+    generateMethodologyPillar
+} from './services/geminiService';
 import { trackEvent } from './services/analyticsService';
 import { Check } from './components/common/Icons';
 import LoadingMandala from './components/common/LoadingMandala';
 
 type AppView = 'onboarding' | 'summary' | 'dashboard' | 'loading' | 'error';
+export type Theme = 'light' | 'dark';
 
 const App: React.FC = () => {
     const [userData, setUserData] = useState<UserData | null>(null);
     const [report, setReport] = useState<WorldClassReport | null>(null);
     const [currentView, setCurrentView] = useState<AppView>('onboarding');
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPremium, setIsPremium] = useState<boolean>(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<string>('');
 
-    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const [theme, setTheme] = useState<Theme>(() => {
         if (typeof window !== 'undefined') {
             const savedTheme = localStorage.getItem('vidhiraTheme');
             if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
@@ -34,10 +45,6 @@ const App: React.FC = () => {
         root.classList.toggle('dark', theme === 'dark');
         localStorage.setItem('vidhiraTheme', theme);
     }, [theme]);
-
-    const toggleTheme = () => {
-        setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-    };
 
     useEffect(() => {
         // Generate stars for background
@@ -80,6 +87,7 @@ const App: React.FC = () => {
     }, []);
 
     const handleGenerateReport = useCallback(async (data: UserData) => {
+        setIsLoading(true);
         setCurrentView('loading');
         setError(null);
         setUserData(data);
@@ -87,6 +95,7 @@ const App: React.FC = () => {
         setIsPremium(false);
 
         try {
+            // 1. Local Calculations
             const { core, compound, karmicDebt } = calculateInitialNumbers(data);
             const mulank = calculateMulank(data.dob);
             const kuaNumber = calculateKuaNumber(data.dob, data.gender);
@@ -94,11 +103,49 @@ const App: React.FC = () => {
             
             const loshuForAI: Pick<LoshuAnalysisPillar, 'missingNumbers' | 'overloadedNumbers'> = { missingNumbers: missing, overloadedNumbers: overloaded };
 
-            const aiReportData = await generateWorldClassReport(data, core, compound, karmicDebt, loshuForAI);
+            // 2. Parallel AI Calls for all report pillars
+            const [
+                cosmicIdentity,
+                relationshipsFamilyLegacy,
+                loshuAnalysis,
+                futureForecast,
+                spiritualAlignment,
+                wealthBusinessCareer,
+                healthEnergyWellness,
+                psychologyShadowWork,
+                dailyNavigator,
+                intellectEducation,
+                kundaliSnapshot,
+                methodology,
+            ] = await Promise.all([
+                generateCosmicIdentityPillar(data, core, compound, karmicDebt),
+                generateRelationshipsPillar(data, core),
+                generateLoshuAnalysisPillar(data, loshuForAI),
+                generateFutureForecastPillar(data, core, compound),
+                generateSpiritualAlignmentPillar(data, core),
+                generateSimplePillarContent("Wealth, Business & Career", data, core),
+                generateSimplePillarContent("Health, Energy & Wellness", data, core),
+                generateSimplePillarContent("Psychology & Shadow Work", data, core),
+                generateSimplePillarContent("Daily Navigator", data, core),
+                generateSimplePillarContent("Intellect & Education", data, core),
+                generateKundaliSnapshot(data),
+                generateMethodologyPillar(data.language),
+            ]);
 
+            // 3. Assemble Final Report
             const finalReport: WorldClassReport = {
-                ...aiReportData,
-                loshuAnalysis: { ...aiReportData.loshuAnalysis, grid, missingNumbers: missing, overloadedNumbers: overloaded },
+                cosmicIdentity,
+                relationshipsFamilyLegacy,
+                loshuAnalysis: { ...loshuAnalysis, grid, missingNumbers: missing, overloadedNumbers: overloaded },
+                futureForecast,
+                spiritualAlignment,
+                wealthBusinessCareer,
+                healthEnergyWellness,
+                psychologyShadowWork,
+                dailyNavigator,
+                intellectEducation,
+                kundaliSnapshot,
+                methodology,
             };
 
             setReport(finalReport);
@@ -111,8 +158,10 @@ const App: React.FC = () => {
             showNotification('Your cosmic blueprint is ready! ✨');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-            setError(errorMessage);
+            setError(`Failed to generate the complete numerology report. The cosmic energies are currently unstable. Please try again.`);
             setCurrentView('error');
+        } finally {
+            setIsLoading(false);
         }
     }, []);
     
@@ -136,7 +185,15 @@ const App: React.FC = () => {
         setCurrentView('dashboard');
         trackEvent('REPORT_UNLOCKED');
         showNotification('Welcome to your full cosmic dashboard! 🌟');
+        localStorage.setItem('vidhiraUnlockStatus', 'true');
     };
+    
+    const handleUpdateUserData = (newUserData: UserData) => {
+        setUserData(newUserData);
+        localStorage.setItem('vidhiraUserData', JSON.stringify(newUserData));
+        showNotification('Settings saved successfully!');
+    };
+
 
     const renderCurrentView = () => {
         switch (currentView) {
@@ -160,38 +217,23 @@ const App: React.FC = () => {
                 return null;
             case 'dashboard':
                 if (report && userData) {
-                    return <Dashboard report={report} userData={userData} onReset={handleReset} />;
+                    return <Dashboard report={report} userData={userData} onReset={handleReset} theme={theme} setTheme={setTheme} onUpdateUserData={handleUpdateUserData} />;
                 }
                 handleReset(); // Should not happen, reset to be safe
                 return null;
             case 'onboarding':
             default:
-                return <OnboardingForm onSubmit={handleGenerateReport} isLoading={currentView === 'loading'} />;
+                return <OnboardingForm onSubmit={handleGenerateReport} isLoading={isLoading} />;
         }
     };
 
     return (
         <>
-            <button
-                onClick={toggleTheme}
-                className="fixed top-6 right-6 z-50 p-2 rounded-full bg-black/5 dark:bg-white/5 text-[--cosmic-purple] dark:text-[--gold-accent] hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-300 no-print"
-                aria-label="Toggle color theme"
-            >
-                {theme === 'dark' ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                )}
-            </button>
             <main className="min-h-screen p-4 relative">
                 {renderCurrentView()}
             </main>
             {toastMessage && (
-                <div className="toast fixed top-6 right-6 z-50 animate-slide-up">
+                <div className="toast fixed top-6 right-1/2 translate-x-1/2 z-50 animate-slide-up">
                      <div className="bg-white dark:bg-[--cosmic-blue] p-4 rounded-xl shadow-lg flex items-center gap-3 border border-gray-200 dark:border-gray-700">
                         <Check size={20} className="text-[--sage-green]" />
                         <span className="font-medium text-[--cosmic-blue] dark:text-[--stardust]">{toastMessage}</span>

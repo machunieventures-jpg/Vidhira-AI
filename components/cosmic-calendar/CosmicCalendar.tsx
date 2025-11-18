@@ -23,13 +23,20 @@ const CosmicCalendar: React.FC<CosmicCalendarProps> = ({ userData, report }) => 
         setError(null);
         setSelectedDay(null);
         try {
+             const coreNumbers = report?.cosmicIdentity?.coreNumbers;
+             const personalYear = report?.futureForecast?.personalYear;
+
+             if (!coreNumbers?.lifePath || !coreNumbers?.expression || !coreNumbers?.soulUrge || !coreNumbers?.personality || !coreNumbers?.maturity || !personalYear) {
+                 throw new Error("Core numerology data is missing from the report. Cannot generate calendar.");
+             }
+
              const coreNumbersForApi: CoreNumbers = {
-                lifePath: report.cosmicIdentity.coreNumbers.lifePath.number,
-                expression: report.cosmicIdentity.coreNumbers.expression.number,
-                soulUrge: report.cosmicIdentity.coreNumbers.soulUrge.number,
-                personality: report.cosmicIdentity.coreNumbers.personality.number,
-                maturity: report.cosmicIdentity.coreNumbers.maturity.number,
-                personalYear: report.futureForecast.personalYear.number,
+                lifePath: coreNumbers.lifePath.number,
+                expression: coreNumbers.expression.number,
+                soulUrge: coreNumbers.soulUrge.number,
+                personality: coreNumbers.personality.number,
+                maturity: coreNumbers.maturity.number,
+                personalYear: personalYear.number,
             };
             const result = await getMonthlyCalendarInsights(
                 coreNumbersForApi,

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { CoreNumberInfo } from '../types';
 import MarkdownRenderer from './common/MarkdownRenderer';
@@ -37,7 +38,7 @@ const NumberCard: React.FC<NumberCardProps> = ({ title, data, className, style }
       <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-6">
         <div className="flex-shrink-0 flex flex-col items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-[--cosmic-purple] to-[--rose-accent] text-white shadow-lg">
           <span
-            className={`text-4xl font-bold ${shouldAnimate ? 'animate-slide-up' : ''}`}
+            className={`text-4xl font-bold ${shouldAnimate ? 'animate-pop-in' : ''}`}
             style={{fontFamily: 'Cinzel, serif'}}
             onAnimationEnd={() => setShouldAnimate(false)}
           >
@@ -58,8 +59,20 @@ const NumberCard: React.FC<NumberCardProps> = ({ title, data, className, style }
             <div className={`prose-sm max-w-none transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-[1000px]' : 'max-h-[7rem]'}`}>
               <MarkdownRenderer content={data.interpretation} />
             </div>
-            {!isExpanded && canExpand && <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white via-white to-transparent dark:from-[--cosmic-blue] dark:via-[--cosmic-blue] pointer-events-none"></div>}
+            {!isExpanded && canExpand && <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-purple-50/50 via-purple-50/80 to-purple-50 dark:from-transparent dark:to-purple-900/50 pointer-events-none"></div>}
           </div>
+
+          {data.journalPrompt && (
+            <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-l-4 border-[--cosmic-purple]">
+                <h5 className="text-sm font-bold text-[--cosmic-purple] dark:text-[--gold-accent] mb-2 flex items-center gap-2">
+                    <span className="text-lg">✍️</span> AI Reflection Prompt
+                </h5>
+                <p className="italic text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                    "{data.journalPrompt}"
+                </p>
+            </div>
+          )}
+
            {canExpand && (
             <button onClick={() => setIsExpanded(!isExpanded)} className="text-[--cosmic-purple] font-semibold mt-2 hover:underline text-sm">
               {isExpanded ? 'Show Less' : 'Read More...'}
