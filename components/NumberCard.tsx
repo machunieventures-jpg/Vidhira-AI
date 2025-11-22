@@ -21,9 +21,11 @@ const NumberCard: React.FC<NumberCardProps> = ({ title, data, className, style }
     } else {
       setShouldAnimate(true);
     }
-  }, [data.number]);
+  }, [data?.number]);
   
-  const canExpand = data.interpretation.length > 250;
+  if (!data || typeof data.number === 'undefined') return null;
+
+  const canExpand = data.interpretation && data.interpretation.length > 250;
 
   return (
     <div 

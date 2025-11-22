@@ -40,15 +40,21 @@ const BlueprintSummary: React.FC<BlueprintSummaryProps> = ({ report, userData, o
                     <p className="text-gray-600 dark:text-gray-300 mb-6">Your vibrational signature has been decoded. Here is a glimpse into your soul's map.</p>
 
                     <div className="flex flex-wrap justify-center gap-6 mb-8">
-                        <NumberBadge label="Life Path" number={cosmicIdentity.coreNumbers.lifePath.number} />
-                        <NumberBadge label="Expression" number={cosmicIdentity.coreNumbers.expression.number} />
-                        <NumberBadge label="Personality" number={cosmicIdentity.coreNumbers.personality.number} />
+                        {cosmicIdentity?.coreNumbers?.lifePath && (
+                            <NumberBadge label="Life Path" number={cosmicIdentity.coreNumbers.lifePath.number} />
+                        )}
+                        {cosmicIdentity?.coreNumbers?.expression && (
+                            <NumberBadge label="Expression" number={cosmicIdentity.coreNumbers.expression.number} />
+                        )}
+                        {cosmicIdentity?.coreNumbers?.personality && (
+                            <NumberBadge label="Personality" number={cosmicIdentity.coreNumbers.personality.number} />
+                        )}
                     </div>
 
                     <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6 mb-6">
                         <h3 className="text-xl font-bold text-purple-900 dark:text-purple-200 mb-3">✨ Your Free Summary: Cosmic Identity</h3>
                         <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                           {cosmicIdentity.soulSynopsis.teaser} {report.kundaliSnapshot.summary}
+                           {cosmicIdentity?.soulSynopsis?.teaser} {report?.kundaliSnapshot?.summary}
                         </p>
                     </div>
 

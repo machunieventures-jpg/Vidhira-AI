@@ -5,7 +5,14 @@ interface MarkdownRendererProps {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-    if (!content) return null;
+    // Defensive check: ensure content is a valid string before processing
+    if (typeof content !== 'string') {
+        // If content is missing or not a string (e.g., undefined, null, object), return null silently
+        // This prevents crashes if API responses are malformed
+        return null;
+    }
+
+    if (!content.trim()) return null;
 
     const renderContent = () => {
         const lines = content.split('\n');

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import type { UserData, WorldClassReport, LoshuAnalysisPillar, CoreNumbers, CompoundNumbers, KarmicDebtNumbers } from './types';
 import OnboardingForm from './components/OnboardingForm';
@@ -67,6 +68,16 @@ const App: React.FC = () => {
         setTimeout(() => setToastMessage(''), 3000);
     };
 
+    const validateReport = (report: any): boolean => {
+        // Use optional chaining to safely check for nested properties without crashing
+        // Specifically check for the 'number' property on core numeric objects to prevent rendering errors
+        return !!(
+            report?.cosmicIdentity?.coreNumbers?.lifePath?.number && 
+            report?.relationshipsFamilyLegacy?.compatibilityAnalysis &&
+            report?.futureForecast?.personalYear?.number
+        );
+    };
+
     useEffect(() => {
         try {
             const savedUserData = localStorage.getItem('vidhiraUserData');
@@ -74,11 +85,17 @@ const App: React.FC = () => {
             const savedUnlockStatus = localStorage.getItem('vidhiraUnlockStatus');
 
             if (savedUserData && savedReport) {
-                setUserData(JSON.parse(savedUserData));
-                setReport(JSON.parse(savedReport));
-                const unlocked = savedUnlockStatus === 'true';
-                setIsPremium(unlocked);
-                setCurrentView(unlocked ? 'dashboard' : 'summary');
+                const parsedReport = JSON.parse(savedReport);
+                if (validateReport(parsedReport)) {
+                    setUserData(JSON.parse(savedUserData));
+                    setReport(parsedReport);
+                    const unlocked = savedUnlockStatus === 'true';
+                    setIsPremium(unlocked);
+                    setCurrentView(unlocked ? 'dashboard' : 'summary');
+                } else {
+                    console.warn("Saved report is invalid or incomplete. Resetting state.");
+                    handleReset();
+                }
             }
         } catch (e) {
             console.error("Failed to load data from localStorage", e);
@@ -203,48 +220,61 @@ const App: React.FC = () => {
                  return (
                     <div className="min-h-screen flex items-center justify-center">
                         <div className="glass-card text-center max-w-md">
-                            <h3 className="text-2xl font-bold text-[--rose-accent]">An Error Occurred</h3>
-                            <p className="text-gray-600 dark:text-gray-300 mt-2">{error}</p>
-                            <button onClick={handleReset} className="btn-cosmic mt-4">Start Over</button>
+                            <h3 className="text-2xl font-bold text-[--rose-accent]">Cosmic Disturbance</h3>
+                            <p className="text-gray-600 dark:text-gray-300 mt-4">{error}</p>
+                             <button
+                                onClick={handleReset}
+                                className="btn-cosmic w-full mt-6"
+                            >
+                                Return to Start
+                            </button>
                         </div>
                     </div>
-                );
-            case 'summary':
-                if (report && userData) {
-                    return <BlueprintSummary report={report} userData={userData} onUnlock={handleUnlockReport} />;
-                }
-                handleReset(); // Should not happen, reset to be safe
-                return null;
+                 );
+             case 'summary':
+                return report && userData ? (
+                    <BlueprintSummary 
+                        report={report} 
+                        userData={userData} 
+                        onUnlock={handleUnlockReport} 
+                    />
+                ) : null;
             case 'dashboard':
-                if (report && userData) {
-                    return <Dashboard report={report} userData={userData} onReset={handleReset} theme={theme} setTheme={setTheme} onUpdateUserData={handleUpdateUserData} />;
-                }
-                handleReset(); // Should not happen, reset to be safe
-                return null;
-            case 'onboarding':
-            default:
-                return <OnboardingForm onSubmit={handleGenerateReport} isLoading={isLoading} />;
+                return report && userData ? (
+                    <Dashboard 
+                        report={report} 
+                        userData={userData} 
+                        onReset={handleReset} 
+                        theme={theme} 
+                        setTheme={setTheme} 
+                        onUpdateUserData={handleUpdateUserData}
+                    />
+                ) : null;
+            default: // onboarding
+                 return (
+                    <OnboardingForm 
+                        onSubmit={handleGenerateReport} 
+                        isLoading={isLoading} 
+                    />
+                 );
         }
     };
 
     return (
         <>
-            <main className="min-h-screen p-4 relative">
-                {renderCurrentView()}
-            </main>
-            {toastMessage && (
-                <div className="toast fixed top-6 right-1/2 translate-x-1/2 z-50 animate-slide-up">
-                     <div className="bg-white dark:bg-[--cosmic-blue] p-4 rounded-xl shadow-lg flex items-center gap-3 border border-gray-200 dark:border-gray-700">
-                        <Check size={20} className="text-[--sage-green]" />
-                        <span className="font-medium text-[--cosmic-blue] dark:text-[--stardust]">{toastMessage}</span>
-                    </div>
-                </div>
-            )}
-            <PaymentModal 
+            {isPremium && <div className="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-[--cosmic-purple] to-[--gold-accent] z-50"></div>}
+            {renderCurrentView()}
+             <PaymentModal
                 isOpen={isPaymentModalOpen}
                 onClose={() => setIsPaymentModalOpen(false)}
                 onPaymentSuccess={handlePaymentSuccess}
             />
+             {toastMessage && (
+                <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg z-50 animate-slide-up flex items-center gap-2">
+                    <Check size={16} className="text-green-400" />
+                    {toastMessage}
+                </div>
+            )}
         </>
     );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { analyzeBrandName, analyzePhoneNumber, analyzeCompetitors, analyzeLogo, suggestAndAnalyzeCompetitors } from '../../services/geminiService';
 import type { UserData, WorldClassReport, BrandAnalysisV2, PhoneNumberAnalysis, CompetitorBrandAnalysis, LogoAnalysis } from '../../types';
@@ -191,7 +192,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                 competitorNames,
                 userData.language
             );
-            setCompetitorAnalysis(result);
+            setCompetitorAnalysis(result || []);
             trackEvent('COMPETITOR_ANALYZED', { competitorCount: competitorNames.length });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -226,7 +227,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                 expression,
                 userData.language
             );
-            setSuggestedCompetitorAnalysis(result);
+            setSuggestedCompetitorAnalysis(result || []);
             trackEvent('COMPETITOR_SUGGESTED', { brandName: businessName, count: result.length });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -365,7 +366,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                            {analysisResult.nameSuggestions?.length > 0 && (
                                <ResultCard title="Improvement Suggestions" icon="✍️" className="md:col-span-2">
                                     <ul className="list-disc pl-5">
-                                       {analysisResult.nameSuggestions.map((name, i) => <li key={i}>{name}</li>)}
+                                       {analysisResult.nameSuggestions?.map((name, i) => <li key={i}>{name}</li>)}
                                     </ul>
                                </ResultCard>
                            )}
@@ -375,7 +376,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                                     <div>
                                         <h6 className="font-semibold mb-2 text-gray-700 dark:text-gray-200">Handles</h6>
                                         <ul className="space-y-1">
-                                            {analysisResult.socialMediaHandles.map((handle, i) => (
+                                            {analysisResult.socialMediaHandles?.map((handle, i) => (
                                                 <li key={i} className="flex items-center justify-between">
                                                     <span>@{handle.name}</span>
                                                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${handle.available ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
@@ -388,7 +389,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                                      <div>
                                         <h6 className="font-semibold mb-2 text-gray-700 dark:text-gray-200">Domains</h6>
                                         <ul className="space-y-1">
-                                            {analysisResult.domainSuggestions.map((domain, i) => (
+                                            {analysisResult.domainSuggestions?.map((domain, i) => (
                                                  <li key={i} className="flex items-center justify-between">
                                                     <span>{domain.name}</span>
                                                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${domain.available ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
@@ -404,7 +405,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                            {analysisResult.fortuneCompanyComparison?.length > 0 && (
                                <ResultCard title="Fortune 500 Resonance" icon="🏢" className="md:col-span-2">
                                     <div className="space-y-3">
-                                        {analysisResult.fortuneCompanyComparison.map((comp, i) => (
+                                        {analysisResult.fortuneCompanyComparison?.map((comp, i) => (
                                             <div key={i} className="p-2 bg-black/5 dark:bg-white/5 rounded-md">
                                                 <p className="font-semibold text-gray-700 dark:text-gray-200">
                                                     {comp.companyName} (Vibration: {comp.companyVibration})
@@ -489,7 +490,10 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                         <input
                             type="text"
                             value={competitors}
-                            onChange={(e) => setCompetitors(e.target.value)}
+                            onChange={(e) => {
+                                setCompetitors(e.target.value);
+                                if (competitorError) setCompetitorError(null);
+                            }}
                             className="w-full flex-grow input-cosmic"
                             placeholder="e.g., Brand X, Competitor Inc, Another Biz"
                             disabled={isCompetitorLoading || isSuggestLoading}
@@ -533,7 +537,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                         </div>
                     )}
 
-                    {competitorAnalysis && (
+                    {competitorAnalysis && competitorAnalysis.length > 0 && (
                         <div className="mt-6">
                             <h5 className="font-bold text-gray-800 dark:text-gray-100 mb-2">Manual Analysis Results</h5>
                             <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up space-y-4">
@@ -549,7 +553,7 @@ const BrandAnalyzer: React.FC<BrandAnalyzerProps> = ({ userData, report }) => {
                         </div>
                     )}
 
-                    {suggestedCompetitorAnalysis && (
+                    {suggestedCompetitorAnalysis && suggestedCompetitorAnalysis.length > 0 && (
                         <div className="mt-6">
                             <h5 className="font-bold text-gray-800 dark:text-gray-100 mb-2">AI-Suggested Competitor Analysis</h5>
                              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg animate-slide-up space-y-4">

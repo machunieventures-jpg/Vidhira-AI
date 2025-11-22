@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { WorldClassReport, UserData, CoreNumberInfo, PillarContent } from '../types';
 import type { Theme } from '../../App';
@@ -203,9 +204,11 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, theme,
         case 'jyotish':
             return <JyotishFeature userData={userData} />;
         case 'cosmicIdentity':
+            if (!cosmicIdentity?.coreNumbers) return null;
             return (
                  <div className="space-y-6">
                     {Object.entries(cosmicIdentity.coreNumbers)
+                      .filter(([_, value]) => value && typeof (value as any).number === 'number')
                       .map(([key, value], index) => (
                         <NumberCard 
                           key={key}
@@ -251,7 +254,7 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, theme,
                 <>
                     <PillarContentRenderer pillar={relationshipsFamilyLegacy} />
 
-                    {relationshipsFamilyLegacy.friendlyAndEnemyNumbers && (
+                    {relationshipsFamilyLegacy?.friendlyAndEnemyNumbers && (
                       <>
                         <hr className="my-8 border-gray-200 dark:border-gray-700" />
                         <h4 className="text-xl font-bold gradient-text mb-3">Friendly & Enemy Number Analysis</h4>
@@ -260,9 +263,15 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, theme,
                     )}
 
                     <hr className="my-8 border-gray-200 dark:border-gray-700" />
-                    <CompatibilityList title="Life Path Compatibility" pairings={relationshipsFamilyLegacy.compatibilityAnalysis.lifePath} />
-                    <hr className="my-6 border-gray-200 dark:border-gray-700"/>
-                    <CompatibilityList title="Expression Number Compatibility" pairings={relationshipsFamilyLegacy.compatibilityAnalysis.expression} />
+                    {relationshipsFamilyLegacy?.compatibilityAnalysis ? (
+                        <>
+                            <CompatibilityList title="Life Path Compatibility" pairings={relationshipsFamilyLegacy.compatibilityAnalysis.lifePath || []} />
+                            <hr className="my-6 border-gray-200 dark:border-gray-700"/>
+                            <CompatibilityList title="Expression Number Compatibility" pairings={relationshipsFamilyLegacy.compatibilityAnalysis.expression || []} />
+                        </>
+                    ) : (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center">Compatibility analysis unavailable.</p>
+                    )}
                 </>
             );
         case 'wealthBusinessCareer':
@@ -278,6 +287,10 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, theme,
         case 'cosmicCalendar':
             return <CosmicCalendar userData={userData} report={report} />;
         case 'futureForecast':
+             // Safely check for futureForecast and personalYear existence AND numeric validity
+             if (!futureForecast?.personalYear || typeof futureForecast.personalYear.number !== 'number') {
+                return <div className="text-center text-sm text-gray-500">Future forecast data unavailable.</div>;
+             }
              return (
                 <>
                     <NumberCard title="Personal Year" data={futureForecast.personalYear} className="bg-purple-50/50 dark:bg-purple-900/20"/>
@@ -352,14 +365,19 @@ const Dashboard: React.FC<DashboardProps> = ({ report, userData, onReset, theme,
                {cosmicIdentity?.coreNumbers ? (
                  Object.entries(cosmicIdentity.coreNumbers)
                       .slice(0, 4)
-                      .map(([key, value], index) => (
-                          <CoreNumberCard 
-                            key={key} 
-                            label={key} 
-                            value={(value as CoreNumberInfo).number} 
-                            style={{ animationDelay: `${100 + index * 100}ms` }}
-                          />
-               ))
+                      .map(([key, value], index) => {
+                          // Ensure value is not null/undefined and has the required number property
+                          const num = (value as CoreNumberInfo)?.number;
+                          if (typeof num !== 'number') return null;
+                          return (
+                            <CoreNumberCard 
+                                key={key} 
+                                label={key} 
+                                value={num} 
+                                style={{ animationDelay: `${100 + index * 100}ms` }}
+                            />
+                          );
+                      })
                ) : (
                  <div className="col-span-full text-center p-4 text-[--rose-accent] bg-red-500/10 rounded-lg">
                    Core numerology data is missing from the report. Cannot display core numbers.

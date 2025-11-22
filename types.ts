@@ -127,12 +127,24 @@ export interface MethodologyPillar {
   disclaimer: string;
 }
 
-// --- Jyotish (Vedic Astrology) ---
+// --- Jyotish (Vedic Astrology) Deep Dive ---
+
+export interface NakshatraInfo {
+  name: string;
+  lord: string; // The planetary ruler
+  pada: number; // 1, 2, 3, 4
+  quality: string; // e.g., "Deva (Divine)", "Manushya (Human)"
+  summary: string;
+}
 
 export interface PlanetaryPlacement {
   planet: string;
   sign: string;
   house: number;
+  nakshatra?: string; // e.g., "Ashwini"
+  nakshatraLord?: string; // e.g., "Ketu"
+  degree?: string; // e.g., "12° 45'"
+  isRetrograde?: boolean;
 }
 
 export interface PlanetaryStrength {
@@ -141,11 +153,76 @@ export interface PlanetaryStrength {
   summary: string;
 }
 
+export interface SoulPurpose {
+  atmakaraka: {
+    planet: string;
+    significance: string;
+    pastLifeWounds: string; // Enhanced: Past life wounds/tendencies
+  };
+  karmicAxis: {
+    rahuPlacement: string; // e.g., "5th House in Leo"
+    ketuPlacement: string; // e.g., "11th House in Aquarius"
+    lifeLesson: string; // The core lesson to learn in this life
+    repeatingPatterns: string; // Enhanced: Patterns user repeats
+  };
+  dharma: string; // The real reason for birth
+  d60Memory: string; // Enhanced: Past life karmic memory from D60
+  childhoodAnalysis: string; // Enhanced: 0-12 years emotional summary
+}
+
+export interface DashaPeriod {
+  currentMahadasha: string; // e.g., "Jupiter"
+  currentAntardasha: string; // e.g., "Saturn"
+  endDate: string; // When this sub-period ends
+  analysis: string; // What this period means for the user NOW
+}
+
+export interface LifeCyclePhase {
+    ageRange: string;
+    cycleName: string; // e.g. "Mars Cycle (Action & Ego)"
+    theme: string;
+    prediction: string;
+}
+
+export interface KeyLifeEvent {
+    age: number;
+    year: number;
+    category: string; // e.g. "Career", "Love", "Wealth"
+    eventDescription: string;
+}
+
+export interface ActionableGuidance {
+    bestActions: string[]; // "When to take action"
+    remedies: string[]; // Vedic remedies
+    pitfalls: string[]; // "What to avoid"
+}
+
+export interface DetailedRemedy {
+  planet: string;
+  reason: string; // Why this planet needs remedy (e.g. "Debilitated in 8th house")
+  mantra: string;
+  gemstone: {
+    name: string;
+    instruction: string; // e.g. "Wear on middle finger on Saturday"
+  };
+  charity: string; // Donation suggestion
+  behavioralCorrection: string; // Lifestyle change
+}
+
 export interface JyotishReportData {
-  markdownReport: string;
+  markdownReport: string; // Detailed text
   planetaryPlacements: PlanetaryPlacement[];
   ascendantSign: string;
+  ascendantNakshatra: NakshatraInfo;
+  moonNakshatra: NakshatraInfo; // Janma Nakshatra
   grahaBala: PlanetaryStrength[];
+  soulPurpose: SoulPurpose;
+  currentPeriod: DashaPeriod;
+  // New Deep Dive Sections
+  futureTimeline: LifeCyclePhase[];
+  keyEvents: KeyLifeEvent[];
+  guidance: ActionableGuidance;
+  detailedRemedies: DetailedRemedy[];
 }
 
 // --- Brand Analyzer V2 ---

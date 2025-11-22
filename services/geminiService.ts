@@ -124,7 +124,7 @@ const USER_DATA_BLOCK = (
 const callGemini = async (prompt: string, pillarName: string): Promise<any> => {
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3-pro-preview',
             contents: prompt,
             config: { seed: 42 },
         });
@@ -204,7 +204,7 @@ export const generateCosmicIdentityPillar = async (
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3-pro-preview',
             contents: prompt,
             config: { 
                 seed: 42,
@@ -241,9 +241,64 @@ export const generateRelationshipsPillar = async (
             - For each pairing, provide a detailed, 3-4 sentence 'interpretation' explaining the synergy.
         3.  Generate the 'friendlyAndEnemyNumbers' content:
             - Provide a 'teaser', 'content' with a Markdown table of Friendly/Neutral/Enemy numbers based on the Destiny Number (${coreNumbers.lifePath}), and a 'journalPrompt'. Explain the reasoning based on Chaldean principles.
-        Return ONLY the JSON object for this pillar.
+        
+        Return ONLY the JSON object for this pillar adhering to the schema.
     `;
-    return callGemini(prompt, 'Relationships & Family');
+
+    const pairingSchema = {
+        type: Type.OBJECT,
+        properties: {
+            compatibleNumber: { type: Type.NUMBER },
+            interpretation: { type: Type.STRING },
+        },
+        required: ['compatibleNumber', 'interpretation'],
+    };
+
+    const pillarContentSchema = {
+        type: Type.OBJECT,
+        properties: {
+            teaser: { type: Type.STRING },
+            content: { type: Type.STRING },
+            journalPrompt: { type: Type.STRING },
+        },
+        required: ['teaser', 'content', 'journalPrompt'],
+    };
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            teaser: { type: Type.STRING },
+            content: { type: Type.STRING },
+            journalPrompt: { type: Type.STRING },
+            compatibilityAnalysis: {
+                type: Type.OBJECT,
+                properties: {
+                    lifePath: { type: Type.ARRAY, items: pairingSchema },
+                    expression: { type: Type.ARRAY, items: pairingSchema },
+                    soulUrge: { type: Type.ARRAY, items: pairingSchema },
+                },
+                required: ['lifePath', 'expression', 'soulUrge'],
+            },
+            friendlyAndEnemyNumbers: pillarContentSchema
+        },
+        required: ['teaser', 'content', 'journalPrompt', 'compatibilityAnalysis', 'friendlyAndEnemyNumbers'],
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
+            config: { 
+                seed: 42,
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            },
+        });
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error(`Error generating the Relationships pillar:`, error);
+        throw new Error(`Failed to generate the Relationships section of the report.`);
+    }
 };
 
 export const generateLoshuAnalysisPillar = async (
@@ -302,7 +357,7 @@ export const generateLoshuAnalysisPillar = async (
     
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3-pro-preview',
             contents: prompt,
             config: { 
                 seed: 42,
@@ -341,7 +396,54 @@ export const generateFutureForecastPillar = async (
         2.  Generate the 'strategicRoadmap' with 'teaser', 'content', and 'journalPrompt'.
         Return ONLY the JSON object for this pillar.
     `;
-    return callGemini(prompt, 'Future Forecast');
+    
+    const coreNumberInfoSchema = {
+        type: Type.OBJECT,
+        properties: {
+            number: { type: Type.NUMBER, description: "The single-digit core number." },
+            compound: { type: Type.NUMBER, description: "The two-digit number it was reduced from." },
+            karmicDebt: { type: Type.NUMBER, nullable: true, description: "The Karmic Debt number (13, 14, 16, 19), if applicable." },
+            interpretation: { type: Type.STRING, description: "A detailed, multi-paragraph interpretation of the number's meaning for the user." },
+            planetaryRuler: { type: Type.STRING, description: "The Chaldean planetary ruler of the number (e.g., Sun, Moon)." },
+            journalPrompt: { type: Type.STRING, description: "A thought-provoking reflective question for the user specifically about this number's energy in their life." },
+        },
+        required: ['number', 'compound', 'interpretation', 'planetaryRuler', 'journalPrompt'],
+    };
+
+    const pillarContentSchema = {
+        type: Type.OBJECT,
+        properties: {
+            teaser: { type: Type.STRING, description: "A short, engaging one-sentence summary of the content." },
+            content: { type: Type.STRING, description: "The full, detailed content for this section, using Markdown for formatting." },
+            journalPrompt: { type: Type.STRING, description: "A thought-provoking journal prompt related to the content." },
+        },
+        required: ['teaser', 'content', 'journalPrompt'],
+    };
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            personalYear: coreNumberInfoSchema,
+            strategicRoadmap: pillarContentSchema
+        },
+        required: ['personalYear', 'strategicRoadmap']
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
+            config: {
+                seed: 42,
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            },
+        });
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error(`Error generating the Future Forecast pillar:`, error);
+        throw new Error(`Failed to generate the Future Forecast section of the report.`);
+    }
 };
 
 export const generateSpiritualAlignmentPillar = async (
@@ -531,7 +633,7 @@ export const analyzeBrandName = async (
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3-pro-preview',
             contents: prompt,
             config: {
                 seed: 42,
@@ -578,7 +680,7 @@ export const analyzePhoneNumber = async (
     
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3-pro-preview',
             contents: prompt,
             config: {
                 seed: 42,
@@ -600,6 +702,7 @@ export const analyzeCompetitors = async (
     language: string
 ): Promise<CompetitorBrandAnalysis[]> => {
     
+    // Calculate vibrations for competitors locally to ensure accuracy
     const competitorData = competitorNames.map(name => {
         const { expression } = calculateNameNumbers(name);
         return { name, vibration: expression };
@@ -609,38 +712,60 @@ export const analyzeCompetitors = async (
 
     const prompt = `
     Act as Arvind Sud, a master numerologist specializing in competitive strategy.
-    Your entire response MUST be in ${language} and conform strictly to the provided JSON schema. The analysis must be strictly based on Chaldean numerology principles.
-
+    Your entire response MUST be in ${language} and conform strictly to the provided JSON schema.
+    
     **TASK: ANALYZE COMPETITOR BRANDS**
-    You will analyze a list of competitor brands against the user's brand, providing a strategic comparison based on Chaldean numerology.
+    Analyze the following competitor brands against the user's brand.
 
-    **USER'S DATA:**
-    - Brand Name: "${userBrandName}"
-    - Brand Vibration (Expression Number): ${userBrandVibration}
-    - User's Core Numbers: Life Path ${userLifePath}, Expression ${userExpression}.
+    **USER BRAND:**
+    - Name: "${userBrandName}"
+    - Vibration: ${userBrandVibration}
+    - User Core: LP ${userLifePath}, Expr ${userExpression}
 
-    **COMPETITOR DATA:**
+    **COMPETITORS TO ANALYZE:**
     ${competitorDataString}
 
-    **ANALYSIS INSTRUCTIONS:**
-    For each competitor in the list, provide a concise but insightful 'comparisonAnalysis' (1-2 sentences). This analysis MUST:
-    1.  Directly compare the competitor's vibration number to the user's brand vibration number (${userBrandVibration}).
-    2.  Explain the nature of the interaction. Is it synergistic (e.g., a 3 and a 5 both value communication), challenging (e.g., a structured 4 vs. a free-spirited 5), or neutral?
-    3.  Briefly consider how this dynamic positions the user's brand in the market against that specific competitor.
-    4.  The analysis should be strategic, not just a simple definition of the numbers.
-    
-    Generate a JSON array of objects, one for each competitor. Do not include any text before or after the JSON.
+    **INSTRUCTIONS:**
+    For each competitor provided in the list above:
+    1.  **competitorName** (string): The name of the competitor.
+    2.  **competitorVibration** (number): Use the vibration value provided in the list above for this competitor.
+    3.  **comparisonAnalysis** (string): A concise strategic comparison (1-2 sentences). Compare the competitor's vibration to the user's brand vibration. Is it harmonious, conflicting, or neutral? What is the strategic implication?
+
+    Your output MUST be a valid JSON array of objects, where each object matches the schema.
     `;
+
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                competitorName: { type: Type.STRING },
+                competitorVibration: { type: Type.NUMBER },
+                comparisonAnalysis: { type: Type.STRING },
+            },
+            required: ['competitorName', 'competitorVibration', 'comparisonAnalysis'],
+        },
+    };
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3-pro-preview',
             contents: prompt,
             config: {
                 seed: 42,
+                responseMimeType: "application/json",
+                responseSchema: schema,
             },
         });
-        return extractJson(response.text);
+        const json = JSON.parse(response.text);
+        
+        if (Array.isArray(json)) {
+            return json;
+        } else if (json && Array.isArray((json as any).competitors)) {
+            return (json as any).competitors;
+        } else {
+             return json ? [json] : [];
+        }
     } catch (error) {
         console.error(`Error analyzing competitors:`, error);
         throw new Error(`Failed to analyze competitors. The cosmic market intelligence network is currently unavailable.`);
@@ -672,18 +797,41 @@ export const suggestAndAnalyzeCompetitors = async (
     2.  Internally, calculate the Chaldean Expression number for the competitor's name. You MUST use the Chaldean system (A,I,J,Q,Y=1; B,K,R=2; etc.). Populate the \`competitorVibration\` field with this calculated number.
     3.  Provide a concise but insightful 'comparisonAnalysis' (1-2 sentences). This analysis MUST directly compare the competitor's vibration to the user's brand vibration (${userBrandVibration}) and also consider the user's core numbers (${userLifePath}, ${userExpression}). Explain the strategic implications, such as market positioning, synergistic energies, or potential challenges.
     
-    Generate a JSON array of objects, one for each suggested competitor. Do not include any text before or after the JSON.
+    Generate a JSON array of objects, one for each suggested competitor.
     `;
+    
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                competitorName: { type: Type.STRING },
+                competitorVibration: { type: Type.NUMBER },
+                comparisonAnalysis: { type: Type.STRING },
+            },
+            required: ['competitorName', 'competitorVibration', 'comparisonAnalysis'],
+        },
+    };
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3-pro-preview',
             contents: prompt,
             config: {
                 seed: 42,
+                responseMimeType: "application/json",
+                responseSchema: schema,
             },
         });
-        return extractJson(response.text);
+        
+        const json = JSON.parse(response.text);
+        if (Array.isArray(json)) {
+             return json;
+        } else if (json && Array.isArray((json as any).competitors)) {
+             return (json as any).competitors;
+        } else {
+             return json ? [json] : [];
+        }
     } catch (error) {
         console.error(`Error suggesting and analyzing competitors:`, error);
         throw new Error(`Failed to generate competitor suggestions. The cosmic market intelligence network is currently unavailable.`);
@@ -893,7 +1041,7 @@ export const getYearlyForecast = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
       config: {
         seed: 42,
@@ -957,11 +1105,9 @@ export const generateJyotishReport = async (
   const { fullName, dob, time, location, gender, language } = userData;
 
   const prompt = `
-  Act as Arvind Sud, a master of both Chaldean Numerology and Vedic Astrology (Jyotish). Your integrated approach provides a holistic view of the cosmic forces shaping a person's life.
+  Act as a Master Vedic Astrologer (Jyotish Acharya) with decades of experience in authentic Parashara Light logic.
   Your persona is wise, authentic, and deeply insightful. Your entire response MUST be in ${language}.
-  The user wants their "Traditional Jyotish Report".
-  The output MUST be a valid JSON object adhering to the provided schema.
-
+  
   **USER DATA:**
   - Full Name: "${fullName}"
   - Date of Birth: "${dob}"
@@ -970,63 +1116,214 @@ export const generateJyotishReport = async (
   - Gender: "${gender}"
   - Preferred Language: "${language}"
 
-  **TASK: GENERATE A FOUR-PART JSON RESPONSE**
+  **CALCULATION STANDARDS (STRICT):**
+  - Ayanamsa: **Lahiri (Chitra Paksha)**. This is non-negotiable for authentic Vedic accuracy.
+  - House System: Whole Sign or Placidus (state which is used implicitly by the positions).
+  - Dasha System: Vimshottari.
 
-  **PART 1: 'planetaryPlacements' Array**
-  First, based on the user's birth data, calculate the precise house (bhava) and sign (rashi) for each of the 9 Grahas (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu).
-  Populate the 'planetaryPlacements' array with exactly 9 objects, one for each Graha. This data must be accurate and is for a visual chart.
-  - The 'planet' field must be the English name.
-  - The 'sign' field must be the English name of the zodiac sign.
-  - The 'house' field must be an integer from 1 to 12.
+  **TASK: GENERATE A DEEP-DIVE MASTER JYOTISH REPORT**
+  You must return a valid JSON object strictly adhering to the schema provided. The analysis MUST be comprehensive, simulating the depth of a professional 50-page reading.
 
-  **PART 2: 'ascendantSign' String**
-  Determine the user's Ascendant sign (Lagna) and place its English name (e.g., "Aries") in the \`ascendantSign\` field. This is critical for the visual chart layout.
-  
-  **PART 3: 'grahaBala' Array**
-  Evaluate the strength (Bala) of each of the 9 Grahas. Consider factors like its sign (own, exaltation, debilitation), house placement (kendra, trikona), and aspects. Synthesize this into a 'score' from 0 (very weak) to 100 (very strong). Provide a concise 'summary' for each planet explaining its impact. Populate the 'grahaBala' array.
+  **1. PAST LIFE & KARMIC PLAYBACK:**
+  - **Atmakaraka (Soul Planet):** Identify the planet with the highest degree (excluding Rahu/Ketu). Reveal past life wounds and emotional tendencies.
+  - **Rahu/Ketu Axis:** Analyze the specific house/sign placement. Explain the soul's past mastery (Ketu) and current obsession/growth area (Rahu). Identify the specific "Repeating Pattern" the user is stuck in.
+  - **D-60 (Shashtiamsha) Insight:** Provide a high-level karmic memory summary derived from the D-60 chart logic (e.g., past achievements, debts, betrayals).
+  - **Childhood Analysis (0-12 years):** Analyze Moon + Nakshatra, Mercury + 3rd House, and 4th House to reveal early emotional wounds, talents, and events that shaped their personality.
 
-  **PART 4: 'markdownReport' String**
-  Third, generate the complete, detailed "Traditional Jyotish Report" as a single Markdown string and place it in the 'markdownReport' field.
-  - **Structure:** Use the specified Markdown headings (e.g., '### 1. Janma Lagna...').
-  - **Terminology:** For ALL key astrological terms within this markdown string, you MUST provide the English term followed by its traditional Sanskrit equivalent using this exact format: \`(Sanskrit: term)\`. Examples: "Ascendant (Sanskrit: Lagna)", "Planet (Sanskrit: Graha)". This is non-negotiable.
-  - **Content:** Provide a detailed, authentic analysis for each section. Use **bolding** for key terms and bulleted lists for clarity.
+  **2. PRESENT LIFE TIMELINE (MASTER SYSTEM):**
+  - **Current Dasha:** Calculate the *current* Vimshottari Mahadasha and Antardasha based on the birth date. Explain what this specific "Season of Life" means right now.
+  - **Planetary Placements:** Calculate precise positions for all 9 Grahas including Nakshatras and degrees.
 
-  **MARKDOWN REPORT STRUCTURE (MUST BE FOLLOWED EXACTLY):**
+  **3. FUTURE LIFE TIMELINE (NETFLIX-STYLE):**
+  - Generate a chronological, age-wise timeline of major life cycles.
+  - **Cycles to Include:** Moon Cycle (0-12), Mars Cycle (13-24), Rahu Cycle (25-36), Jupiter Cycle (37-48), Saturn Cycle (49-60), Ketu Cycle (60+).
+  - For each phase, provide the specific age range, the planetary theme (e.g., "Growth & Chaos"), and a specific prediction for that phase of the user's life.
 
-  ### 1. Janma Lagna (Ascendant) & Core Analysis
-  (Determine Lagna sign, its ruling planet. Describe physical/behavioral tendencies based on this.)
+  **4. EVENT TIMING (SPECIFIC PREDICTIONS):**
+  - Identify 3-4 **CRITICAL** future years for major life events using the synthesis of Dasha + Transits.
+  - **Categories:** Career Rise, Marriage/Relationship, Wealth Peak, Spiritual Awakening.
+  - **Prediction:** "At Age X (Year Y): [Event Description]". Be specific.
 
-  ### 2. Graha (Planetary) Placement Overview
-  (For each of the 9 Grahas, describe its placement by house and sign, its significance, and identify functional benefics/malefics for this specific Lagna.)
+  **5. GUIDANCE ENGINE:**
+  - **Actionable Advice:** When to take action (e.g., "Next 3 months good for business").
+  - **Vedic Remedies (Upay):** Provide a list of 3-5 general remedies.
+  - **Pitfalls:** What to strictly avoid to prevent karmic backlash.
 
-  ### 3. Key Yogas (Planetary Combinations)
-  (Identify and explain 2-3 of the most significant Yogas, positive or negative (e.g., Raj Yogas, Dhana Yogas, Kemadruma Yoga). Explain their practical impact on the user's life - e.g., wealth, career, status.)
+  **6. DETAILED VEDIC REMEDIES (NEW):**
+  - Identify the 2-3 most challenging planetary influences in the chart (weak planets, functional malefics, or difficult conjunctions).
+  - For EACH of these planets, provide a structured breakdown:
+    - **Planet:** The planet name.
+    - **Reason:** Why this planet needs remedy (e.g. "Debilitated in 8th house").
+    - **Mantra:** A specific Beej Mantra or Vedic Mantra.
+    - **Gemstone:** Suggest a gemstone, BUT include instructions (wear on which finger, which day).
+    - **Charity:** A specific donation item related to that planet.
+    - **Behavior:** A behavioral correction (e.g. "Speak less harshly" for Mars).
 
-  ### 4. Major Doshas (Astrological Challenges)
-  (Check for major Doshas like Manglik Dosha, Kaal Sarp Dosha, or Pitri Dosha. If present, explain the effects constructively and without fear-mongering. If none are significant, state that clearly.)
-
-  ### 5. Vimshottari Dasha Analysis
-  (State the current Mahadasha/Antardasha. Analyze its core themes and provide a brief, actionable forecast for the next 1-2 years based on this Dasha period.)
-
-  ### 6. Gochar (Transit) Overview for 2025-2027
-  (Analyze the impact of the major transits of Saturn (Shani), Jupiter (Guru), and Rahu-Ketu for the specified period based on the user's Moon Sign (Rashi).)
-
-  ### 7. Personalized Remedies & Actionable Guidance
-  (Based on the entire analysis, provide a bulleted list of 3-4 simple, practical, and personalized remedies. These can include:
-  - **Gemstone:** Suggest one primary gemstone.
-  - **Mantra:** A specific mantra to a deity or planet that would be beneficial.
-  - **Ritual/Practice:** A simple daily or weekly practice (e.g., offering water to the Sun, charity on a specific day).
-  - **Lifestyle Advice:** A practical lifestyle adjustment aligned with their chart (e.g., "focus on disciplined savings due to a strong Saturn").)
-  
-  You must return a single JSON object. Do not include any text before or after the JSON.
+  **7. REPORT & CHARTS:**
+  - **Planetary Strength (Graha Bala):** Evaluate strength (0-100) for each planet.
+  - **Markdown Report:** A summary text report.
   `;
+
+  const nakshatraInfoSchema = {
+      type: Type.OBJECT,
+      properties: {
+          name: { type: Type.STRING },
+          lord: { type: Type.STRING },
+          pada: { type: Type.NUMBER },
+          quality: { type: Type.STRING },
+          summary: { type: Type.STRING },
+      },
+      required: ['name', 'lord', 'quality', 'summary'],
+  };
+
+  const planetaryPlacementSchema = {
+      type: Type.OBJECT,
+      properties: {
+          planet: { type: Type.STRING },
+          sign: { type: Type.STRING },
+          house: { type: Type.NUMBER },
+          nakshatra: { type: Type.STRING },
+          nakshatraLord: { type: Type.STRING },
+          degree: { type: Type.STRING },
+          isRetrograde: { type: Type.BOOLEAN },
+      },
+      required: ['planet', 'sign', 'house', 'nakshatra'],
+  };
+
+  const planetaryStrengthSchema = {
+      type: Type.OBJECT,
+      properties: {
+          planet: { type: Type.STRING },
+          score: { type: Type.NUMBER },
+          summary: { type: Type.STRING },
+      },
+      required: ['planet', 'score', 'summary'],
+  };
+
+  const soulPurposeSchema = {
+      type: Type.OBJECT,
+      properties: {
+          atmakaraka: {
+              type: Type.OBJECT,
+              properties: {
+                  planet: { type: Type.STRING },
+                  significance: { type: Type.STRING },
+                  pastLifeWounds: { type: Type.STRING },
+              },
+              required: ['planet', 'significance', 'pastLifeWounds'],
+          },
+          karmicAxis: {
+              type: Type.OBJECT,
+              properties: {
+                  rahuPlacement: { type: Type.STRING },
+                  ketuPlacement: { type: Type.STRING },
+                  lifeLesson: { type: Type.STRING },
+                  repeatingPatterns: { type: Type.STRING },
+              },
+              required: ['rahuPlacement', 'ketuPlacement', 'lifeLesson', 'repeatingPatterns'],
+          },
+          dharma: { type: Type.STRING },
+          d60Memory: { type: Type.STRING },
+          childhoodAnalysis: { type: Type.STRING },
+      },
+      required: ['atmakaraka', 'karmicAxis', 'dharma', 'd60Memory', 'childhoodAnalysis'],
+  };
+
+  const dashaPeriodSchema = {
+      type: Type.OBJECT,
+      properties: {
+          currentMahadasha: { type: Type.STRING },
+          currentAntardasha: { type: Type.STRING },
+          endDate: { type: Type.STRING },
+          analysis: { type: Type.STRING },
+      },
+      required: ['currentMahadasha', 'currentAntardasha', 'analysis'],
+  };
+
+  const lifeCyclePhaseSchema = {
+    type: Type.OBJECT,
+    properties: {
+        ageRange: { type: Type.STRING },
+        cycleName: { type: Type.STRING },
+        theme: { type: Type.STRING },
+        prediction: { type: Type.STRING },
+    },
+    required: ['ageRange', 'cycleName', 'theme', 'prediction'],
+  };
+
+  const keyLifeEventSchema = {
+    type: Type.OBJECT,
+    properties: {
+        age: { type: Type.NUMBER },
+        year: { type: Type.NUMBER },
+        category: { type: Type.STRING },
+        eventDescription: { type: Type.STRING },
+    },
+    required: ['age', 'year', 'category', 'eventDescription'],
+  };
+
+  const actionableGuidanceSchema = {
+    type: Type.OBJECT,
+    properties: {
+        bestActions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        remedies: { type: Type.ARRAY, items: { type: Type.STRING } },
+        pitfalls: { type: Type.ARRAY, items: { type: Type.STRING } },
+    },
+    required: ['bestActions', 'remedies', 'pitfalls'],
+  };
+
+  const detailedRemedySchema = {
+    type: Type.OBJECT,
+    properties: {
+        planet: { type: Type.STRING },
+        reason: { type: Type.STRING },
+        mantra: { type: Type.STRING },
+        gemstone: {
+            type: Type.OBJECT,
+            properties: {
+                name: { type: Type.STRING },
+                instruction: { type: Type.STRING },
+            },
+            required: ['name', 'instruction'],
+        },
+        charity: { type: Type.STRING },
+        behavioralCorrection: { type: Type.STRING },
+    },
+    required: ['planet', 'reason', 'mantra', 'gemstone', 'charity', 'behavioralCorrection'],
+  };
+
+  const schema = {
+      type: Type.OBJECT,
+      properties: {
+          markdownReport: { type: Type.STRING },
+          planetaryPlacements: { type: Type.ARRAY, items: planetaryPlacementSchema },
+          ascendantSign: { type: Type.STRING },
+          ascendantNakshatra: nakshatraInfoSchema,
+          moonNakshatra: nakshatraInfoSchema,
+          grahaBala: { type: Type.ARRAY, items: planetaryStrengthSchema },
+          soulPurpose: soulPurposeSchema,
+          currentPeriod: dashaPeriodSchema,
+          futureTimeline: { type: Type.ARRAY, items: lifeCyclePhaseSchema },
+          keyEvents: { type: Type.ARRAY, items: keyLifeEventSchema },
+          guidance: actionableGuidanceSchema,
+          detailedRemedies: { type: Type.ARRAY, items: detailedRemedySchema },
+      },
+      required: [
+        'markdownReport', 'planetaryPlacements', 'ascendantSign', 
+        'ascendantNakshatra', 'moonNakshatra', 'grahaBala', 
+        'soulPurpose', 'currentPeriod', 'futureTimeline', 
+        'keyEvents', 'guidance', 'detailedRemedies'
+      ],
+  };
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
       config: {
         seed: 42,
+        responseMimeType: "application/json",
+        responseSchema: schema,
       },
     });
     
@@ -1150,7 +1447,7 @@ export const getBirthDestinyCombinationInterpretation = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
     });
     return response.text;
@@ -1200,7 +1497,7 @@ export const getMonthlyCalendarInsights = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
       config: {
         seed: 42,
